@@ -1,26 +1,435 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ─────────────────────────────────────────────────────────────
+   DESIGN TOKENS
+───────────────────────────────────────────────────────────── */
+@theme inline {
+  --font-sans:    var(--font-outfit), "Inter", system-ui, sans-serif;
+  --font-cursive: var(--font-pacifico), Georgia, serif;
+  --font-mono:    var(--font-geist-mono), monospace;
+
+  --color-background:           var(--background);
+  --color-foreground:           var(--foreground);
+  --color-card:                 var(--card);
+  --color-card-foreground:      var(--card-foreground);
+  --color-primary:              var(--primary);
+  --color-primary-foreground:   var(--primary-foreground);
+  --color-secondary:            var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted:                var(--muted);
+  --color-muted-foreground:     var(--muted-foreground);
+  --color-accent:               var(--accent);
+  --color-accent-foreground:    var(--accent-foreground);
+  --color-destructive:          var(--destructive);
+  --color-border:               var(--border);
+  --color-input:                var(--input);
+  --color-ring:                 var(--ring);
+  --color-popover:              var(--popover);
+  --color-popover-foreground:   var(--popover-foreground);
+  --radius-sm:  calc(var(--radius) * 0.6);
+  --radius-md:  calc(var(--radius) * 0.85);
+  --radius-lg:  var(--radius);
+  --radius-xl:  calc(var(--radius) * 1.5);
+  --radius-2xl: calc(var(--radius) * 2);
+}
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Base */
+  --bg-base:   #07080D;
+  --bg-raised: #0C0D14;
+  --bg-float:  #11121A;
+
+  /* Tokens */
+  --background:           #07080D;
+  --foreground:           #ECEFF4;
+  --card:                 rgba(255,255,255,0.038);
+  --card-foreground:      #ECEFF4;
+  --popover:              #0E0F18;
+  --popover-foreground:   #ECEFF4;
+  --primary:              #3B82F6;
+  --primary-foreground:   #ffffff;
+  --secondary:            rgba(255,255,255,0.055);
+  --secondary-foreground: #ECEFF4;
+  --muted:                rgba(255,255,255,0.045);
+  --muted-foreground:     #5E6A7A;
+  --accent:               #F59E0B;
+  --accent-foreground:    #07080D;
+  --destructive:          #EF4444;
+  --border:               rgba(255,255,255,0.075);
+  --input:                rgba(255,255,255,0.065);
+  --ring:                 rgba(59,130,246,0.5);
+  --radius:               0.625rem;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+/* ─────────────────────────────────────────────────────────────
+   BASE
+───────────────────────────────────────────────────────────── */
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  html {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    /* Subtle global noise — the #1 thing that removes "AI flat" feel */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  }
+
+  /* Tight, intentional selection colour */
+  ::selection {
+    background: rgba(59,130,246,0.28);
+    color: #fff;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ─────────────────────────────────────────────────────────────
+   SURFACE SYSTEM
+   Three levels of perceived elevation — not just "glass"
+───────────────────────────────────────────────────────────── */
+
+/* Level 0 — Cards that sit flat on the page */
+.surface {
+  background: rgba(255,255,255,0.032);
+  border: 1px solid rgba(255,255,255,0.072);
+  border-radius: 1rem;
+}
+
+.surface-raised {
+  background: rgba(255,255,255,0.055);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 1rem;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.06) inset,
+    0 4px 16px rgba(0,0,0,0.45);
+}
+
+.font-serif {
+  font-family: var(--font-playfair), Georgia, serif;
+}
+
+/* Level 2 — Floating modals, popovers */
+.surface-float {
+  background: #0E0F18;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 1.125rem;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.07) inset,
+    0 8px 40px rgba(0,0,0,0.6),
+    0 2px 8px rgba(0,0,0,0.4);
+}
+
+/* Legacy aliases for existing code */
+.glass {
+  background: rgba(255,255,255,0.032);
+  border: 1px solid rgba(255,255,255,0.072);
+  border-radius: 1rem;
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+}
+.glass-blue {
+  background: rgba(59,130,246,0.07);
+  border: 1px solid rgba(59,130,246,0.2);
+  border-radius: 1rem;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+.glass-gold {
+  background: rgba(245,158,11,0.065);
+  border: 1px solid rgba(245,158,11,0.18);
+  border-radius: 1rem;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   GLOW
+───────────────────────────────────────────────────────────── */
+.glow-blue {
+  box-shadow:
+    0 0 0 1px rgba(59,130,246,0.2),
+    0 0 24px rgba(59,130,246,0.2),
+    0 0 64px rgba(59,130,246,0.08);
+}
+.glow-gold {
+  box-shadow:
+    0 0 0 1px rgba(245,158,11,0.2),
+    0 0 24px rgba(245,158,11,0.2),
+    0 0 64px rgba(245,158,11,0.08);
+}
+.text-glow-blue { text-shadow: 0 0 24px rgba(59,130,246,0.55), 0 0 48px rgba(59,130,246,0.25); }
+.text-glow-gold { text-shadow: 0 0 24px rgba(245,158,11,0.55), 0 0 48px rgba(245,158,11,0.25); }
+
+/* ─────────────────────────────────────────────────────────────
+   MESH GRADIENT UTILITY
+   Use as a pseudo-element or direct background on sections
+───────────────────────────────────────────────────────────── */
+.mesh-hero {
+  background:
+    radial-gradient(ellipse 60% 40% at 20% 40%, rgba(59,130,246,0.14) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 50% at 80% 20%, rgba(99,102,241,0.10) 0%, transparent 60%),
+    radial-gradient(ellipse 70% 40% at 50% 90%, rgba(245,158,11,0.06) 0%, transparent 60%),
+    #07080D;
+}
+
+.mesh-cta {
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 0%, rgba(59,130,246,0.18) 0%, transparent 55%),
+    radial-gradient(ellipse 40% 40% at 90% 100%, rgba(245,158,11,0.08) 0%, transparent 55%),
+    rgba(59,130,246,0.04);
+  border-top: 1px solid rgba(59,130,246,0.12);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   TYPOGRAPHY UTILITIES
+───────────────────────────────────────────────────────────── */
+.label-overline {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #5E6A7A;
+}
+
+.label-feature {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   BUTTONS
+───────────────────────────────────────────────────────────── */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: #fff;
+  border-radius: 0.625rem;
+  border: 1px solid rgba(99,102,241,0.5);
+  background: linear-gradient(180deg, #4F8EF7 0%, #3B6EE0 100%);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.14) inset,
+    0 -1px 0 rgba(0,0,0,0.2) inset,
+    0 2px 8px rgba(59,130,246,0.3),
+    0 1px 2px rgba(0,0,0,0.4);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.btn-primary:hover {
+  background: linear-gradient(180deg, #5B97F8 0%, #4278EF 100%);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.16) inset,
+    0 -1px 0 rgba(0,0,0,0.2) inset,
+    0 4px 16px rgba(59,130,246,0.4),
+    0 1px 3px rgba(0,0,0,0.4);
+  transform: translateY(-1px);
+}
+.btn-primary:active { transform: translateY(0); }
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #94A3B8;
+  border-radius: 0.625rem;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.btn-ghost:hover {
+  background: rgba(255,255,255,0.06);
+  color: #ECEFF4;
+  border-color: rgba(255,255,255,0.12);
+}
+
+.btn-gold {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #07080D;
+  border-radius: 0.625rem;
+  border: 1px solid rgba(251,191,36,0.45);
+  background: linear-gradient(180deg, #FCD34D 0%, #F59E0B 100%);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.28) inset,
+    0 -1px 0 rgba(0,0,0,0.1) inset,
+    0 2px 8px rgba(245,158,11,0.28);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.btn-gold:hover {
+  background: linear-gradient(180deg, #FDE68A 0%, #FBBF24 100%);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.3) inset,
+    0 4px 14px rgba(245,158,11,0.38);
+  transform: translateY(-1px);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   BENTO GRID (asymmetric layout for features)
+───────────────────────────────────────────────────────────── */
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  grid-template-rows: auto;
+  gap: 0.875rem;
+}
+.bento-span-4 { grid-column: span 4; }
+.bento-span-3 { grid-column: span 3; }
+.bento-span-2 { grid-column: span 2; }
+.bento-span-6 { grid-column: span 6; }
+
+@media (max-width: 768px) {
+  .bento-span-4,
+  .bento-span-3,
+  .bento-span-2,
+  .bento-span-6 { grid-column: span 6; }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   DIVIDER LINE WITH GRADIENT FADE
+───────────────────────────────────────────────────────────── */
+.divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.08) 30%, rgba(255,255,255,0.08) 70%, transparent 100%);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   INPUT
+───────────────────────────────────────────────────────────── */
+.input-saas {
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  background: rgba(255,255,255,0.045);
+  border: 1px solid rgba(255,255,255,0.085);
+  border-radius: 0.5rem;
+  color: #ECEFF4;
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+.input-saas::placeholder { color: #3D4757; }
+.input-saas:focus {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(59,130,246,0.45);
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.1), 0 1px 3px rgba(0,0,0,0.3);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   SCROLLBAR
+───────────────────────────────────────────────────────────── */
+::-webkit-scrollbar       { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.18); }
+
+/* ─────────────────────────────────────────────────────────────
+   ANIMATIONS
+───────────────────────────────────────────────────────────── */
+@keyframes reveal-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes reveal-scale {
+  from { opacity: 0; transform: scale(0.94); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes orb-drift {
+  0%, 100% { transform: translate(0,0) scale(1); }
+  40%       { transform: translate(14px,-22px) scale(1.03); }
+  70%       { transform: translate(-12px,10px) scale(0.98); }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+@keyframes countdown-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(245,158,11,0); }
+  50%       { box-shadow: 0 0 0 8px rgba(245,158,11,0.07); }
+}
+@keyframes flame-flicker {
+  0%   { transform: scaleX(1)    scaleY(1)    rotate(-1deg); }
+  20%  { transform: scaleX(0.88) scaleY(1.09) rotate(2deg); }
+  45%  { transform: scaleX(1.06) scaleY(0.93) rotate(-0.5deg); }
+  70%  { transform: scaleX(0.92) scaleY(1.08) rotate(1.5deg); }
+  100% { transform: scaleX(1)    scaleY(1)    rotate(-1deg); }
+}
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+/* Ticker animation for trust bar */
+@keyframes ticker-slide {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+.animate-reveal-up    { animation: reveal-up    0.5s cubic-bezier(0.22,1,0.36,1) both; }
+.animate-reveal-scale { animation: reveal-scale 0.4s cubic-bezier(0.22,1,0.36,1) both; }
+.animate-orb-drift    { animation: orb-drift 24s ease-in-out infinite; }
+.animate-flame        { animation: flame-flicker 0.13s linear infinite; transform-origin: 50% 100%; }
+.animate-countdown-pulse { animation: countdown-pulse 2s ease-in-out infinite; }
+.animate-shimmer {
+  background: linear-gradient(90deg,
+    rgba(255,255,255,0.02) 0%,
+    rgba(59,130,246,0.09)  50%,
+    rgba(255,255,255,0.02) 100%);
+  background-size: 200% auto;
+  animation: shimmer 1.8s linear infinite;
+}
+.animate-marquee { animation: marquee 28s linear infinite; }
+.animate-ticker  { animation: ticker-slide 22s linear infinite; }
+
+/* Stagger helpers */
+.delay-75  { animation-delay: 75ms; }
+.delay-150 { animation-delay: 150ms; }
+.delay-225 { animation-delay: 225ms; }
+.delay-300 { animation-delay: 300ms; }
+.delay-400 { animation-delay: 400ms; }
+.delay-500 { animation-delay: 500ms; }
+
+/* ── Floating Hearts Animation ── */
+@keyframes float-heart {
+  0% {
+    transform: translateY(0) scale(0) rotate(0deg);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.7;
+    transform: translateY(-20vh) scale(1) rotate(15deg);
+  }
+  100% {
+    transform: translateY(-110vh) scale(0.6) rotate(-45deg);
+    opacity: 0;
+  }
+}
+.animate-float-heart {
+  animation: float-heart 7s ease-in-out infinite;
 }
