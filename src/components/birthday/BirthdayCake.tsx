@@ -14,8 +14,8 @@ interface BirthdayCakeProps {
 }
 
 export default function BirthdayCake({ name, age, onCelebrationStart }: BirthdayCakeProps) {
-  // Number of candles based on age, default to 3
-  const numCandles = age && age > 0 ? Math.min(age, 6) : 3;
+  // Always 5 candles as requested
+  const numCandles = 5;
   
   const [candlesLit, setCandlesLit] = useState<boolean[]>([]);
   const [micActive, setMicActive] = useState(false);
@@ -26,10 +26,14 @@ export default function BirthdayCake({ name, age, onCelebrationStart }: Birthday
   const micDetectorRef = useRef<MicBlowDetector | null>(null);
   const songPlayerRef = useRef<HappyBirthdayPlayer | null>(null);
 
-  // Initialize candles state (all lit initially)
+  // Initialize candles state and play song on cake reveal
   useEffect(() => {
     setCandlesLit(Array(numCandles).fill(true));
     songPlayerRef.current = new HappyBirthdayPlayer();
+    
+    // Auto-play tune on reveal
+    songPlayerRef.current.play();
+    setSongPlaying(true);
 
     return () => {
       if (micDetectorRef.current) {
@@ -149,22 +153,22 @@ export default function BirthdayCake({ name, age, onCelebrationStart }: Birthday
       {/* Celebration Titles */}
       {celebrationFired ? (
         <div className="text-center mb-6 animate-bounce">
-          <h2 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-rose-400 via-pink-400 to-cyan-400 flex items-center justify-center gap-2">
-            <Sparkles className="w-6 h-6 animate-spin text-theme-accent" />
+          <h2 className="text-3xl font-serif font-normal italic text-[#C86A76] flex items-center justify-center gap-2">
+            <Sparkles className="w-6 h-6 animate-spin text-[#C86A76]" />
             Make a Wish, {name}!
-            <Sparkles className="w-6 h-6 animate-spin text-theme-accent" />
+            <Sparkles className="w-6 h-6 animate-spin text-[#C86A76]" />
           </h2>
-          <p className="text-xs text-slate-400 mt-1">Your magical birthday wishes are in motion...</p>
+          <p className="text-xs text-[#6A5A5C] mt-1">Your magical birthday wishes are in motion...</p>
         </div>
       ) : (
         <div className="text-center mb-4">
-          <h2 className="text-2xl font-extrabold text-white">Blow out the candles!</h2>
-          <p className="text-xs text-slate-400 mt-1">Drag to spin the 3D cake. Click candles directly or use the microphone.</p>
+          <h2 className="text-2xl font-serif text-[#3E2D2F]">Blow out the candles!</h2>
+          <p className="text-xs text-[#6A5A5C] mt-1">Drag to spin the 3D cake. Click candles directly or use the microphone.</p>
         </div>
       )}
 
       {/* 3D WebGL Cake Area */}
-      <div className="relative w-full max-w-sm h-80 sm:h-96 flex items-center justify-center mb-6 bg-zinc-950/20 rounded-2xl border border-zinc-900 overflow-hidden shadow-inner">
+      <div className="relative w-full max-w-sm h-80 sm:h-96 flex items-center justify-center mb-6 bg-[#FAF3EC] rounded-2xl border border-[#E6DFD3] overflow-hidden shadow-inner">
         {candlesLit.length > 0 && (
           <Cake3D
             numCandles={numCandles}
@@ -175,7 +179,7 @@ export default function BirthdayCake({ name, age, onCelebrationStart }: Birthday
         
         {/* Helper instructions overlay */}
         {!celebrationFired && (
-          <div className="absolute bottom-3 left-0 right-0 text-center pointer-events-none opacity-40 text-[9px] uppercase tracking-wider text-slate-300">
+          <div className="absolute bottom-3 left-0 right-0 text-center pointer-events-none opacity-50 text-[9px] uppercase tracking-wider text-[#7C6E70]">
             Drag to rotate 3D cake
           </div>
         )}
@@ -188,10 +192,10 @@ export default function BirthdayCake({ name, age, onCelebrationStart }: Birthday
             type="button"
             variant="outline"
             onClick={toggleMicrophone}
-            className={`flex items-center justify-center gap-2 rounded-xl py-4 border border-zinc-800 hover:border-zinc-700 h-auto text-sm font-bold transition-all duration-300 cursor-pointer ${
+            className={`flex items-center justify-center gap-2 rounded-xl py-4 border border-stone-300 hover:bg-white/[0.2] h-auto text-sm font-bold transition-all duration-300 cursor-pointer ${
               micActive
-                ? "bg-rose-500/10 border-rose-500/40 text-rose-400 hover:text-rose-300 ring-4 ring-rose-500/5"
-                : "bg-zinc-900 hover:bg-zinc-800 text-slate-300"
+                ? "bg-rose-500/5 border-rose-500/20 text-rose-500 hover:text-rose-600 ring-4 ring-rose-500/5"
+                : "bg-white/[0.6] text-[#3E2D2F]"
             }`}
           >
             {micActive ? (
@@ -201,7 +205,7 @@ export default function BirthdayCake({ name, age, onCelebrationStart }: Birthday
               </>
             ) : (
               <>
-                <MicOff className="w-4 h-4 text-slate-500" />
+                <MicOff className="w-4 h-4 text-[#7C6E70]" />
                 <span>Enable Microphone Blow</span>
               </>
             )}
@@ -210,10 +214,10 @@ export default function BirthdayCake({ name, age, onCelebrationStart }: Birthday
 
         {/* Level indicator */}
         {micActive && !celebrationFired && (
-          <div className="w-full bg-zinc-900 rounded-full h-1.5 overflow-hidden flex items-center border border-zinc-800">
+          <div className="w-full bg-stone-200 rounded-full h-1.5 overflow-hidden flex items-center border border-stone-300">
             <div
               style={{ width: `${micVolume}%` }}
-              className="h-full bg-gradient-to-r from-cyan-400 to-rose-400 transition-all duration-75"
+              className="h-full bg-gradient-to-r from-[#D4B26F] to-[#C86A76] transition-all duration-75"
             />
           </div>
         )}
@@ -224,16 +228,16 @@ export default function BirthdayCake({ name, age, onCelebrationStart }: Birthday
             type="button"
             variant="outline"
             onClick={toggleSong}
-            className="flex items-center justify-center gap-2 rounded-xl py-4 border border-zinc-800 bg-zinc-900 hover:bg-zinc-800 text-slate-200 h-auto text-sm font-bold cursor-pointer"
+            className="flex items-center justify-center gap-2 rounded-xl py-4 border border-stone-300 bg-white/[0.6] hover:bg-white/[0.8] text-[#3E2D2F] h-auto text-sm font-bold cursor-pointer"
           >
             {songPlaying ? (
               <>
-                <Volume2 className="w-5 h-5 text-rose-400 animate-bounce" />
+                <Volume2 className="w-5 h-5 text-[#C86A76] animate-bounce" />
                 <span>Stop Synthesizer Song</span>
               </>
             ) : (
               <>
-                <VolumeX className="w-5 h-5 text-slate-500" />
+                <VolumeX className="w-5 h-5 text-[#7C6E70]" />
                 <span>Play Birthday Song</span>
               </>
             )}

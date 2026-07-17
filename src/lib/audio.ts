@@ -297,7 +297,14 @@ export class MicBlowDetector {
 
   async start(): Promise<boolean> {
     try {
-      this.stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+      this.stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          echoCancellation: false,
+          noiseSuppression: false,
+          autoGainControl: false,
+        }, 
+        video: false 
+      });
       
       this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
       this.analyser = this.audioContext.createAnalyser();
@@ -342,8 +349,8 @@ export class MicBlowDetector {
     }
     
     // Blow detection: high energy in low frequencies
-    // Threshold is set around 130 (out of 255 max value)
-    if (avgLowFreq > 135) {
+    // Threshold is set lower (95 out of 255) so a medium blow works
+    if (avgLowFreq > 95) {
       this.onBlow();
     }
     
