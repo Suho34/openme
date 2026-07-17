@@ -2,13 +2,13 @@
 
 import React, { useRef, useEffect } from "react";
 
-// Premium fireworks palette: gold, silver, electric blue, platinum white — no toy primaries
+// Warm editorial fireworks palette: champagne gold, dusty rose, sage, ivory — no blue/neon
 const PALETTES = [
-  ["#F59E0B", "#FBBF24", "#FDE68A"],   // gold
-  ["#60A5FA", "#93C5FD", "#BFDBFE"],   // electric blue
-  ["#E2E8F0", "#F1F5F9", "#FFFFFF"],   // platinum white
-  ["#818CF8", "#A5B4FC", "#C7D2FE"],   // indigo
-  ["#F59E0B", "#60A5FA", "#FFFFFF"],   // gold + blue mix
+  ["#D8B88A", "#E5CDA5", "#EDD9B8"],   // champagne gold
+  ["#C97B84", "#D89BA3", "#E8BCC2"],   // dusty rose
+  ["#F5EDE3", "#FFF8F2", "#FFFFFF"],   // warm ivory
+  ["#A6B39D", "#BCC9B5", "#D3DDCE"],   // muted sage
+  ["#D8B88A", "#C97B84", "#FFFFFF"],   // gold + rose mix
 ];
 
 interface Particle {
@@ -36,27 +36,53 @@ function createParticle(x: number, y: number, color: string): Particle {
   };
 }
 
+
 interface Rocket {
-  x: number; y: number; vy: number;
+  x: number; y: number; vx: number; vy: number;
   palette: string[];
   exploded: boolean;
   targetY: number;
   trail: { x: number; y: number; alpha: number }[];
+  isText: boolean;
+  textIndex?: number;
 }
 
 function createRocket(w: number, h: number): Rocket {
   return {
     x: Math.random() * (w * 0.7) + w * 0.15,
     y: h,
+    vx: 0,
     vy: -(Math.random() * 4 + 7),
     palette: PALETTES[Math.floor(Math.random() * PALETTES.length)],
     exploded: false,
     targetY: Math.random() * (h * 0.45) + h * 0.05,
     trail: [],
+    isText: false,
   };
 }
 
-export default function Fireworks() {
+function createTextRocket(w: number, h: number, index: number): Rocket {
+  const spread = (index - 2) * (w * 0.08); // Spread out 5 rockets
+  return {
+    x: w / 2 + spread,
+    y: h,
+    vx: -spread * 0.015, // curve inwards toward center slightly
+    vy: -(Math.random() * 1.5 + 7.5), // fly up slower
+    palette: ["#D8B88A", "#E5CDA5", "#EDD9B8"], // warm champagne gold text
+    exploded: false,
+    targetY: h * 0.35, // top center
+    trail: [],
+    isText: true,
+    textIndex: index,
+  };
+}
+
+
+interface FireworksProps {
+  name?: string;
+}
+
+export default function Fireworks({ name = "Friend" }: FireworksProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -74,28 +100,50 @@ export default function Fireworks() {
     };
     window.addEventListener("resize", onResize);
 
-    let rockets: Rocket[]    = [];
+    let rockets: Rocket[] = [];
     let particles: Particle[] = [];
     let frame = 0;
     let raf: number;
+    let textFade = 0;
 
-    const explode = (x: number, y: number, palette: string[]) => {
-      const count = Math.floor(Math.random() * 50) + 80;
-      for (let i = 0; i < count; i++) {
-        const color = palette[Math.floor(Math.random() * palette.length)];
-        particles.push(createParticle(x, y, color));
+    const explode = (rocket: Rocket) => {
+      const { x, y, palette, isText, textIndex } = rocket;
+      if (isText) {
+        // Only trigger giant text for the center rocket to prevent overlap
+        if (textIndex === 2) {
+          textFade = 3.0; // Stay solid for ~4 seconds before fading
+        }
+        
+        // Everyone gets a small normal explosion too
+        const count = 40;
+        for (let i = 0; i < count; i++) {
+          particles.push(createParticle(x, y, palette[Math.floor(Math.random() * palette.length)]));
+        }
+      } else {
+        const count = Math.floor(Math.random() * 50) + 80;
+        for (let i = 0; i < count; i++) {
+          const color = palette[Math.floor(Math.random() * palette.length)];
+          particles.push(createParticle(x, y, color));
+        }
       }
     };
 
     const draw = () => {
-      // Dark trail — mix-blend-mode screen handles the glow on the CSS side
+      // Dark screen overlay to create fading trails
       ctx.fillStyle = "rgba(8,9,14,0.22)";
       ctx.fillRect(0, 0, w, h);
 
       frame++;
 
-      // Launch a new rocket every ~55 frames
-      if (frame % 55 === 0) {
+      // Launch 5 text-rockets at frame 40, and then every 200 frames
+      if (frame === 40 || (frame > 40 && (frame - 40) % 200 === 0)) {
+        for (let i = 0; i < 5; i++) {
+          rockets.push(createTextRocket(w, h, i));
+        }
+      }
+
+      // Launch normal rocket every 45 frames for more continuous fireworks
+      if (frame % 45 === 0) {
         rockets.push(createRocket(w, h));
       }
 
@@ -111,10 +159,10 @@ export default function Fireworks() {
           const b = r.trail[i];
           ctx.save();
           ctx.globalAlpha = b.alpha * (i / r.trail.length) * 0.7;
-          ctx.strokeStyle = "#F59E0B";
-          ctx.lineWidth = 1.5;
+          ctx.strokeStyle = r.isText ? "#D8B88A" : "#E5CDA5";
+          ctx.lineWidth = r.isText ? 2.5 : 1.5;
           ctx.shadowBlur = 6;
-          ctx.shadowColor = "#F59E0B";
+          ctx.shadowColor = r.isText ? "#D8B88A" : "#E5CDA5";
           ctx.beginPath();
           ctx.moveTo(a.x, a.y);
           ctx.lineTo(b.x, b.y);
@@ -123,17 +171,18 @@ export default function Fireworks() {
           r.trail[i].alpha *= 0.87;
         }
 
+        r.x  += r.vx;
         r.y  += r.vy;
-        r.vy += 0.06; // gravity slows ascent
+        r.vy += r.isText ? 0.025 : 0.045; // gravity slows ascent
 
         if (r.y <= r.targetY || r.vy >= -0.4) {
-          explode(r.x, r.y, r.palette);
+          explode(r);
           return false; // remove rocket
         }
         return true;
       });
 
-      // Update particles — drawn as glowing line segments in travel direction
+      // Update normal particles
       particles = particles.filter(p => {
         ctx.save();
         ctx.globalAlpha = p.alpha;
@@ -143,7 +192,6 @@ export default function Fireworks() {
         ctx.shadowColor = p.color;
         ctx.lineCap = "round";
 
-        // Line segment from current to previous position based on velocity
         ctx.beginPath();
         ctx.moveTo(p.x, p.y);
         ctx.lineTo(p.x - p.vx * p.length, p.y - p.vy * p.length);
@@ -160,6 +208,22 @@ export default function Fireworks() {
         return p.alpha > 0;
       });
 
+      // Render clean glowing text if triggered
+      if (textFade > 0) {
+        ctx.save();
+        ctx.globalAlpha = Math.min(1, textFade);
+        const fontSize = Math.min(w / 10, 100);
+        ctx.font = `bold ${fontSize}px Georgia, serif`;
+        ctx.shadowBlur = 18;
+        ctx.shadowColor = "#D8B88A";
+        ctx.fillStyle = "#FFF";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(`Happy Birthday, ${name}!`, w / 2, h * 0.35);
+        ctx.restore();
+        textFade -= 0.003; // very slow fade out
+      }
+
       raf = requestAnimationFrame(draw);
     };
 
@@ -169,7 +233,7 @@ export default function Fireworks() {
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", onResize);
     };
-  }, []);
+  }, [name]);
 
   return (
     <canvas
