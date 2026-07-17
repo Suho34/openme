@@ -2,7 +2,7 @@
 
 import React, { Suspense, useEffect, useState, useRef } from "react";
 import { useSearchParams } from "next/navigation";
-import { Heart, Sparkles, AlertCircle, Plus, Lock, Share2, ArrowRight } from "lucide-react";
+import { Heart, Sparkles, AlertCircle, Plus, Lock, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
@@ -12,12 +12,22 @@ import BirthdayCake from "@/components/birthday/BirthdayCake";
 import BalloonGame from "@/components/birthday/BalloonGame";
 import MemoryLane from "@/components/birthday/MemoryLane";
 import Fireworks from "@/components/birthday/Fireworks";
-import MemoryStars, { StarMemory } from "@/components/birthday/MemoryStars";
+import DoodleAnimation from "@/components/birthday/DoodleAnimation";
 import Timeline, { TimelineEvent } from "@/components/birthday/Timeline";
 import StepProgressBar from "@/components/ui/StepProgressBar";
 import { JinglePlayer } from "@/lib/jingle";
+import AmbientCanvas from "@/components/ui/AmbientCanvas";
 
 interface Memory { url: string; caption: string; }
+
+interface StarMemory {
+  id: number;
+  label: string;
+  date: string;
+  description: string;
+  x: number;
+  y: number;
+}
 
 interface WishData {
   n:  string;
@@ -25,27 +35,28 @@ interface WishData {
   s:  string;
   m:  string;
   t:  string;
-  mm: Memory[];
+  mm?: Memory[];
   dl?: number;
   tl?: TimelineEvent[];
   st?: StarMemory[];
+  dt?: "heart" | "rose" | "hearts" | "coffee";
+  demo?: boolean;
 }
 
-type Stage = "gift" | "cake" | "final-wish" | "constellation" | "timeline" | "memories" | "balloons" | "finale";
+type Stage = "gift" | "cake" | "final-wish" | "doodle" | "timeline" | "memories" | "balloons" | "finale";
 
-const STEP_LABELS = ["Open", "Blow", "Wish", "Stars", "Timeline", "Photos", "Balloons", "Finale"];
-const STAGE_INDEX: Record<Stage, number> = {
-  gift: 0,
-  cake: 1,
-  "final-wish": 2,
-  constellation: 3,
-  timeline: 4,
-  memories: 5,
-  balloons: 6,
-  finale: 7
-};
+const ALL_STAGES: { id: Stage; label: string }[] = [
+  { id: "gift", label: "Open" },
+  { id: "cake", label: "Blow" },
+  { id: "final-wish", label: "Wish" },
+  { id: "doodle", label: "Doodle" },
+  { id: "timeline", label: "Timeline" },
+  { id: "memories", label: "Photos" },
+  { id: "balloons", label: "Balloons" },
+  { id: "finale", label: "Finale" },
+];
 
-// ── Feature C: Countdown Lock ──
+// ── Feature C: Countdown Lock — Warm editorial style ──
 function CountdownLock({ unlockAt, onUnlock }: { unlockAt: number; onUnlock: () => void }) {
   const [remaining, setRemaining] = useState<{ d: number; h: number; m: number; s: number } | null>(null);
 
@@ -69,78 +80,31 @@ function CountdownLock({ unlockAt, onUnlock }: { unlockAt: number; onUnlock: () 
   if (!remaining) return null;
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center relative" style={{ background: "#08090E" }}>
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <div className="w-[600px] h-[400px] opacity-15 rounded-full"
-          style={{ background: "radial-gradient(ellipse, rgba(251,191,36,0.6) 0%, transparent 70%)", filter: "blur(80px)" }} />
-      </div>
-      <div className="relative z-10 flex flex-col items-center animate-reveal-up">
-        <div className="w-16 h-16 glass-gold rounded-2xl flex items-center justify-center mb-6 glow-gold">
-          <Lock className="w-7 h-7 text-amber-400" />
+    <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center bg-[#FFF8F2]">
+      <div className="relative z-10 flex flex-col items-center animate-reveal-up max-w-md">
+        <div className="w-16 h-16 rounded-2xl bg-white border border-[#ECE3DA] flex items-center justify-center mb-8"
+          style={{ boxShadow: "0 2px 12px rgba(46,42,39,0.04)" }}>
+          <Lock className="w-7 h-7 text-[#D8B88A]" />
         </div>
-        <p className="text-xs font-semibold text-amber-400 uppercase tracking-widest mb-2">Surprise Locked</p>
-        <h1 className="text-3xl sm:text-4xl font-bold text-white mb-10 tracking-tight">Unlocking in</h1>
-        <div className="flex items-center gap-3 mb-8">
+        <p className="text-[0.6875rem] font-semibold text-[#C97B84] uppercase tracking-[0.15em] mb-3">Surprise Locked</p>
+        <h1 className="font-serif text-[2.5rem] sm:text-[3rem] text-[#2E2A27] mb-10" style={{ fontWeight: 400 }}>Unlocking in</h1>
+        <div className="flex items-center gap-3 sm:gap-4 mb-10">
           {[{ v: remaining.d, l: "Days" }, { v: remaining.h, l: "Hours" }, { v: remaining.m, l: "Mins" }, { v: remaining.s, l: "Secs" }].map(({ v, l }) => (
             <div key={l} className="flex flex-col items-center">
-              <div className="glass-gold rounded-xl w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center animate-countdown-pulse">
-                <span className="text-2xl sm:text-3xl font-bold text-amber-300 font-mono">{pad(v)}</span>
+              <div className="bg-white rounded-2xl w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center border border-[#ECE3DA] animate-countdown-pulse"
+                style={{ boxShadow: "0 2px 12px rgba(46,42,39,0.04)" }}>
+                <span className="text-2xl sm:text-3xl font-serif text-[#2E2A27]" style={{ fontWeight: 500 }}>{pad(v)}</span>
               </div>
-              <span className="text-[9px] text-slate-500 font-semibold uppercase tracking-wider mt-2">{l}</span>
+              <span className="text-[0.625rem] text-[#B5ADA5] font-semibold uppercase tracking-wider mt-2.5">{l}</span>
             </div>
           ))}
         </div>
-        <p className="text-xs text-slate-500 max-w-xs leading-relaxed font-semibold">It unlocks automatically — return on your birthday! 🎂</p>
+        <p className="text-[0.875rem] text-[#6F655E] max-w-xs leading-relaxed">
+          It unlocks automatically — return on your birthday! 🎂
+        </p>
       </div>
     </div>
   );
-}
-
-// ── Ambient Floating Hearts Particle Canvas ──
-function FloatingHearts() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  useEffect(() => {
-    const canvas = canvasRef.current; if (!canvas) return;
-    const ctx = canvas.getContext("2d"); if (!ctx) return;
-    let w = canvas.width = window.innerWidth, h = canvas.height = window.innerHeight;
-    window.addEventListener("resize", () => { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; });
-    
-    const drawHeart = (x: number, y: number, size: number, opacity: number) => {
-      ctx.save();
-      ctx.beginPath();
-      ctx.translate(x, y);
-      ctx.moveTo(0, 0);
-      ctx.bezierCurveTo(-size / 2, -size / 2, -size, -size / 6, -size, size / 3);
-      ctx.bezierCurveTo(-size, size, -size / 3, size * 1.5, 0, size * 2);
-      ctx.bezierCurveTo(size / 3, size * 1.5, size, size, size, size / 3);
-      ctx.bezierCurveTo(size, -size / 6, size / 2, -size / 2, 0, 0);
-      ctx.fillStyle = `rgba(244, 63, 94, ${opacity})`;
-      ctx.fill();
-      ctx.restore();
-    };
-
-    const hearts = Array.from({ length: 24 }, () => ({
-      x: Math.random() * w, y: h + Math.random() * 100,
-      size: Math.random() * 4 + 3,
-      speed: Math.random() * 0.7 + 0.3,
-      opacity: Math.random() * 0.4 + 0.05
-    }));
-
-    let raf: number;
-    const animate = () => {
-      ctx.clearRect(0, 0, w, h);
-      hearts.forEach(p => {
-        drawHeart(p.x, p.y, p.size, p.opacity);
-        p.y -= p.speed;
-        p.x += Math.sin(p.y * 0.015) * 0.15;
-        if (p.y < -40) { p.y = h + 40; p.x = Math.random() * w; }
-      });
-      raf = requestAnimationFrame(animate);
-    };
-    animate();
-    return () => cancelAnimationFrame(raf);
-  }, []);
-  return <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-0" aria-hidden />;
 }
 
 // ── Main Page Component ──
@@ -154,6 +118,7 @@ function WishContent() {
   const [locked, setLocked]                 = useState(false);
   const [unlockTs, setUnlockTs]             = useState<number | null>(null);
   const [transitioning, setTransitioning]   = useState(false);
+  const [showFinalCard, setShowFinalCard]   = useState(false);
 
   // Final Wish form states
   const [finalWish, setFinalWish]           = useState("");
@@ -174,14 +139,39 @@ function WishContent() {
     } catch { setError(true); }
   }, [dataParam]);
 
+  const activeStages = React.useMemo(() => {
+    if (!wishData) return ALL_STAGES;
+    return ALL_STAGES.filter(s => {
+      if (wishData.demo) {
+        return s.id === "gift" || s.id === "cake" || s.id === "finale";
+      }
+      if (s.id === "doodle" && !wishData.dt) return false;
+      if (s.id === "timeline" && (!wishData.tl || wishData.tl.length === 0)) return false;
+      if (s.id === "memories" && (!wishData.mm || wishData.mm.length === 0)) return false;
+      return true;
+    });
+  }, [wishData]);
+
+  const stepLabels = activeStages.map(s => s.label);
+  const currentStepIndex = activeStages.findIndex(s => s.id === stage);
+  const totalSteps = activeStages.length;
+
+  const getNextStage = (currentId: Stage): Stage => {
+    const currentIndex = activeStages.findIndex(s => s.id === currentId);
+    if (currentIndex >= 0 && currentIndex < activeStages.length - 1) {
+      return activeStages[currentIndex + 1].id;
+    }
+    return "finale";
+  };
+
   const transition = (next: Stage) => {
     setTransitioning(true);
     setTimeout(() => { setStage(next); setTransitioning(false); window.scrollTo({ top: 0 }); }, 380);
   };
 
-  // Auto-play the Happy Birthday tune as soon as the cake is shown
+  // Auto-play the Happy Birthday tune as soon as the finale starts
   useEffect(() => {
-    if (stage === "cake" && wishData) {
+    if (stage === "finale" && wishData) {
       const playJingle = async () => {
         jingleRef.current = new JinglePlayer();
         await jingleRef.current.play({ theme: wishData.t, name: wishData.n });
@@ -190,13 +180,28 @@ function WishContent() {
     }
   }, [stage, wishData]);
 
+  // Set up grand finale black screen cinematic transition timer
+  useEffect(() => {
+    if (stage === "finale") {
+      const timer = setTimeout(() => {
+        setShowFinalCard(true);
+      }, 8000); // Wait 8 seconds before showing final buttons
+      return () => clearTimeout(timer);
+    }
+  }, [stage]);
+
   const handleOpenComplete = () => {
     transition("cake");
     toast("🎂 Time to blow the candles!", { duration: 3000 });
   };
 
   const handleCelebrationStart = () => {
-    transition("final-wish");
+    if (wishData?.demo) {
+      transition("finale");
+      confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ["#C97B84", "#D8B88A", "#A6B39D", "#FFFFFF"] });
+    } else {
+      transition("final-wish");
+    }
   };
 
   const handleWishSubmit = async (e: React.FormEvent) => {
@@ -209,17 +214,11 @@ function WishContent() {
     // Confetti on wish submit
     confetti({
       particleCount: 100, spread: 75, origin: { y: 0.55 },
-      colors: ["#F59E0B", "#3B82F6", "#818CF8", "#ffffff"],
+      colors: ["#C97B84", "#D8B88A", "#A6B39D", "#FFFFFF"],
     });
 
-    if (wishData) {
-      jingleRef.current = new JinglePlayer();
-      await jingleRef.current.play({ theme: wishData.t, name: wishData.n });
-    }
-
     setTimeout(() => {
-      // Transition directly to constellation step
-      transition("constellation");
+      transition(getNextStage("final-wish"));
     }, 1500);
   };
 
@@ -242,21 +241,22 @@ function WishContent() {
   };
 
   if (error) return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center" style={{ background: "#08090E" }}>
-      <div className="w-14 h-14 glass rounded-2xl flex items-center justify-center mb-5 text-red-400">
-        <AlertCircle className="w-7 h-7" />
+    <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center bg-[#FFF8F2]">
+      <div className="w-14 h-14 rounded-2xl bg-white border border-[#ECE3DA] flex items-center justify-center mb-6"
+        style={{ boxShadow: "0 2px 12px rgba(46,42,39,0.04)" }}>
+        <AlertCircle className="w-7 h-7 text-[#C46D5E]" />
       </div>
-      <h1 className="text-xl font-bold text-white mb-2">Invalid surprise link</h1>
-      <p className="text-sm text-slate-400 mb-6 max-w-sm font-semibold">This link appears broken. Make sure you copied the full URL.</p>
-      <Link href="/create"><button className="btn-primary px-6 py-2.5 text-sm">Create a new page</button></Link>
+      <h1 className="font-serif text-2xl text-[#2E2A27] mb-2" style={{ fontWeight: 500 }}>Invalid surprise link</h1>
+      <p className="text-[0.9375rem] text-[#6F655E] mb-8 max-w-sm">This link appears broken. Make sure you copied the full URL.</p>
+      <Link href="/create"><button className="btn-primary px-6 py-3 text-sm">Create a new surprise</button></Link>
     </div>
   );
 
   if (!wishData) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: "#08090E" }}>
+    <div className="min-h-screen flex items-center justify-center bg-[#FFF8F2]">
       <div className="flex flex-col items-center gap-3">
-        <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-        <span className="text-xs text-slate-400 font-semibold">Unwrapping…</span>
+        <div className="w-8 h-8 border-2 border-[#C97B84] border-t-transparent rounded-full animate-spin" />
+        <span className="text-sm text-[#6F655E]">Unwrapping…</span>
       </div>
     </div>
   );
@@ -264,24 +264,23 @@ function WishContent() {
   if (locked && unlockTs) return <CountdownLock unlockAt={unlockTs} onUnlock={() => setLocked(false)} />;
 
   return (
-    <div className="relative min-h-screen flex flex-col overflow-x-hidden" style={{ background: "#08090E" }}>
-      <FloatingHearts />
-      {stage === "finale" && <Fireworks />}
+    <div className="relative min-h-screen flex flex-col overflow-x-hidden" style={{ background: stage === "finale" && !showFinalCard ? "#000000" : "#FFF8F2" }}>
+      <AmbientCanvas />
+      {stage === "finale" && <Fireworks name={wishData.n} />}
 
       {/* Fade transition overlay */}
       {transitioning && (
-        <div className="fixed inset-0 z-50 bg-zinc-950" style={{ animation: "reveal-up 0.3s ease both" }} />
+        <div className="fixed inset-0 z-50 bg-[#FFF8F2]" style={{ animation: "reveal-up 0.3s ease both" }} />
       )}
 
       <div
         className="relative z-10 flex-1 max-w-4xl mx-auto w-full px-4 sm:px-6 py-10 flex flex-col justify-between"
         style={{ opacity: transitioning ? 0 : 1, transition: "opacity 0.32s ease" }}
       >
-        {/* Step Progress Bar */}
         <StepProgressBar
-          current={STAGE_INDEX[stage]}
-          total={8}
-          labels={STEP_LABELS}
+          current={Math.max(0, currentStepIndex)}
+          total={totalSteps}
+          labels={stepLabels}
         />
 
         {/* Step 1: The Envelope & Letter */}
@@ -298,7 +297,7 @@ function WishContent() {
         {/* Step 2: Cake Room */}
         {stage === "cake" && (
           <div className="flex flex-col items-center justify-center flex-1 my-auto">
-            <div className="w-full max-w-lg glass rounded-3xl p-6 sm:p-10 shadow-2xl bg-white/[0.01]">
+            <div className="w-full max-w-lg surface rounded-[1.75rem] p-6 sm:p-10">
               <BirthdayCake name={wishData.n} age={wishData.a} onCelebrationStart={handleCelebrationStart} />
             </div>
           </div>
@@ -314,16 +313,17 @@ function WishContent() {
                   onSubmit={handleWishSubmit}
                   exit={{ y: -80, opacity: 0 }}
                   transition={{ duration: 0.45, ease: "easeIn" }}
-                  className="glass rounded-3xl p-8 border border-white/[0.07] w-full text-center space-y-6 bg-white/[0.01]"
+                  className="surface rounded-[1.75rem] p-8 w-full text-center space-y-6"
                 >
-                  <div className="w-12 h-12 glass-gold rounded-full flex items-center justify-center mx-auto glow-gold">
-                    <Sparkles className="w-5 h-5 text-amber-400" />
+                  <div className="w-12 h-12 rounded-full bg-[#F9F5F0] border border-[#ECE3DA] flex items-center justify-center mx-auto"
+                    style={{ boxShadow: "0 2px 8px rgba(46,42,39,0.04)" }}>
+                    <Sparkles className="w-5 h-5 text-[#C97B84]" />
                   </div>
                   
                   <div>
-                    <span className="text-[10px] text-amber-500 font-bold uppercase tracking-widest">The Final Ritual</span>
-                    <h3 className="text-xl font-bold text-white tracking-tight mt-1 font-serif italic">Make your birthday wish</h3>
-                    <p className="text-[10px] text-slate-500 mt-1 max-w-xs mx-auto">Write down your wish. It will ascend into the constellation of memories.</p>
+                    <span className="text-[0.6875rem] text-[#C97B84] font-semibold uppercase tracking-[0.15em]">The Final Ritual</span>
+                    <h3 className="font-serif text-[1.5rem] text-[#2E2A27] mt-1" style={{ fontWeight: 400, fontStyle: "italic" }}>Make your birthday wish</h3>
+                    <p className="text-[0.8125rem] text-[#6F655E] mt-1.5 max-w-xs mx-auto">Write down your wish. It will ascend into the constellation of memories.</p>
                   </div>
 
                   <textarea
@@ -332,10 +332,10 @@ function WishContent() {
                     value={finalWish}
                     onChange={e => setFinalWish(e.target.value)}
                     placeholder="I wish that..."
-                    className="input-saas text-xs leading-relaxed resize-none text-center"
+                    className="input-saas text-sm leading-relaxed resize-none text-center"
                   />
 
-                  <button type="submit" className="btn-primary w-full py-3.5 text-xs">
+                  <button type="submit" className="btn-primary w-full py-3.5 text-sm">
                     Release Wish to the Universe ✨
                   </button>
                 </motion.form>
@@ -349,68 +349,58 @@ function WishContent() {
                   <motion.div
                     animate={{ y: -200, opacity: 0, scale: [1, 2, 0] }}
                     transition={{ duration: 1.5, ease: "easeOut" }}
-                    className="w-4 h-4 rounded-full bg-amber-400 glow-gold"
+                    className="w-4 h-4 rounded-full bg-[#C97B84]"
                   />
-                  <span className="text-xs text-slate-400 font-semibold">Releasing wish…</span>
+                  <span className="text-sm text-[#6F655E]">Releasing wish…</span>
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
         )}
 
-        {/* Step 4: Interactive Constellation Map */}
-        {stage === "constellation" && (
+        {/* Step 4: Interactive Doodle Animation */}
+        {stage === "doodle" && wishData.dt && (
           <div className="flex flex-col justify-between flex-1 animate-reveal-up space-y-6">
-            <div className="glass rounded-3xl p-5 border border-white/[0.06] bg-white/[0.01]">
-              <MemoryStars stars={wishData.st} />
-            </div>
+            <DoodleAnimation name={wishData.n} type={wishData.dt} />
             <button
-              onClick={() => transition("timeline")}
-              className="btn-primary px-6 py-3.5 text-xs flex items-center justify-center gap-2 self-center"
+              onClick={() => transition(getNextStage("doodle"))}
+              className="btn-primary px-6 py-3.5 text-sm flex items-center justify-center gap-2 self-center"
             >
-              Continue to Journey Timeline <ArrowRight className="w-3.5 h-3.5" />
+              Continue <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
         )}
 
         {/* Step 5: Timeline Cards */}
-        {stage === "timeline" && (
+        {stage === "timeline" && wishData.tl && wishData.tl.length > 0 && (
           <div className="flex flex-col justify-between flex-1 animate-reveal-up space-y-6">
-            {wishData.tl && wishData.tl.length > 0 ? (
-              <div className="glass rounded-3xl p-6 sm:p-8 border border-white/[0.06] bg-white/[0.01]">
-                <div className="text-center mb-6">
-                  <span className="text-[10px] font-bold text-blue-400 uppercase tracking-widest">Our Story</span>
-                  <h3 className="text-lg font-bold text-white mt-1 font-serif italic">Relationship Timeline</h3>
-                </div>
-                <Timeline events={wishData.tl} />
+            <div className="surface rounded-[1.75rem] p-6 sm:p-8">
+              <div className="text-center mb-6">
+                <span className="text-[0.6875rem] font-semibold text-[#C97B84] uppercase tracking-[0.15em]">Our Story</span>
+                <h3 className="font-serif text-[1.5rem] text-[#2E2A27] mt-1" style={{ fontWeight: 400, fontStyle: "italic" }}>Relationship Timeline</h3>
               </div>
-            ) : (
-              <div className="text-center py-10 text-slate-500 text-xs">No milestones added. Skipping...</div>
-            )}
+              <Timeline events={wishData.tl} />
+            </div>
             <button
-              onClick={() => transition("memories")}
-              className="btn-primary px-6 py-3.5 text-xs flex items-center justify-center gap-2 self-center"
+              onClick={() => transition(getNextStage("timeline"))}
+              className="btn-primary px-6 py-3.5 text-sm flex items-center justify-center gap-2 self-center"
             >
-              Continue to Photos Gallery <ArrowRight className="w-3.5 h-3.5" />
+              Continue <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
         )}
 
         {/* Step 6: Memory Polaroid Gallery */}
-        {stage === "memories" && (
+        {stage === "memories" && wishData.mm && wishData.mm.length > 0 && (
           <div className="flex flex-col justify-between flex-1 animate-reveal-up space-y-6">
-            {wishData.mm && wishData.mm.length > 0 ? (
-              <div className="glass rounded-3xl p-6 sm:p-8 border border-white/[0.06] bg-white/[0.01]">
-                <MemoryLane memories={wishData.mm} />
-              </div>
-            ) : (
-              <div className="text-center py-10 text-slate-500 text-xs">No photo uploads attached. Skipping...</div>
-            )}
+            <div className="surface rounded-[1.75rem] p-6 sm:p-8">
+              <MemoryLane memories={wishData.mm} />
+            </div>
             <button
-              onClick={() => transition("balloons")}
-              className="btn-primary px-6 py-3.5 text-xs flex items-center justify-center gap-2 self-center"
+              onClick={() => transition(getNextStage("memories"))}
+              className="btn-primary px-6 py-3.5 text-sm flex items-center justify-center gap-2 self-center"
             >
-              Continue to Balloon Pop Game <ArrowRight className="w-3.5 h-3.5" />
+              Continue <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
         )}
@@ -418,16 +408,16 @@ function WishContent() {
         {/* Step 7: Balloon Pop Game */}
         {stage === "balloons" && (
           <div className="flex flex-col justify-between flex-1 animate-reveal-up space-y-6">
-            <div className="glass rounded-3xl p-5 border border-white/[0.06] bg-white/[0.01] max-w-2xl mx-auto w-full">
+            <div className="surface rounded-[1.75rem] p-5 max-w-2xl mx-auto w-full">
               <BalloonGame />
             </div>
             <button
               onClick={() => {
                 transition("finale");
                 // Final celebration confetti
-                confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+                confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ["#C97B84", "#D8B88A", "#A6B39D", "#FFFFFF"] });
               }}
-              className="btn-gold px-8 py-4 text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 self-center"
+              className="btn-gold px-8 py-4 text-sm font-semibold flex items-center justify-center gap-2 self-center"
             >
               Reveal Grand Finale 🎆
             </button>
@@ -436,40 +426,28 @@ function WishContent() {
 
         {/* Step 8: Grand Fireworks Finale */}
         {stage === "finale" && (
-          <div className="flex-1 flex flex-col justify-center items-center my-auto animate-reveal-up">
-            <div className="glass rounded-3xl p-8 sm:p-12 text-center max-w-xl mx-auto flex flex-col items-center glow-gold bg-[#0e0a0a]/40 border border-white/[0.06] relative z-20">
-              <div className="w-12 h-12 glass-gold rounded-2xl flex items-center justify-center mb-6">
-                <Heart className="w-6 h-6 text-amber-400 fill-current" />
-              </div>
-              <h2 className="text-3xl sm:text-5xl font-extrabold text-white mb-3 font-serif italic">
-                Happy Birthday, {wishData.n}! 🎂
-              </h2>
-              <p className="text-xs text-stone-300 leading-relaxed mb-6 font-semibold uppercase tracking-wider">
-                Created with love by {wishData.s}
-              </p>
-              {finalWish && (
-                <p className="text-xs italic text-stone-400 leading-normal mb-8 max-w-sm pl-4 border-l-2 border-amber-500/50">
-                  “Your wish is written in the stars: &apos;{finalWish}&apos;”
-                </p>
+          <div className="flex-1 flex flex-col justify-end items-center mb-10 relative z-20">
+            <AnimatePresence>
+              {showFinalCard && (
+                <motion.div
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 1.2, ease: "easeOut" }}
+                >
+                  <Link href="/create">
+                    <button className="px-5 py-2.5 text-xs font-semibold rounded-full border border-white/20 bg-black/40 backdrop-blur-md text-white/80 hover:text-white hover:bg-black/60 transition-colors flex items-center gap-1.5">
+                      <Plus className="w-3.5 h-3.5" /> Create another surprise
+                    </button>
+                  </Link>
+                </motion.div>
               )}
-              <div className="flex flex-col sm:flex-row gap-3 w-full justify-center">
-                <button onClick={handleShare}
-                  className="btn-gold px-6 py-3 text-xs flex items-center justify-center gap-2">
-                  <Share2 className="w-4 h-4" /> Share surprise link
-                </button>
-                <Link href="/create">
-                  <button className="px-6 py-3 text-xs font-bold rounded-xl glass hover:bg-white/[0.06] text-stone-300 border border-white/[0.06] flex items-center justify-center gap-1.5">
-                    <Plus className="w-3.5 h-3.5" /> Create another
-                  </button>
-                </Link>
-              </div>
-            </div>
+            </AnimatePresence>
           </div>
         )}
 
       </div>
 
-      <footer className="relative z-10 border-t border-white/[0.05] py-5 text-center text-[9px] text-slate-600">
+      <footer className="relative z-10 border-t border-[#ECE3DA] py-5 text-center text-[0.75rem] text-[#B5ADA5]">
         WishMaker — Birthday Surprise Keepsakes &copy; {new Date().getFullYear()}
       </footer>
     </div>
@@ -479,8 +457,8 @@ function WishContent() {
 export default function WishPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center" style={{ background: "#08090E" }}>
-        <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-[#FFF8F2]">
+        <div className="w-8 h-8 border-2 border-[#C97B84] border-t-transparent rounded-full animate-spin" />
       </div>
     }>
       <Suspense fallback={null}>
