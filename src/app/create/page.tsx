@@ -15,7 +15,7 @@ import { JinglePlayer } from "@/lib/jingle";
 // ── Types ─────────────────────────────────────────────────────
 interface Memory { url: string; caption: string; }
 type ThemeId = "starry" | "neon" | "romance" | "pastel" | "retro";
-type RelationType = "best friend" | "partner" | "sibling" | "parent" | "colleague" | "mentor";
+type RelationType = "best friend" | "partner" | "sibling" | "family" | "colleague" | "mentor";
 
 interface TimelineEvent {
   date: string;
@@ -74,16 +74,16 @@ const WISH_TEMPLATES: WishTemplate[] = [
     },
   },
   {
-    id: "parent",
-    label: "For a Parent",
+    id: "family",
+    label: "For Family",
     icon: <Users className="w-4 h-4" />,
-    description: "Grateful, warm, sincere",
+    description: "Warm, grateful, sincere",
     defaults: {
       theme: "pastel",
-      relationship: "parent",
+      relationship: "family",
       tone: 60,
-      keywords: "gratitude, love, family",
-      messagePlaceholder: "Everything I am, I owe to you. Thank you for your endless love and guidance…",
+      keywords: "family, support, love",
+      messagePlaceholder: "Thank you for always being my rock, my support system, and my home. I'm so grateful for you…",
     },
   },
   {
@@ -102,15 +102,23 @@ const WISH_TEMPLATES: WishTemplate[] = [
 ];
 
 const THEMES = [
-  { id: "starry"  as ThemeId, label: "Starry",  gradient: "from-blue-950 via-indigo-950 to-[#08090E]", text: "text-blue-300",   desc: "Deep space" },
-  { id: "neon"    as ThemeId, label: "Neon",    gradient: "from-purple-950 via-black to-[#08090E]",    text: "text-cyan-300",   desc: "Electric" },
-  { id: "romance" as ThemeId, label: "Romance", gradient: "from-rose-950 via-pink-950 to-[#08090E]",   text: "text-rose-300",   desc: "Warm glow" },
-  { id: "pastel"  as ThemeId, label: "Pastel",  gradient: "from-violet-950 via-teal-950 to-[#08090E]",  text: "text-teal-400",   desc: "Dreamy" },
-  { id: "retro"   as ThemeId, label: "Retro",   gradient: "from-amber-950 via-orange-950 to-[#08090E]", text: "text-amber-300",  desc: "Vintage" },
+  { id: "starry"  as ThemeId, label: "Starry Night",  desc: "Deep & dreamy" },
+  { id: "neon"    as ThemeId, label: "Electric",       desc: "Bold & fun" },
+  { id: "romance" as ThemeId, label: "Romantic",       desc: "Warm glow" },
+  { id: "pastel"  as ThemeId, label: "Pastel Dream",   desc: "Soft & gentle" },
+  { id: "retro"   as ThemeId, label: "Vintage",        desc: "Nostalgic" },
 ];
 
+const THEME_COLORS: Record<ThemeId, string> = {
+  starry:  "#4A6FA5",
+  neon:    "#9B72CF",
+  romance: "#C97B84",
+  pastel:  "#87B5A2",
+  retro:   "#C4956A",
+};
+
 const RELATIONSHIP_OPTIONS: RelationType[] = [
-  "best friend", "partner", "sibling", "parent", "colleague", "mentor",
+  "best friend", "partner", "sibling", "family", "colleague", "mentor",
 ];
 
 const TONE_LABELS: Record<number, string> = {
@@ -128,23 +136,17 @@ function toneLabel(v: number) {
   return TONE_LABELS[snapped];
 }
 
-const SectionLabel = ({ icon, children, badge }: {
+const SectionHeader = ({ icon, children }: {
   icon: React.ReactNode;
   children: React.ReactNode;
-  badge?: string;
 }) => (
-  <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 uppercase tracking-widest mb-3">
-    <span className="text-blue-500">{icon}</span>
+  <div className="flex items-center gap-2.5 text-[0.8125rem] font-semibold text-[#6F655E] uppercase tracking-[0.1em]">
+    <span className="text-[#C97B84]">{icon}</span>
     {children}
-    {badge && (
-      <span className="ml-1 px-1.5 py-0.5 rounded text-[9px] bg-blue-500/10 text-blue-400 font-semibold normal-case tracking-normal">
-        {badge}
-      </span>
-    )}
   </div>
 );
 
-// ── Main Dashboard ──
+// ── Main Page ──
 export default function CreateSurprise() {
   const [name, setName]         = useState("");
   const [age, setAge]           = useState("");
@@ -161,20 +163,15 @@ export default function CreateSurprise() {
     { date: "May 2022", title: "First Adventure", description: "Our first road trip away from the city, singing along to custom playlists." },
   ]);
 
-  // Constellation stars memories state
-  const [constellationStars, setConstellationStars] = useState<StarMemory[]>([
-    { id: 1, label: "The First Hello", date: "Jan 12, 2021", description: "Our eyes met across the cafe, and a smile started everything.", x: 25, y: 35 },
-    { id: 2, label: "City Lights Walk", date: "Jul 18, 2022", description: "A late-night drive, listening to music, wishing it wouldn't end.", x: 60, y: 22 },
-  ]);
-
   const [generatedUrl, setGeneratedUrl] = useState("");
   const [shortenedUrl, setShortenedUrl] = useState("");
   const [shorteningLoading, setShorteningLoading] = useState(false);
-  const [useShortLink, setUseShortLink] = useState(true);
   const [copied, setCopied]             = useState(false);
 
   // Accordion folder state
-  const [activeFolder, setActiveFolder] = useState<"basics" | "ai-writer" | "theme" | "schedule" | "stars" | "timeline" | "memories">("basics");
+  const [activeFolder, setActiveFolder] = useState<"basics" | "ai-writer" | "theme" | "schedule" | "doodle" | "timeline" | "memories">("basics");
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
+  const [doodleType, setDoodleType] = useState<"heart" | "rose" | "hearts" | "coffee">("heart");
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   // Feature C — Scheduled delivery
@@ -199,6 +196,7 @@ export default function CreateSurprise() {
   const [jinglePlaying, setJinglePlaying] = useState(false);
 
   const applyTemplate = (tmpl: WishTemplate) => {
+    setSelectedTemplateId(tmpl.id);
     setTheme(tmpl.defaults.theme);
     setAiRelationship(tmpl.defaults.relationship);
     setTone(tmpl.defaults.tone);
@@ -255,11 +253,6 @@ export default function CreateSurprise() {
   const updateTimelineEvent = (i: number, f: keyof TimelineEvent, v: string) =>
     setTimelineEvents(p => { const n = [...p]; n[i] = { ...n[i], [f]: v }; return n; });
 
-  const addStarMemory = () => setConstellationStars(p => [...p, { id: Date.now(), label: "", date: "", description: "", x: 20 + Math.random() * 60, y: 20 + Math.random() * 60 }]);
-  const removeStarMemory = (i: number) => setConstellationStars(p => p.filter((_, idx) => idx !== i));
-  const updateStarMemory = (i: number, f: keyof StarMemory, v: any) =>
-    setConstellationStars(p => { const n = [...p]; n[i] = { ...n[i], [f]: v }; return n; });
-
   const handleGenerateDrafts = async () => {
     if (!name || !sender) {
       toast.error("Add names first");
@@ -267,7 +260,7 @@ export default function CreateSurprise() {
     }
     setAiLoading(true);
     setAiDrafts([]);
-    const loadingToast = toast.loading("Gemini is writing 3 drafts…");
+    const loadingToast = toast.loading("Composing heartfelt drafts…");
     try {
       const toneDesc = tone <= 25 ? "very playful and funny"
         : tone <= 50 ? "warm and friendly"
@@ -302,7 +295,7 @@ export default function CreateSurprise() {
     }
     setThemeLoading(true);
     setThemeReason("");
-    const tid = toast.loading("Analysing your message…");
+    const tid = toast.loading("Finding the perfect mood…");
     try {
       const res = await fetch("/api/recommend-theme", {
         method: "POST",
@@ -313,7 +306,7 @@ export default function CreateSurprise() {
       if (!res.ok) throw new Error(data.error);
       setTheme(data.theme as ThemeId);
       setThemeReason(data.reason);
-      toast.success(`Theme matched by AI`, { id: tid });
+      toast.success(`Theme matched`, { id: tid });
     } catch (err: any) {
       toast.error(err.message || "Failed to recommend theme", { id: tid });
     } finally {
@@ -343,7 +336,7 @@ export default function CreateSurprise() {
       t: theme,
       mm: active,
       tl: timelineEvents.filter(ev => ev.title.trim()),
-      st: constellationStars.filter(st => st.label.trim())
+      dt: doodleType
     };
     if (scheduleEnabled && deliveryDate) {
       payload.dl = new Date(deliveryDate).getTime();
@@ -358,14 +351,13 @@ export default function CreateSurprise() {
       const url = `${window.location.origin}/wish?d=${b64}`;
       setGeneratedUrl(url);
       setShortenedUrl("");
-      setUseShortLink(true);
       
       playChime();
       confetti({
         particleCount: 80, spread: 60, origin: { y: 0.6 },
-        colors: ["#3B82F6", "#818CF8", "#F59E0B", "#ffffff"],
+        colors: ["#C97B84", "#D8B88A", "#A6B39D", "#FFFFFF"],
       });
-      toast.success("Surprise link generated!");
+      toast.success("Your surprise link is ready!");
 
       // Call API shortener automatically
       setShorteningLoading(true);
@@ -391,7 +383,7 @@ export default function CreateSurprise() {
   };
 
   const handleCopy = () => {
-    const activeUrl = useShortLink && shortenedUrl ? shortenedUrl : generatedUrl;
+    const activeUrl = shortenedUrl || generatedUrl;
     if (!activeUrl) return;
     navigator.clipboard.writeText(activeUrl);
     setCopied(true);
@@ -400,7 +392,7 @@ export default function CreateSurprise() {
   };
 
   const handleShare = async () => {
-    const activeUrl = useShortLink && shortenedUrl ? shortenedUrl : generatedUrl;
+    const activeUrl = shortenedUrl || generatedUrl;
     if (!activeUrl) return;
     if (navigator.share) {
       try {
@@ -417,118 +409,120 @@ export default function CreateSurprise() {
     }
   };
 
-  const currentThemeGradient = THEMES.find(t => t.id === theme)?.gradient ?? THEMES[0].gradient;
-
   return (
-    <div className="min-h-screen flex flex-col relative overflow-hidden" style={{ background: "#08090E" }}>
-      {/* Top ambient radial gradient */}
-      <div className="pointer-events-none fixed top-0 left-1/2 -translate-x-1/2 w-[900px] h-[250px] opacity-25 z-0"
-        style={{ background: "radial-gradient(ellipse, rgba(59,130,246,0.3) 0%, transparent 70%)", filter: "blur(50px)" }} />
+    <div className="min-h-screen flex flex-col relative overflow-hidden bg-[#FFF8F2]">
 
       {/* Nav */}
-      <header className="relative z-20 border-b border-white/[0.06] px-6 py-4 flex items-center justify-between w-full">
-        <a href="/" className="flex items-center gap-2 text-sm font-bold text-white">
-          <div className="w-6 h-6 rounded-lg bg-gradient-to-tr from-blue-500 to-indigo-500 flex items-center justify-center">
+      <header className="relative z-20 border-b border-[#ECE3DA] px-6 py-5 flex items-center justify-between w-full max-w-3xl mx-auto">
+        <a href="/" className="flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-lg bg-[#C97B84] flex items-center justify-center"
+            style={{ boxShadow: "0 2px 6px rgba(201,123,132,0.15)" }}>
             <Gift className="w-3.5 h-3.5 text-white" />
           </div>
-          WishMaker<span className="text-amber-400">.</span>
+          <span className="font-serif text-lg text-[#2E2A27]" style={{ fontWeight: 500 }}>
+            WishMaker<span className="text-[#C97B84]">.</span>
+          </span>
         </a>
-        <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Builder Dashboard</span>
       </header>
 
-      {/* Split-Screen Main Dashboard Workspace */}
-      <main className="relative z-10 flex-1 grid grid-cols-1 lg:grid-cols-[1.1fr_1fr] w-full max-w-7xl mx-auto px-4 sm:px-6 py-8 gap-8 items-start">
+      {/* Centered Main Workspace */}
+      <main className="relative z-10 flex-1 w-full max-w-2xl mx-auto px-4 sm:px-6 py-10">
         
         {!generatedUrl ? (
           <>
-            {/* Left Column: Form Controls */}
-            <form onSubmit={handleGenerate} className="space-y-4 w-full">
+            <form onSubmit={handleGenerate} className="space-y-5 w-full">
               
-              <div className="animate-reveal-up mb-6">
-                <h1 className="text-2xl font-bold text-white tracking-tight mb-1">Create a Surprise Page</h1>
-                <p className="text-xs text-slate-500">All data will be packed inside the URL payload.</p>
+              <div className="animate-reveal-up mb-8">
+                <h1 className="font-serif text-[2rem] sm:text-[2.5rem] text-[#2E2A27] mb-2" style={{ fontWeight: 400 }}>Craft your keepsake</h1>
+                <p className="text-[0.9375rem] text-[#6F655E]">Fill in the details below. Everything will be packed into a single shareable link.</p>
               </div>
 
               {/* Templates bar */}
-              <div className="surface rounded-xl p-4 animate-reveal-up">
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-3">Quick Presets</span>
-                <div className="grid grid-cols-4 gap-2">
+              <div className="surface rounded-[1.375rem] p-5 animate-reveal-up">
+                <span className="text-[0.6875rem] font-semibold text-[#C97B84] uppercase tracking-[0.12em] block mb-4">Quick Presets</span>
+                <div className="grid grid-cols-4 gap-3">
                   {WISH_TEMPLATES.map(tmpl => (
                     <button
                       key={tmpl.id}
                       type="button"
                       onClick={() => applyTemplate(tmpl)}
-                      className="glass rounded-lg p-2.5 flex flex-col items-center text-center hover:bg-white/[0.08] transition-all duration-150 group"
+                      className={`rounded-2xl p-3 flex flex-col items-center justify-center text-center transition-all duration-200 group border ${
+                        selectedTemplateId === tmpl.id
+                          ? "border-[#C97B84] bg-[#C97B84]/[0.04] scale-[1.02]"
+                          : "border-[#ECE3DA] bg-white hover:bg-[#F9F5F0]"
+                      }`}
                     >
-                      <span className="text-blue-500 group-hover:text-amber-400 transition-colors mb-1">
+                      <span className={`transition-colors mb-1.5 ${selectedTemplateId === tmpl.id ? "text-[#C97B84]" : "text-[#B5ADA5] group-hover:text-[#C97B84]"}`}>
                         {tmpl.icon}
                       </span>
-                      <span className="text-[10px] font-bold text-slate-300">{tmpl.label.split(" ").slice(-1)[0]}</span>
+                      <span className={`text-[0.6875rem] font-semibold ${selectedTemplateId === tmpl.id ? "text-[#2E2A27]" : "text-[#6F655E]"}`}>
+                        {tmpl.label.split(" ").slice(-1)[0]}
+                      </span>
                     </button>
                   ))}
                 </div>
               </div>
 
               {/* Accordion 1: Basics */}
-              <div className="surface rounded-xl overflow-hidden animate-reveal-up">
+              <div className="surface rounded-[1.375rem] overflow-hidden animate-reveal-up">
                 <button
                   type="button"
                   onClick={() => setActiveFolder("basics")}
-                  className="w-full flex items-center justify-between p-4 bg-white/[0.015] hover:bg-white/[0.03] transition-colors border-b border-white/[0.04]"
+                  className="w-full flex items-center justify-between p-5 hover:bg-[#F9F5F0] transition-colors border-b border-[#ECE3DA]"
                 >
-                  <SectionLabel icon={<Gift className="w-3.5 h-3.5" />}>1. Identity Basics</SectionLabel>
-                  <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform ${activeFolder === "basics" ? "rotate-180" : ""}`} />
+                  <SectionHeader icon={<Gift className="w-3.5 h-3.5" />}>1. Who is it for?</SectionHeader>
+                  <ChevronDown className={`w-4 h-4 text-[#B5ADA5] transition-transform ${activeFolder === "basics" ? "rotate-180" : ""}`} />
                 </button>
                 {activeFolder === "basics" && (
-                  <div className="p-5 space-y-4 bg-[#0a0c14]/40">
+                  <div className="p-5 space-y-4 bg-white">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-[10px] text-slate-500 font-bold uppercase tracking-wide mb-1.5">Recipient Name *</label>
-                        <input required value={name} onChange={e => setName(e.target.value)} placeholder="Alexa" className="input-saas font-medium" />
+                        <label className="block text-[0.75rem] text-[#6F655E] font-semibold mb-1.5">Recipient Name *</label>
+                        <input required value={name} onChange={e => setName(e.target.value)} placeholder="Alexa" className="input-saas" />
                       </div>
                       <div>
-                        <label className="block text-[10px] text-slate-500 font-bold uppercase tracking-wide mb-1.5">Age (optional)</label>
-                        <input type="number" value={age} onChange={e => setAge(e.target.value)} placeholder="25" className="input-saas font-medium" />
+                        <label className="block text-[0.75rem] text-[#6F655E] font-semibold mb-1.5">Age (optional)</label>
+                        <input type="number" value={age} onChange={e => setAge(e.target.value)} placeholder="25" className="input-saas" />
                       </div>
                     </div>
                     <div>
-                      <label className="block text-[10px] text-slate-500 font-bold uppercase tracking-wide mb-1.5">Your Name *</label>
-                      <input required value={sender} onChange={e => setSender(e.target.value)} placeholder="Jason" className="input-saas font-medium" />
+                      <label className="block text-[0.75rem] text-[#6F655E] font-semibold mb-1.5">Your Name *</label>
+                      <input required value={sender} onChange={e => setSender(e.target.value)} placeholder="Jason" className="input-saas" />
                     </div>
                   </div>
                 )}
               </div>
 
               {/* Accordion 2: AI Message Writer */}
-              <div className="surface rounded-xl overflow-hidden animate-reveal-up">
+              <div className="surface rounded-[1.375rem] overflow-hidden animate-reveal-up">
                 <button
                   type="button"
                   onClick={() => setActiveFolder(activeFolder === "ai-writer" ? "basics" : "ai-writer")}
-                  className="w-full flex items-center justify-between p-4 bg-white/[0.015] hover:bg-white/[0.03] transition-colors border-b border-white/[0.04]"
+                  className="w-full flex items-center justify-between p-5 hover:bg-[#F9F5F0] transition-colors border-b border-[#ECE3DA]"
                 >
-                  <SectionLabel icon={<Wand2 className="w-3.5 h-3.5" />} badge="Gemini">2. AI Letter Writer</SectionLabel>
-                  <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform ${activeFolder === "ai-writer" ? "rotate-180" : ""}`} />
+                  <SectionHeader icon={<Wand2 className="w-3.5 h-3.5" />}>2. Write the letter</SectionHeader>
+                  <ChevronDown className={`w-4 h-4 text-[#B5ADA5] transition-transform ${activeFolder === "ai-writer" ? "rotate-180" : ""}`} />
                 </button>
                 {activeFolder === "ai-writer" && (
-                  <div className="p-5 space-y-4 bg-[#0a0c14]/40">
+                  <div className="p-5 space-y-4 bg-white">
                     <div className="grid grid-cols-2 gap-4">
                       <div className="relative">
-                        <label className="block text-[10px] text-slate-500 font-bold uppercase tracking-wide mb-1.5">Relationship</label>
+                        <label className="block text-[0.75rem] text-[#6F655E] font-semibold mb-1.5">Relationship</label>
                         <button
                           type="button"
                           onClick={() => setDropdownOpen(!dropdownOpen)}
                           className="input-saas text-left flex items-center justify-between"
                         >
                           <span className="capitalize">{aiRelationship}</span>
-                          <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
+                          <ChevronDown className="w-3.5 h-3.5 text-[#B5ADA5]" />
                         </button>
                         {dropdownOpen && (
-                          <div className="absolute top-[105%] left-0 w-full surface-float z-50 py-1 font-medium overflow-hidden">
+                          <div className="absolute top-[105%] left-0 w-full surface-float z-50 py-1 overflow-hidden">
                             {RELATIONSHIP_OPTIONS.map(r => (
                               <button
                                 key={r} type="button"
                                 onClick={() => { setAiRelationship(r); setDropdownOpen(false); }}
-                                className="w-full text-left px-4 py-2 text-xs text-slate-300 hover:bg-blue-500/10 hover:text-white capitalize"
+                                className="w-full text-left px-4 py-2.5 text-sm text-[#6F655E] hover:bg-[#F9F5F0] hover:text-[#2E2A27] capitalize transition-colors"
                               >
                                 {r}
                               </button>
@@ -537,7 +531,7 @@ export default function CreateSurprise() {
                         )}
                       </div>
                       <div>
-                        <label className="block text-[10px] text-slate-500 font-bold uppercase tracking-wide mb-1.5">Keywords</label>
+                        <label className="block text-[0.75rem] text-[#6F655E] font-semibold mb-1.5">Keywords</label>
                         <input value={aiKeywords} onChange={e => setAiKeywords(e.target.value)} placeholder="coffee, travel" className="input-saas" />
                       </div>
                     </div>
@@ -545,34 +539,34 @@ export default function CreateSurprise() {
                     {/* Tone Slider */}
                     <div className="py-2">
                       <div className="flex items-center justify-between mb-2">
-                        <label className="text-[10px] text-slate-500 font-bold uppercase tracking-wide">Letter Tone</label>
-                        <span className="text-xs font-semibold text-blue-400">{toneLabel(tone)}</span>
+                        <label className="text-[0.75rem] text-[#6F655E] font-semibold">Letter Tone</label>
+                        <span className="text-sm font-semibold text-[#C97B84]">{toneLabel(tone)}</span>
                       </div>
                       <div className="relative flex items-center h-4">
                         <input
                           type="range" min={0} max={100} step={25}
                           value={tone} onChange={e => setTone(Number(e.target.value))}
-                          className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                          className="w-full h-1 bg-[#ECE3DA] rounded-lg appearance-none cursor-pointer accent-[#C97B84]"
                         />
                       </div>
                     </div>
 
                     <button type="button" onClick={handleGenerateDrafts} disabled={aiLoading}
-                      className="btn-primary w-full py-2.5 text-xs flex items-center justify-center gap-2">
+                      className="btn-primary w-full py-3 text-sm flex items-center justify-center gap-2">
                       {aiLoading
                         ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Composing...</>
                         : <><Wand2 className="w-3.5 h-3.5" /> Compose Letter Drafts</>}
                     </button>
 
                     {aiDrafts.length > 0 && (
-                      <div className="space-y-2 pt-2">
+                      <div className="space-y-2.5 pt-2">
                         {aiDrafts.map((draft, i) => (
                           <button key={i} type="button" onClick={() => { setMessage(draft); toast.success("Letter updated"); }}
-                            className={`w-full text-left p-3.5 rounded-xl border text-xs leading-relaxed transition-all ${
+                            className={`w-full text-left p-4 rounded-2xl border text-sm leading-relaxed transition-all ${
                               message === draft
-                                ? "border-blue-500/60 bg-blue-500/10 text-slate-100 shadow-md"
-                                : "border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.05] text-slate-400"}`}>
-                            <span className="block text-[8px] text-slate-500 font-bold uppercase tracking-wider mb-1">
+                                ? "border-[#C97B84] bg-[#C97B84]/[0.03] text-[#2E2A27]"
+                                : "border-[#ECE3DA] bg-white hover:bg-[#F9F5F0] text-[#6F655E]"}`}>
+                            <span className="block text-[0.625rem] text-[#B5ADA5] font-semibold uppercase tracking-wider mb-1.5">
                               {["Draft 1 (Heartfelt)", "Draft 2 (Nostalgic)", "Draft 3 (Inspiring)"][i]}
                             </span>
                             {draft}
@@ -582,64 +576,65 @@ export default function CreateSurprise() {
                     )}
 
                     <div>
-                      <label className="block text-[10px] text-slate-500 font-bold uppercase tracking-wide mb-1.5">Letter Text *</label>
+                      <label className="block text-[0.75rem] text-[#6F655E] font-semibold mb-1.5">Letter Text *</label>
                       <textarea required rows={4} value={message} onChange={e => setMessage(e.target.value)}
-                        placeholder="Write your custom letter..."
-                        className="input-saas resize-none text-xs leading-relaxed" />
+                        placeholder="Write your heartfelt letter…"
+                        className="input-saas resize-none text-sm leading-relaxed" />
                     </div>
                   </div>
                 )}
               </div>
 
               {/* Accordion 3: Theme & Jingle */}
-              <div className="surface rounded-xl overflow-hidden animate-reveal-up">
+              <div className="surface rounded-[1.375rem] overflow-hidden animate-reveal-up">
                 <button
                   type="button"
                   onClick={() => setActiveFolder(activeFolder === "theme" ? "basics" : "theme")}
-                  className="w-full flex items-center justify-between p-4 bg-white/[0.015] hover:bg-white/[0.03] transition-colors border-b border-white/[0.04]"
+                  className="w-full flex items-center justify-between p-5 hover:bg-[#F9F5F0] transition-colors border-b border-[#ECE3DA]"
                 >
-                  <SectionLabel icon={<Sparkles className="w-3.5 h-3.5" />}>3. Visual Styling & Jingle</SectionLabel>
-                  <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform ${activeFolder === "theme" ? "rotate-180" : ""}`} />
+                  <SectionHeader icon={<Sparkles className="w-3.5 h-3.5" />}>3. Choose the mood</SectionHeader>
+                  <ChevronDown className={`w-4 h-4 text-[#B5ADA5] transition-transform ${activeFolder === "theme" ? "rotate-180" : ""}`} />
                 </button>
                 {activeFolder === "theme" && (
-                  <div className="p-5 space-y-4 bg-[#0a0c14]/40">
+                  <div className="p-5 space-y-4 bg-white">
                     <div className="flex items-center justify-between">
-                      <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wide">Color Theme</span>
+                      <span className="text-[0.75rem] text-[#6F655E] font-semibold">Visual Theme</span>
                       <button type="button" onClick={handleRecommendTheme} disabled={themeLoading}
-                        className="text-[10px] text-amber-500 font-bold uppercase tracking-widest flex items-center gap-1.5 hover:text-amber-400 disabled:opacity-50">
+                        className="text-[0.6875rem] text-[#D8B88A] font-semibold uppercase tracking-wide flex items-center gap-1.5 hover:text-[#C4956A] disabled:opacity-50">
                         {themeLoading
                           ? <><Loader2 className="w-3 h-3 animate-spin" /> Matching…</>
-                          : <><Lightbulb className="w-3 h-3" /> AI Select theme</>}
+                          : <><Lightbulb className="w-3 h-3" /> AI Suggest</>}
                       </button>
                     </div>
 
                     {themeReason && (
-                      <div className="glass-gold rounded-lg px-3 py-2 text-[10px] text-amber-300 leading-normal flex items-start gap-2">
-                        <Lightbulb className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+                      <div className="glass-gold rounded-xl px-4 py-3 text-[0.8125rem] text-[#6F655E] leading-normal flex items-start gap-2.5">
+                        <Lightbulb className="w-3.5 h-3.5 flex-shrink-0 mt-0.5 text-[#D8B88A]" />
                         <span>{themeReason}</span>
                       </div>
                     )}
 
-                    <div className="grid grid-cols-5 gap-2">
+                    <div className="grid grid-cols-5 gap-2.5">
                       {THEMES.map(t => (
                         <button key={t.id} type="button" onClick={() => { setTheme(t.id); setThemeReason(""); }}
-                          className={`relative flex flex-col items-center justify-center p-2.5 rounded-xl border text-center transition-all bg-gradient-to-br ${t.gradient} ${
-                            theme === t.id ? "border-blue-500 ring-2 ring-blue-500/10 scale-[1.03]" : "border-white/[0.07] hover:border-white/15"}`}>
-                          <span className={`font-bold text-[10px] ${t.text}`}>{t.label}</span>
+                          className={`relative flex flex-col items-center justify-center p-3 rounded-2xl border text-center transition-all ${
+                            theme === t.id ? "border-[#C97B84] scale-[1.03] bg-[#F9F5F0]" : "border-[#ECE3DA] bg-white hover:bg-[#F9F5F0]"}`}>
+                          <div className="w-5 h-5 rounded-full mb-1.5 border border-[#ECE3DA]" style={{ background: THEME_COLORS[t.id] }} />
+                          <span className="font-semibold text-[0.625rem] text-[#2E2A27]">{t.label}</span>
                         </button>
                       ))}
                     </div>
 
-                    <div className="glass-blue rounded-xl p-4 flex items-center gap-4">
+                    <div className="surface rounded-2xl p-4 flex items-center gap-4">
                       <div className="flex-1">
-                        <p className="text-xs font-bold text-slate-200 mb-0.5 flex items-center gap-1">
-                          <Music className="w-3.5 h-3.5 text-amber-400" /> Melody Composer
+                        <p className="text-sm font-semibold text-[#2E2A27] mb-0.5 flex items-center gap-1.5">
+                          <Music className="w-3.5 h-3.5 text-[#D8B88A]" /> Birthday Melody
                         </p>
-                        <p className="text-[10px] text-slate-500 leading-normal">Synthesizes the Happy Birthday song live in their browser.</p>
+                        <p className="text-[0.8125rem] text-[#6F655E] leading-normal">Synthesizes a Happy Birthday jingle live in their browser.</p>
                       </div>
                       <button type="button" onClick={handleToggleJingle}
-                        className={`flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center transition-all ${
-                          jinglePlaying ? "bg-amber-500/20 border border-amber-500/30 text-amber-400" : "btn-gold"}`}>
+                        className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-all border ${
+                          jinglePlaying ? "bg-[#D8B88A]/10 border-[#D8B88A] text-[#D8B88A]" : "bg-white border-[#ECE3DA] text-[#6F655E] hover:text-[#2E2A27] hover:border-[#DDD4CB]"}`}>
                         {jinglePlaying ? <Square className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
                       </button>
                     </div>
@@ -648,104 +643,105 @@ export default function CreateSurprise() {
               </div>
 
               {/* Accordion 4: Scheduled Lock */}
-              <div className="surface rounded-xl overflow-hidden animate-reveal-up">
+              <div className="surface rounded-[1.375rem] overflow-hidden animate-reveal-up">
                 <button
                   type="button"
                   onClick={() => setActiveFolder(activeFolder === "schedule" ? "basics" : "schedule")}
-                  className="w-full flex items-center justify-between p-4 bg-white/[0.015] hover:bg-white/[0.03] transition-colors border-b border-white/[0.04]"
+                  className="w-full flex items-center justify-between p-5 hover:bg-[#F9F5F0] transition-colors border-b border-[#ECE3DA]"
                 >
-                  <SectionLabel icon={<Clock className="w-3.5 h-3.5" />}>4. Delivery Lock</SectionLabel>
-                  <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform ${activeFolder === "schedule" ? "rotate-180" : ""}`} />
+                  <SectionHeader icon={<Clock className="w-3.5 h-3.5" />}>4. Schedule delivery</SectionHeader>
+                  <ChevronDown className={`w-4 h-4 text-[#B5ADA5] transition-transform ${activeFolder === "schedule" ? "rotate-180" : ""}`} />
                 </button>
                 {activeFolder === "schedule" && (
-                  <div className="p-5 space-y-4 bg-[#0a0c14]/40">
+                  <div className="p-5 space-y-4 bg-white">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-xs font-semibold text-slate-200">Scheduled Surprise</p>
-                        <p className="text-[10px] text-slate-500">Locks surprise until chosen time.</p>
+                        <p className="text-sm font-semibold text-[#2E2A27]">Scheduled Surprise</p>
+                        <p className="text-[0.8125rem] text-[#6F655E]">Lock the surprise until a chosen time.</p>
                       </div>
                       <button type="button" onClick={() => setScheduleEnabled(!scheduleEnabled)}
-                        className={`relative w-10 h-5.5 rounded-full transition-colors duration-200 ${scheduleEnabled ? "bg-blue-500" : "bg-white/10"}`}>
-                        <span className={`absolute top-0.5 left-0.5 w-4.5 h-4.5 bg-white rounded-full transition-transform duration-200 ${scheduleEnabled ? "translate-x-4.5" : "translate-x-0"}`} />
+                        className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${scheduleEnabled ? "bg-[#C97B84]" : "bg-[#ECE3DA]"}`}>
+                        <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform duration-200 shadow-sm ${scheduleEnabled ? "translate-x-5" : "translate-x-0"}`} />
                       </button>
                     </div>
                     {scheduleEnabled && (
                       <div className="animate-reveal-up pt-1">
-                        <label className="block text-[10px] text-slate-500 font-bold uppercase tracking-wide mb-1.5">Unlock Time (Local)</label>
+                        <label className="block text-[0.75rem] text-[#6F655E] font-semibold mb-1.5">Unlock Time</label>
                         <input type="datetime-local" value={deliveryDate} onChange={e => setDeliveryDate(e.target.value)}
-                          required={scheduleEnabled} className="input-saas [color-scheme:dark]" />
+                          required={scheduleEnabled} className="input-saas" />
                       </div>
                     )}
                   </div>
                 )}
               </div>
 
-              {/* Accordion 5: Constellation Stars */}
-              <div className="surface rounded-xl overflow-hidden animate-reveal-up">
+              {/* Accordion 5: Choose Keepsake Doodle */}
+              <div className="surface rounded-[1.375rem] overflow-hidden animate-reveal-up">
                 <button
                   type="button"
-                  onClick={() => setActiveFolder(activeFolder === "stars" ? "basics" : "stars")}
-                  className="w-full flex items-center justify-between p-4 bg-white/[0.015] hover:bg-white/[0.03] transition-colors border-b border-white/[0.04]"
+                  onClick={() => setActiveFolder(activeFolder === "doodle" ? "basics" : "doodle")}
+                  className="w-full flex items-center justify-between p-5 hover:bg-[#F9F5F0] transition-colors border-b border-[#ECE3DA]"
                 >
-                  <SectionLabel icon={<Star className="w-3.5 h-3.5" />}>5. Memory Stars Constellation</SectionLabel>
-                  <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform ${activeFolder === "stars" ? "rotate-180" : ""}`} />
+                  <SectionHeader icon={<Heart className="w-3.5 h-3.5" />}>5. Pick a keepsake doodle</SectionHeader>
+                  <ChevronDown className={`w-4 h-4 text-[#B5ADA5] transition-transform ${activeFolder === "doodle" ? "rotate-180" : ""}`} />
                 </button>
-                {activeFolder === "stars" && (
-                  <div className="p-5 space-y-4 bg-[#0a0c14]/40">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wide">Constellation Coordinates</span>
-                      <button type="button" onClick={addStarMemory} className="text-[10px] text-blue-500 font-bold uppercase tracking-widest flex items-center gap-1">
-                        <Plus className="w-3 h-3" /> Add Star
-                      </button>
-                    </div>
-                    <div className="space-y-4">
-                      {constellationStars.map((s, i) => (
-                        <div key={s.id} className="flex flex-col gap-2 p-3 rounded-xl bg-white/[0.02] border border-white/[0.05]">
-                          <div className="grid grid-cols-2 gap-2">
-                            <input type="text" placeholder="Star title" value={s.label} onChange={e => updateStarMemory(i, "label", e.target.value)} className="input-saas text-xs py-2" />
-                            <input type="text" placeholder="Date" value={s.date} onChange={e => updateStarMemory(i, "date", e.target.value)} className="input-saas text-xs py-2" />
-                          </div>
-                          <div className="flex gap-2">
-                            <input type="text" placeholder="Memory details..." value={s.description} onChange={e => updateStarMemory(i, "description", e.target.value)} className="input-saas text-xs py-2 flex-1" />
-                            <button type="button" onClick={() => removeStarMemory(i)} className="text-slate-600 hover:text-red-400 transition-colors px-2">
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        </div>
+                {activeFolder === "doodle" && (
+                  <div className="p-5 space-y-4 bg-white">
+                    <span className="text-[0.75rem] text-[#6F655E] font-semibold block mb-1">Doodle Animation Style</span>
+                    <div className="grid grid-cols-2 gap-3">
+                      {[
+                        { id: "heart" as const, label: "Classic Heart", desc: "Heart & arrow sketch" },
+                        { id: "rose" as const, label: "Blooming Rose", desc: "A lovely single-line rose" },
+                        { id: "hearts" as const, label: "Linked Hearts", desc: "Interlocking line hearts" },
+                        { id: "coffee" as const, label: "Cozy Coffee", desc: "Steaming coffee cups sketch" }
+                      ].map(d => (
+                        <button
+                          key={d.id}
+                          type="button"
+                          onClick={() => setDoodleType(d.id)}
+                          className={`p-4 rounded-2xl border text-left transition-all ${
+                            doodleType === d.id
+                              ? "border-[#C97B84] bg-[#C97B84]/[0.03] scale-[1.01]"
+                              : "border-[#ECE3DA] bg-white hover:bg-[#F9F5F0]"
+                          }`}
+                        >
+                          <span className="block text-sm font-semibold text-[#2E2A27]">{d.label}</span>
+                          <span className="block text-[0.8125rem] text-[#6F655E] mt-0.5 leading-normal">{d.desc}</span>
+                        </button>
                       ))}
                     </div>
                   </div>
                 )}
               </div>
 
-              {/* Accordion 6: Timeline Events */}
-              <div className="surface rounded-xl overflow-hidden animate-reveal-up">
+              {/* Accordion 6: Relationship Timeline */}
+              <div className="surface rounded-[1.375rem] overflow-hidden animate-reveal-up">
                 <button
                   type="button"
                   onClick={() => setActiveFolder(activeFolder === "timeline" ? "basics" : "timeline")}
-                  className="w-full flex items-center justify-between p-4 bg-white/[0.015] hover:bg-white/[0.03] transition-colors border-b border-white/[0.04]"
+                  className="w-full flex items-center justify-between p-5 hover:bg-[#F9F5F0] transition-colors border-b border-[#ECE3DA]"
                 >
-                  <SectionLabel icon={<Calendar className="w-3.5 h-3.5" />}>6. Relationship Timeline</SectionLabel>
-                  <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform ${activeFolder === "timeline" ? "rotate-180" : ""}`} />
+                  <SectionHeader icon={<Calendar className="w-3.5 h-3.5" />}>6. Timeline milestones</SectionHeader>
+                  <ChevronDown className={`w-4 h-4 text-[#B5ADA5] transition-transform ${activeFolder === "timeline" ? "rotate-180" : ""}`} />
                 </button>
                 {activeFolder === "timeline" && (
-                  <div className="p-5 space-y-4 bg-[#0a0c14]/40">
+                  <div className="p-5 space-y-4 bg-white">
                     <div className="flex items-center justify-between">
-                      <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wide">Timeline Milestones</span>
-                      <button type="button" onClick={addTimelineEvent} className="text-[10px] text-blue-500 font-bold uppercase tracking-widest flex items-center gap-1">
+                      <span className="text-[0.75rem] text-[#6F655E] font-semibold">Milestones</span>
+                      <button type="button" onClick={addTimelineEvent} className="text-[0.75rem] text-[#C97B84] font-semibold flex items-center gap-1 hover:text-[#B5616B]">
                         <Plus className="w-3 h-3" /> Add Event
                       </button>
                     </div>
-                    <div className="space-y-4">
+                    <div className="space-y-3">
                       {timelineEvents.map((ev, i) => (
-                        <div key={i} className="flex flex-col gap-2 p-3 rounded-xl bg-white/[0.02] border border-white/[0.05]">
+                        <div key={i} className="flex flex-col gap-2 p-4 rounded-2xl bg-[#F9F5F0] border border-[#ECE3DA]">
                           <div className="grid grid-cols-2 gap-2">
-                            <input type="text" placeholder="Title" value={ev.title} onChange={e => updateTimelineEvent(i, "title", e.target.value)} className="input-saas text-xs py-2" />
-                            <input type="text" placeholder="Date/Period" value={ev.date} onChange={e => updateTimelineEvent(i, "date", e.target.value)} className="input-saas text-xs py-2" />
+                            <input type="text" placeholder="Title" value={ev.title} onChange={e => updateTimelineEvent(i, "title", e.target.value)} className="input-saas text-sm py-2.5" />
+                            <input type="text" placeholder="Date/Period" value={ev.date} onChange={e => updateTimelineEvent(i, "date", e.target.value)} className="input-saas text-sm py-2.5" />
                           </div>
                           <div className="flex gap-2">
-                            <input type="text" placeholder="Event details..." value={ev.description} onChange={e => updateTimelineEvent(i, "description", e.target.value)} className="input-saas text-xs py-2 flex-1" />
-                            <button type="button" onClick={() => removeTimelineEvent(i)} className="text-slate-600 hover:text-red-400 transition-colors px-2">
+                            <input type="text" placeholder="Event details..." value={ev.description} onChange={e => updateTimelineEvent(i, "description", e.target.value)} className="input-saas text-sm py-2.5 flex-1" />
+                            <button type="button" onClick={() => removeTimelineEvent(i)} className="text-[#B5ADA5] hover:text-[#C46D5E] transition-colors px-2">
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
                           </div>
@@ -757,31 +753,31 @@ export default function CreateSurprise() {
               </div>
 
               {/* Accordion 7: Memory Lane Grid */}
-              <div className="surface rounded-xl overflow-hidden animate-reveal-up">
+              <div className="surface rounded-[1.375rem] overflow-hidden animate-reveal-up">
                 <button
                   type="button"
                   onClick={() => setActiveFolder(activeFolder === "memories" ? "basics" : "memories")}
-                  className="w-full flex items-center justify-between p-4 bg-white/[0.015] hover:bg-white/[0.03] transition-colors border-b border-white/[0.04]"
+                  className="w-full flex items-center justify-between p-5 hover:bg-[#F9F5F0] transition-colors border-b border-[#ECE3DA]"
                 >
-                  <SectionLabel icon={<Camera className="w-3.5 h-3.5" />}>7. Memory Lane Grid</SectionLabel>
-                  <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform ${activeFolder === "memories" ? "rotate-180" : ""}`} />
+                  <SectionHeader icon={<Camera className="w-3.5 h-3.5" />}>7. Photo memories</SectionHeader>
+                  <ChevronDown className={`w-4 h-4 text-[#B5ADA5] transition-transform ${activeFolder === "memories" ? "rotate-180" : ""}`} />
                 </button>
                 {activeFolder === "memories" && (
-                  <div className="p-5 space-y-4 bg-[#0a0c14]/40">
+                  <div className="p-5 space-y-4 bg-white">
                     <div className="flex items-center justify-between">
-                      <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wide">Shared Photos</span>
-                      <button type="button" onClick={addMemory} className="text-[10px] text-blue-500 font-bold uppercase tracking-widest flex items-center gap-1">
+                      <span className="text-[0.75rem] text-[#6F655E] font-semibold">Shared Photos</span>
+                      <button type="button" onClick={addMemory} className="text-[0.75rem] text-[#C97B84] font-semibold flex items-center gap-1 hover:text-[#B5616B]">
                         <Plus className="w-3 h-3" /> Add Photo
                       </button>
                     </div>
                     <div className="space-y-3">
                       {memories.map((m, i) => (
-                        <div key={i} className="flex items-center gap-3 bg-white/[0.02] border border-white/[0.05] p-3 rounded-xl">
+                        <div key={i} className="flex items-center gap-3 bg-[#F9F5F0] border border-[#ECE3DA] p-4 rounded-2xl">
                           {m.url ? (
                             // eslint-disable-next-line @next/next/no-img-element
-                            <img src={m.url} alt="Thumbnail" className="w-12 h-12 object-cover rounded-md border border-white/10" />
+                            <img src={m.url} alt="Thumbnail" className="w-14 h-14 object-cover rounded-xl border border-[#ECE3DA]" />
                           ) : (
-                            <div className="w-12 h-12 bg-white/5 rounded-md flex items-center justify-center text-stone-500">
+                            <div className="w-14 h-14 bg-white rounded-xl flex items-center justify-center text-[#B5ADA5] border border-[#ECE3DA]">
                               <Camera className="w-4 h-4" />
                             </div>
                           )}
@@ -790,17 +786,17 @@ export default function CreateSurprise() {
                               type="file"
                               accept="image/*"
                               onChange={e => handleImageUpload(e, i)}
-                              className="w-full text-[10px] text-stone-400 file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-[10px] file:font-semibold file:bg-blue-500/10 file:text-blue-400 hover:file:bg-blue-500/20"
+                              className="w-full text-[0.75rem] text-[#6F655E] file:mr-2 file:py-1 file:px-3 file:rounded-lg file:border file:border-[#ECE3DA] file:text-[0.75rem] file:font-semibold file:bg-white file:text-[#6F655E] hover:file:bg-[#F9F5F0]"
                             />
                             <input
                               type="text"
                               placeholder="Caption…"
                               value={m.caption}
                               onChange={e => updateMemory(i, "caption", e.target.value)}
-                              className="input-saas text-xs py-1 px-2 h-7"
+                              className="input-saas text-sm py-2"
                             />
                           </div>
-                          <button type="button" onClick={() => removeMemory(i)} className="text-slate-600 hover:text-red-400 transition-colors px-1">
+                          <button type="button" onClick={() => removeMemory(i)} className="text-[#B5ADA5] hover:text-[#C46D5E] transition-colors px-1">
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
@@ -811,133 +807,50 @@ export default function CreateSurprise() {
               </div>
 
               {/* Submit */}
-              <div className="pt-2 animate-reveal-up">
-                <button type="submit" className="btn-primary w-full py-3.5 text-sm flex items-center justify-center gap-2">
-                  <Gift className="w-4 h-4" /> Generate Surprise Link
+              <div className="pt-3 animate-reveal-up">
+                <button type="submit" className="btn-primary w-full py-4 text-[0.9375rem] flex items-center justify-center gap-2">
+                  <Gift className="w-4 h-4" /> Create Surprise Link
                 </button>
               </div>
 
             </form>
-
-            {/* Right Column: Live Mockup Phone Preview */}
-            <div className="sticky top-8 hidden lg:flex flex-col items-center justify-center w-full min-h-[500px]">
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4">LIVE PREVIEW</span>
-              
-              {/* Phone Container */}
-              <div className="relative w-[280px] h-[550px] rounded-[38px] border-4 border-slate-800 bg-[#07080D] shadow-2xl overflow-hidden flex flex-col justify-between"
-                style={{ boxShadow: "0 25px 60px -15px rgba(0,0,0,0.9), 0 0 0 1px rgba(255,255,255,0.05)" }}>
-                
-                {/* Phone Speaker notch */}
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-28 h-4.5 bg-slate-800 rounded-b-xl z-50 flex items-center justify-center">
-                  <div className="w-12 h-1 bg-black rounded-full" />
-                </div>
-
-                {/* Live screen display */}
-                <div className={`flex-1 flex flex-col justify-between p-5 pt-8 relative overflow-hidden transition-all duration-500 bg-gradient-to-b ${currentThemeGradient}`}>
-                  
-                  {/* Decorative mesh glows */}
-                  <div className="absolute -top-10 -right-10 w-28 h-28 rounded-full pointer-events-none opacity-40 bg-blue-500 blur-xl" />
-                  <div className="absolute bottom-20 -left-10 w-28 h-28 rounded-full pointer-events-none opacity-20 bg-amber-500 blur-xl" />
-
-                  {/* Top Bar status */}
-                  <div className="flex items-center justify-between text-[8px] text-slate-500 font-mono relative z-10 select-none">
-                    <span>9:41 AM</span>
-                    <span className="px-1.5 py-0.5 rounded bg-white/[0.04] border border-white/[0.06]">100% 🔋</span>
-                  </div>
-
-                  {/* Envelope layout preview */}
-                  <div className="flex-1 flex flex-col justify-center items-center relative z-10 pt-4">
-                    
-                    <div className="w-full aspect-[1.5/1] rounded-lg bg-slate-900/90 border border-white/5 relative overflow-hidden flex items-center justify-center shadow-lg">
-                      <div className="absolute inset-y-0 left-0 w-1/2 bg-gradient-to-tr from-slate-950 to-slate-900" style={{ clipPath: "polygon(0 0, 100% 50%, 0 100%)" }} />
-                      <div className="absolute inset-y-0 right-0 w-1/2 bg-gradient-to-tl from-slate-950 to-slate-900" style={{ clipPath: "polygon(100% 0, 0 50%, 100% 100%)" }} />
-                      <div className="absolute bottom-0 inset-x-0 h-[65%] bg-gradient-to-t from-slate-950 via-slate-900 to-slate-900" style={{ clipPath: "polygon(0 100%, 50% 0, 100% 100%)" }} />
-                      <div className="absolute top-0 left-0 w-full h-[62%] bg-gradient-to-b from-slate-800 to-slate-900 origin-top" style={{ clipPath: "polygon(0 0, 100% 0, 50% 100%)" }} />
-                      <div className="absolute top-[48%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center shadow-md"
-                        style={{ background: "radial-gradient(circle, #F59E0B 0%, #D97706 100%)" }}>
-                        <span className="text-white/80 text-[10px]">✦</span>
-                      </div>
-                    </div>
-
-                    <div className="text-center mt-5 max-w-[180px]">
-                      <h4 className="text-xs font-bold text-slate-100 truncate">For {name || "Someone Special"}</h4>
-                      <p className="text-[9px] text-slate-500 mt-1 truncate">surprises by {sender || "A Loved One"}</p>
-                    </div>
-
-                  </div>
-
-                  {/* Foot preview */}
-                  <div className="text-center text-[7px] text-slate-600 font-mono tracking-widest z-10 uppercase">
-                    WishMaker Preview
-                  </div>
-                </div>
-
-              </div>
-            </div>
           </>
         ) : (
           /* ── SUCCESS STATE ── */
-          <div className="animate-reveal-up text-center py-12 px-4 flex flex-col items-center col-span-2 max-w-xl mx-auto w-full">
-            <div className="w-14 h-14 glass-blue rounded-2xl flex items-center justify-center mb-6 glow-blue">
-              <Sparkles className="w-7 h-7 text-blue-400" />
+          <div className="animate-reveal-up text-center py-16 px-4 flex flex-col items-center max-w-xl mx-auto w-full">
+            <div className="w-16 h-16 rounded-2xl bg-[#F9F5F0] border border-[#ECE3DA] flex items-center justify-center mb-8"
+              style={{ boxShadow: "0 2px 12px rgba(46,42,39,0.04)" }}>
+              <Heart className="w-7 h-7 text-[#C97B84] fill-current" />
             </div>
-            <h2 className="text-2xl font-bold text-white mb-2 tracking-tight">Surprise Link is Ready</h2>
-            <p className="text-xs text-slate-400 max-w-md mb-8">
+            <h2 className="font-serif text-[2rem] text-[#2E2A27] mb-3" style={{ fontWeight: 400 }}>Your surprise is ready</h2>
+            <p className="text-[0.9375rem] text-[#6F655E] max-w-md mb-10">
               Send the link below to {name}.
               {scheduleEnabled && deliveryDate && (
-                <span className="block mt-1.5 text-amber-400 font-medium">
+                <span className="block mt-2 text-[#D8B88A] font-medium">
                   🔒 Locked until {new Date(deliveryDate).toLocaleString()}
                 </span>
               )}
             </p>
 
-            <div className="w-full space-y-4 mb-6">
-              {/* Tab Selector */}
-              {shortenedUrl && (
-                <div className="flex gap-2 justify-center">
-                  <button
-                    type="button"
-                    onClick={() => setUseShortLink(true)}
-                    className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all ${
-                      useShortLink
-                        ? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
-                        : "text-stone-500 hover:text-stone-300"
-                    }`}
-                  >
-                    Short URL (Easy Share)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setUseShortLink(false)}
-                    className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all ${
-                      !useShortLink
-                        ? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
-                        : "text-stone-500 hover:text-stone-300"
-                    }`}
-                  >
-                    Full URL (Encrypted Offline)
-                  </button>
-                </div>
-              )}
-
+            <div className="w-full space-y-4 mb-8">
               {/* Link Input Box */}
-              <div className="w-full glass rounded-xl p-4 flex gap-3 items-center border border-white/[0.07] bg-white/[0.01]">
+              <div className="w-full surface rounded-2xl p-4 flex gap-3 items-center">
                 {shorteningLoading ? (
-                  <div className="flex items-center gap-2 text-stone-500 text-xs">
+                  <div className="flex items-center gap-2 text-[#6F655E] text-sm">
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    <span>Shortening link for easy sharing…</span>
+                    <span>Shortening link…</span>
                   </div>
                 ) : (
                   <>
                     <input
                       readOnly
-                      value={useShortLink && shortenedUrl ? shortenedUrl : generatedUrl}
-                      className="flex-1 bg-transparent text-xs text-stone-400 font-mono outline-none min-w-0"
+                      value={shortenedUrl || generatedUrl}
+                      className="flex-1 bg-transparent text-sm text-[#6F655E] font-mono outline-none min-w-0"
                     />
                     <button
                       onClick={handleCopy}
-                      className={`flex-shrink-0 px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 flex items-center gap-1.5 ${
-                        copied ? "bg-green-500/20 text-green-400 border border-green-500/30" : "btn-primary"
+                      className={`flex-shrink-0 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center gap-1.5 ${
+                        copied ? "bg-[#8FA27A]/10 text-[#8FA27A] border border-[#8FA27A]/20" : "btn-primary"
                       }`}
                     >
                       {copied ? <><Check className="w-3.5 h-3.5" /> Copied!</> : <><Copy className="w-3.5 h-3.5" /> Copy</>}
@@ -951,12 +864,12 @@ export default function CreateSurprise() {
               <button onClick={handleShare} className="flex-1 btn-gold py-3.5 text-sm flex items-center justify-center gap-2">
                 <Share2 className="w-4 h-4" /> Share Surprise
               </button>
-              <a href={useShortLink && shortenedUrl ? shortenedUrl : generatedUrl} target="_blank" rel="noopener noreferrer"
-                className="flex-1 py-3.5 text-sm text-slate-300 font-semibold rounded-xl glass hover:bg-white/[0.06] transition-all flex items-center justify-center gap-2">
-                <ExternalLink className="w-4 h-4" /> Preview surprise
+              <a href={shortenedUrl || generatedUrl} target="_blank" rel="noopener noreferrer"
+                className="flex-1 py-3.5 text-sm text-[#6F655E] font-semibold rounded-[1.375rem] border border-[#ECE3DA] bg-white hover:bg-[#F9F5F0] transition-all flex items-center justify-center gap-2">
+                <ExternalLink className="w-4 h-4" /> Preview
               </a>
               <button onClick={() => setGeneratedUrl("")}
-                className="flex-1 py-3.5 text-sm text-slate-500 font-semibold rounded-xl glass hover:bg-white/[0.06] transition-all">
+                className="flex-1 py-3.5 text-sm text-[#B5ADA5] font-semibold rounded-[1.375rem] border border-[#ECE3DA] bg-white hover:bg-[#F9F5F0] transition-all">
                 Create another
               </button>
             </div>

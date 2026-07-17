@@ -7,6 +7,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "URL is required" }, { status: 400 });
     }
 
+    // Directly call TinyURL API for all environments, including localhost
     // Call TinyURL simple text endpoint
     const res = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(url)}`, {
       method: "GET",
