@@ -212,14 +212,41 @@ export default function Fireworks({ name = "Friend" }: FireworksProps) {
       if (textFade > 0) {
         ctx.save();
         ctx.globalAlpha = Math.min(1, textFade);
-        const fontSize = Math.min(w / 10, 100);
-        ctx.font = `bold ${fontSize}px Georgia, serif`;
         ctx.shadowBlur = 18;
         ctx.shadowColor = "#D8B88A";
         ctx.fillStyle = "#FFF";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        ctx.fillText(`Happy Birthday, ${name}!`, w / 2, h * 0.35);
+
+        if (w < 600) {
+          // Stack on mobile
+          let fontSize = Math.min(w / 8, 60);
+          ctx.font = `bold ${fontSize}px Georgia, serif`;
+          
+          // Ensure it doesn't overflow even on very small screens
+          const nameText = `${name}!`;
+          const nameWidth = ctx.measureText(nameText).width;
+          if (nameWidth > w * 0.9) {
+            fontSize = fontSize * (w * 0.9 / nameWidth);
+            ctx.font = `bold ${fontSize}px Georgia, serif`;
+          }
+          
+          ctx.fillText("Happy Birthday,", w / 2, h * 0.35 - fontSize * 0.6);
+          ctx.fillText(nameText, w / 2, h * 0.35 + fontSize * 0.6);
+        } else {
+          // Single line on desktop
+          let fontSize = Math.min(w / 12, 100);
+          ctx.font = `bold ${fontSize}px Georgia, serif`;
+          const text = `Happy Birthday, ${name}!`;
+          let textWidth = ctx.measureText(text).width;
+          
+          if (textWidth > w * 0.9) {
+            fontSize = fontSize * (w * 0.9 / textWidth);
+            ctx.font = `bold ${fontSize}px Georgia, serif`;
+          }
+          ctx.fillText(text, w / 2, h * 0.35);
+        }
+        
         ctx.restore();
         textFade -= 0.003; // very slow fade out
       }

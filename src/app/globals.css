@@ -379,3 +379,20 @@
 .animate-float-heart {
   animation: float-heart 7s ease-in-out infinite;
 }
+
+/* ── Handwritten Letter Animations ── */
+@keyframes letter-slide-up {
+  0% { transform: translateY(80px) scale(0.95); opacity: 0; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+@keyframes envelope-flap {
+  0% { transform: rotateX(0deg); }
+  100% { transform: rotateX(180deg); }
+}
+.animate-letter-slide {
+  animation: letter-slide-up 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.envelope-flap-open {
+  transform-origin: top center;
+  animation: envelope-flap 1.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}

@@ -9,6 +9,11 @@ import {
   Users, Star, Heart, Briefcase, Lightbulb, ChevronDown, Calendar
 } from "lucide-react";
 import confetti from "canvas-confetti";
+import StepProgressBar from "@/components/ui/StepProgressBar";
+import TriviaForm from "@/components/create/TriviaForm";
+import MemoryLaneForm from "@/components/create/MemoryLaneForm";
+import { ITrivia } from "@/components/create/TriviaForm";
+import VoiceRecorder from "@/components/ui/VoiceRecorder";
 import { playChime } from "@/lib/audio";
 import { JinglePlayer } from "@/lib/jingle";
 
@@ -22,6 +27,8 @@ interface TimelineEvent {
   title: string;
   description: string;
 }
+
+
 
 interface StarMemory {
   id: number;
@@ -153,6 +160,8 @@ export default function CreateSurprise() {
   const [sender, setSender]     = useState("");
   const [message, setMessage]   = useState("");
   const [theme, setTheme]       = useState<ThemeId>("starry");
+  const [ambience, setAmbience] = useState<"fire" | "rain" | "ocean" | "none">("none");
+  const [voiceNoteUrl, setVoiceNoteUrl] = useState("");
   const [memories, setMemories] = useState<Memory[]>([
     { url: "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=600&auto=format&fit=crop&q=80", caption: "Laughter and joy together!" },
   ]);
@@ -163,13 +172,17 @@ export default function CreateSurprise() {
     { date: "May 2022", title: "First Adventure", description: "Our first road trip away from the city, singing along to custom playlists." },
   ]);
 
+  // Trivia state
+  const [triviaQuestions, setTriviaQuestions] = useState<ITrivia[]>([
+    { question: "", options: ["", "", "", ""], correctAnswerIndex: 0 }
+  ]);
+
   const [generatedUrl, setGeneratedUrl] = useState("");
-  const [shortenedUrl, setShortenedUrl] = useState("");
-  const [shorteningLoading, setShorteningLoading] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [copied, setCopied]             = useState(false);
 
   // Accordion folder state
-  const [activeFolder, setActiveFolder] = useState<"basics" | "ai-writer" | "theme" | "schedule" | "doodle" | "timeline" | "memories">("basics");
+  const [activeFolder, setActiveFolder] = useState<"basics" | "ai-writer" | "theme" | "schedule" | "doodle" | "timeline" | "trivia" | "memories">("basics");
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
   const [doodleType, setDoodleType] = useState<"heart" | "rose" | "hearts" | "coffee">("heart");
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -206,47 +219,7 @@ export default function CreateSurprise() {
   };
 
   const addMemory    = () => setMemories(p => [...p, { url: "", caption: "" }]);
-  const removeMemory = (i: number) => setMemories(p => p.filter((_, idx) => idx !== i));
-  const updateMemory = (i: number, f: keyof Memory, v: string) =>
-    setMemories(p => { const n = [...p]; n[i] = { ...n[i], [f]: v }; return n; });
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        const MAX_WIDTH = 220;
-        const MAX_HEIGHT = 220;
-        let width = img.width;
-        let height = img.height;
-        if (width > height) {
-          if (width > MAX_WIDTH) {
-            height = Math.round((height * MAX_WIDTH) / width);
-            width = MAX_WIDTH;
-          }
-        } else {
-          if (height > MAX_HEIGHT) {
-            width = Math.round((width * MAX_HEIGHT) / height);
-            height = MAX_HEIGHT;
-          }
-        }
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext("2d");
-        if (ctx) {
-          ctx.drawImage(img, 0, 0, width, height);
-          const compressed = canvas.toDataURL("image/jpeg", 0.45);
-          updateMemory(index, "url", compressed);
-          toast.success("Photo uploaded successfully");
-        }
-      };
-      img.src = event.target?.result as string;
-    };
-    reader.readAsDataURL(file);
-  };
 
   const addTimelineEvent = () => setTimelineEvents(p => [...p, { date: "", title: "", description: "" }]);
   const removeTimelineEvent = (i: number) => setTimelineEvents(p => p.filter((_, idx) => idx !== i));
@@ -325,32 +298,38 @@ export default function CreateSurprise() {
     }
   };
 
-  const handleGenerate = (e: React.FormEvent) => {
+  const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsGenerating(true);
     const active = memories.filter(m => m.url.trim());
     const payload: Record<string, any> = {
-      n: name.trim()   || "Someone Special",
-      a: age ? parseInt(age) : undefined,
-      s: sender.trim() || "A Loved One",
-      m: message.trim() || "Happy Birthday! Wishing you a magical year ahead.",
-      t: theme,
-      mm: active,
-      tl: timelineEvents.filter(ev => ev.title.trim()),
-      dt: doodleType
+      name: name.trim()   || "Someone Special",
+      age: age ? parseInt(age) : undefined,
+      sender: sender.trim() || "A Loved One",
+      message: message.trim() || "Happy Birthday! Wishing you a magical year ahead.",
+      theme: theme,
+      ambience: ambience,
+      memories: active,
+      timeline: timelineEvents.filter(ev => ev.title.trim()),
+      trivia: triviaQuestions.filter(t => t.question.trim() && t.options.some(o => o.trim())),
+      doodleType: doodleType,
+      voiceNoteUrl: voiceNoteUrl
     };
     if (scheduleEnabled && deliveryDate) {
-      payload.dl = new Date(deliveryDate).getTime();
+      payload.deliveryLock = new Date(deliveryDate).getTime();
     }
     try {
-      const b64 = btoa(
-        encodeURIComponent(JSON.stringify(payload)).replace(
-          /%([0-9A-F]{2})/g,
-          (_, p1) => String.fromCharCode(parseInt(p1, 16))
-        )
-      );
-      const url = `${window.location.origin}/wish?d=${b64}`;
+      const res = await fetch("/api/wishes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      
+      if (!res.ok) throw new Error(data.error);
+      
+      const url = `${window.location.origin}/wish/${data.id}`;
       setGeneratedUrl(url);
-      setShortenedUrl("");
       
       playChime();
       confetti({
@@ -358,48 +337,29 @@ export default function CreateSurprise() {
         colors: ["#C97B84", "#D8B88A", "#A6B39D", "#FFFFFF"],
       });
       toast.success("Your surprise link is ready!");
-
-      // Call API shortener automatically
-      setShorteningLoading(true);
-      fetch("/api/shorten", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url }),
-      })
-        .then(res => res.json())
-        .then(data => {
-          if (data.shortUrl) {
-            setShortenedUrl(data.shortUrl);
-          }
-        })
-        .catch(() => {})
-        .finally(() => {
-          setShorteningLoading(false);
-        });
-
     } catch (err) {
-      toast.error("Failed to generate URL");
+      toast.error("Failed to save to database");
+    } finally {
+      setIsGenerating(false);
     }
   };
 
   const handleCopy = () => {
-    const activeUrl = shortenedUrl || generatedUrl;
-    if (!activeUrl) return;
-    navigator.clipboard.writeText(activeUrl);
+    if (!generatedUrl) return;
+    navigator.clipboard.writeText(generatedUrl);
     setCopied(true);
     toast.success("Link copied");
     setTimeout(() => setCopied(false), 2000);
   };
 
   const handleShare = async () => {
-    const activeUrl = shortenedUrl || generatedUrl;
-    if (!activeUrl) return;
+    if (!generatedUrl) return;
     if (navigator.share) {
       try {
         await navigator.share({
           title: `Happy Birthday ${name}! 🎂`,
           text: `${sender} made you an interactive birthday surprise!`,
-          url: activeUrl,
+          url: generatedUrl,
         });
       } catch (err: any) {
         if (err.name !== "AbortError") toast.error("Share failed");
@@ -564,7 +524,7 @@ export default function CreateSurprise() {
                           <button key={i} type="button" onClick={() => { setMessage(draft); toast.success("Letter updated"); }}
                             className={`w-full text-left p-4 rounded-2xl border text-sm leading-relaxed transition-all ${
                               message === draft
-                                ? "border-[#C97B84] bg-[#C97B84]/[0.03] text-[#2E2A27]"
+                                ? "border-[#C97B84] bg-[#C97B84]/[0.03] text-[#2E2A27] shadow-sm"
                                 : "border-[#ECE3DA] bg-white hover:bg-[#F9F5F0] text-[#6F655E]"}`}>
                             <span className="block text-[0.625rem] text-[#B5ADA5] font-semibold uppercase tracking-wider mb-1.5">
                               {["Draft 1 (Heartfelt)", "Draft 2 (Nostalgic)", "Draft 3 (Inspiring)"][i]}
@@ -579,7 +539,12 @@ export default function CreateSurprise() {
                       <label className="block text-[0.75rem] text-[#6F655E] font-semibold mb-1.5">Letter Text *</label>
                       <textarea required rows={4} value={message} onChange={e => setMessage(e.target.value)}
                         placeholder="Write your heartfelt letter…"
-                        className="input-saas resize-none text-sm leading-relaxed" />
+                        className="input-saas resize-none text-sm leading-relaxed mb-4" />
+                        
+                      <VoiceRecorder 
+                        onRecordingComplete={(url) => setVoiceNoteUrl(url)}
+                        onClear={() => setVoiceNoteUrl("")}
+                      />
                     </div>
                   </div>
                 )}
@@ -637,6 +602,27 @@ export default function CreateSurprise() {
                           jinglePlaying ? "bg-[#D8B88A]/10 border-[#D8B88A] text-[#D8B88A]" : "bg-white border-[#ECE3DA] text-[#6F655E] hover:text-[#2E2A27] hover:border-[#DDD4CB]"}`}>
                         {jinglePlaying ? <Square className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
                       </button>
+                    </div>
+
+                    <div className="surface rounded-2xl p-4">
+                      <p className="text-sm font-semibold text-[#2E2A27] mb-2 flex items-center gap-1.5">
+                        <Sparkles className="w-3.5 h-3.5 text-[#D8B88A]" /> Background Ambience
+                      </p>
+                      <div className="grid grid-cols-4 gap-2">
+                        {[ 
+                          { id: "none", label: "None" }, 
+                          { id: "fire", label: "Fireplace" }, 
+                          { id: "rain", label: "Soft Rain" }, 
+                          { id: "ocean", label: "Ocean Waves" } 
+                        ].map(a => (
+                          <button key={a.id} type="button" onClick={() => setAmbience(a.id as any)}
+                            className={`py-2 px-1 rounded-xl border text-[0.6875rem] font-semibold text-center transition-all ${
+                              ambience === a.id ? "border-[#C97B84] bg-[#F9F5F0] text-[#2E2A27]" : "border-[#ECE3DA] bg-white text-[#6F655E] hover:bg-[#F9F5F0]"
+                            }`}>
+                            {a.label}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 )}
@@ -752,64 +738,35 @@ export default function CreateSurprise() {
                 )}
               </div>
 
-              {/* Accordion 7: Memory Lane Grid */}
-              <div className="surface rounded-[1.375rem] overflow-hidden animate-reveal-up">
-                <button
-                  type="button"
-                  onClick={() => setActiveFolder(activeFolder === "memories" ? "basics" : "memories")}
-                  className="w-full flex items-center justify-between p-5 hover:bg-[#F9F5F0] transition-colors border-b border-[#ECE3DA]"
-                >
-                  <SectionHeader icon={<Camera className="w-3.5 h-3.5" />}>7. Photo memories</SectionHeader>
-                  <ChevronDown className={`w-4 h-4 text-[#B5ADA5] transition-transform ${activeFolder === "memories" ? "rotate-180" : ""}`} />
-                </button>
-                {activeFolder === "memories" && (
-                  <div className="p-5 space-y-4 bg-white">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[0.75rem] text-[#6F655E] font-semibold">Shared Photos</span>
-                      <button type="button" onClick={addMemory} className="text-[0.75rem] text-[#C97B84] font-semibold flex items-center gap-1 hover:text-[#B5616B]">
-                        <Plus className="w-3 h-3" /> Add Photo
-                      </button>
-                    </div>
-                    <div className="space-y-3">
-                      {memories.map((m, i) => (
-                        <div key={i} className="flex items-center gap-3 bg-[#F9F5F0] border border-[#ECE3DA] p-4 rounded-2xl">
-                          {m.url ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={m.url} alt="Thumbnail" className="w-14 h-14 object-cover rounded-xl border border-[#ECE3DA]" />
-                          ) : (
-                            <div className="w-14 h-14 bg-white rounded-xl flex items-center justify-center text-[#B5ADA5] border border-[#ECE3DA]">
-                              <Camera className="w-4 h-4" />
-                            </div>
-                          )}
-                          <div className="flex-1 space-y-1.5 min-w-0">
-                            <input
-                              type="file"
-                              accept="image/*"
-                              onChange={e => handleImageUpload(e, i)}
-                              className="w-full text-[0.75rem] text-[#6F655E] file:mr-2 file:py-1 file:px-3 file:rounded-lg file:border file:border-[#ECE3DA] file:text-[0.75rem] file:font-semibold file:bg-white file:text-[#6F655E] hover:file:bg-[#F9F5F0]"
-                            />
-                            <input
-                              type="text"
-                              placeholder="Caption…"
-                              value={m.caption}
-                              onChange={e => updateMemory(i, "caption", e.target.value)}
-                              className="input-saas text-sm py-2"
-                            />
-                          </div>
-                          <button type="button" onClick={() => removeMemory(i)} className="text-[#B5ADA5] hover:text-[#C46D5E] transition-colors px-1">
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
+              
+              {/* Accordion 7: Trivia */}
+              <TriviaForm
+                activeFolder={activeFolder}
+                setActiveFolder={setActiveFolder as any}
+                triviaQuestions={triviaQuestions}
+                setTriviaQuestions={setTriviaQuestions}
+                SectionHeader={SectionHeader}
+              />
+
+              {/* Accordion 8: Memory Lane Grid */}
+              <MemoryLaneForm
+                activeFolder={activeFolder}
+                setActiveFolder={setActiveFolder as any}
+                memories={memories}
+                setMemories={setMemories}
+                SectionHeader={SectionHeader}
+              />
 
               {/* Submit */}
               <div className="pt-3 animate-reveal-up">
-                <button type="submit" className="btn-primary w-full py-4 text-[0.9375rem] flex items-center justify-center gap-2">
-                  <Gift className="w-4 h-4" /> Create Surprise Link
+                <button type="submit" disabled={isGenerating}
+                  className="w-full btn-gold py-4 text-sm font-semibold tracking-wide flex items-center justify-center gap-2"
+                  style={{ boxShadow: "0 8px 24px rgba(216,184,138,0.25)" }}>
+                  {isGenerating ? (
+                    <><Loader2 className="w-4 h-4 animate-spin" /> Magically Packing Gift...</>
+                  ) : (
+                    <><Sparkles className="w-4 h-4" /> Wrap Surprise Gift & Generate Link</>
+                  )}
                 </button>
               </div>
 
@@ -835,28 +792,19 @@ export default function CreateSurprise() {
             <div className="w-full space-y-4 mb-8">
               {/* Link Input Box */}
               <div className="w-full surface rounded-2xl p-4 flex gap-3 items-center">
-                {shorteningLoading ? (
-                  <div className="flex items-center gap-2 text-[#6F655E] text-sm">
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    <span>Shortening link…</span>
-                  </div>
-                ) : (
-                  <>
-                    <input
-                      readOnly
-                      value={shortenedUrl || generatedUrl}
-                      className="flex-1 bg-transparent text-sm text-[#6F655E] font-mono outline-none min-w-0"
-                    />
-                    <button
-                      onClick={handleCopy}
-                      className={`flex-shrink-0 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center gap-1.5 ${
-                        copied ? "bg-[#8FA27A]/10 text-[#8FA27A] border border-[#8FA27A]/20" : "btn-primary"
-                      }`}
-                    >
-                      {copied ? <><Check className="w-3.5 h-3.5" /> Copied!</> : <><Copy className="w-3.5 h-3.5" /> Copy</>}
-                    </button>
-                  </>
-                )}
+                <input
+                  readOnly
+                  value={generatedUrl}
+                  className="flex-1 bg-transparent text-sm text-[#6F655E] font-mono outline-none min-w-0"
+                />
+                <button
+                  onClick={handleCopy}
+                  className={`flex-shrink-0 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center gap-1.5 ${
+                    copied ? "bg-[#8FA27A]/10 text-[#8FA27A] border border-[#8FA27A]/20" : "btn-primary"
+                  }`}
+                >
+                  {copied ? <><Check className="w-3.5 h-3.5" /> Copied!</> : <><Copy className="w-3.5 h-3.5" /> Copy</>}
+                </button>
               </div>
             </div>
 
@@ -864,7 +812,7 @@ export default function CreateSurprise() {
               <button onClick={handleShare} className="flex-1 btn-gold py-3.5 text-sm flex items-center justify-center gap-2">
                 <Share2 className="w-4 h-4" /> Share Surprise
               </button>
-              <a href={shortenedUrl || generatedUrl} target="_blank" rel="noopener noreferrer"
+              <a href={generatedUrl} target="_blank" rel="noopener noreferrer"
                 className="flex-1 py-3.5 text-sm text-[#6F655E] font-semibold rounded-[1.375rem] border border-[#ECE3DA] bg-white hover:bg-[#F9F5F0] transition-all flex items-center justify-center gap-2">
                 <ExternalLink className="w-4 h-4" /> Preview
               </a>

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { Suspense, useEffect, useState, useRef } from "react";
-import { useSearchParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { Heart, Sparkles, AlertCircle, Plus, Lock, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -14,12 +14,19 @@ import MemoryLane from "@/components/birthday/MemoryLane";
 import Fireworks from "@/components/birthday/Fireworks";
 import DoodleAnimation from "@/components/birthday/DoodleAnimation";
 import Timeline, { TimelineEvent } from "@/components/birthday/Timeline";
+import TriviaGame from "@/components/birthday/TriviaGame";
 import StepProgressBar from "@/components/ui/StepProgressBar";
 import { JinglePlayer } from "@/lib/jingle";
 import { AmbientPlayer } from "@/lib/audio";
 import AmbientCanvas from "@/components/ui/AmbientCanvas";
 
 interface Memory { url: string; caption: string; }
+
+interface ITrivia {
+  question: string;
+  options: string[];
+  correctAnswerIndex: number;
+}
 
 interface StarMemory {
   id: number;
@@ -31,21 +38,23 @@ interface StarMemory {
 }
 
 interface WishData {
-  n:  string;
-  a?: number;
-  s:  string;
-  m:  string;
-  t:  string;
-  mm?: Memory[];
-  dl?: number;
-  tl?: TimelineEvent[];
+  name: string;
+  age?: number;
+  sender: string;
+  message: string;
+  theme: string;
+  memories?: Memory[];
+  deliveryLock?: Date | string | number;
+  timeline?: TimelineEvent[];
+  trivia?: ITrivia[];
   st?: StarMemory[];
-  dt?: "heart" | "rose" | "hearts" | "coffee";
-  am?: "fire" | "rain" | "ocean" | "none";
+  doodleType?: "heart" | "rose" | "hearts" | "coffee";
+  ambience?: "fire" | "rain" | "ocean" | "none";
+  voiceNoteUrl?: string;
   demo?: boolean;
 }
 
-type Stage = "gift" | "cake" | "final-wish" | "doodle" | "timeline" | "memories" | "balloons" | "letter" | "finale";
+type Stage = "gift" | "cake" | "final-wish" | "doodle" | "timeline" | "memories" | "trivia" | "balloons" | "letter" | "finale";
 
 const ALL_STAGES: { id: Stage; label: string }[] = [
   { id: "gift", label: "Open" },
@@ -54,6 +63,7 @@ const ALL_STAGES: { id: Stage; label: string }[] = [
   { id: "doodle", label: "Doodle" },
   { id: "timeline", label: "Timeline" },
   { id: "memories", label: "Photos" },
+  { id: "trivia", label: "Trivia" },
   { id: "balloons", label: "Balloons" },
   { id: "letter", label: "Letter" },
   { id: "finale", label: "Finale" },
@@ -113,7 +123,8 @@ function CountdownLock({ unlockAt, onUnlock }: { unlockAt: number; onUnlock: () 
 // ── Main Page Component ──
 function WishContent() {
   const searchParams = useSearchParams();
-  const dataParam = searchParams?.get("d");
+  const params = useParams();
+  const id = params?.id;
 
   const [wishData, setWishData]             = useState<WishData | null>(null);
   const [error, setError]                   = useState(false);
@@ -130,17 +141,22 @@ function WishContent() {
   const jingleRef = useRef<JinglePlayer | null>(null);
 
   useEffect(() => {
-    if (!dataParam) { setError(true); return; }
-    try {
-      const decoded = decodeURIComponent(
-        atob(dataParam).split("").map(c => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2)).join("")
-      );
-      const parsed = JSON.parse(decoded) as WishData;
-      if (!parsed.n || !parsed.s || !parsed.m) { setError(true); return; }
-      setWishData(parsed);
-      if (parsed.dl && Date.now() < parsed.dl) { setLocked(true); setUnlockTs(parsed.dl); }
-    } catch { setError(true); }
-  }, [dataParam]);
+    if (!id) { setError(true); return; }
+    fetch(`/api/wishes/${id}`)
+      .then(res => res.json())
+      .then(data => {
+        if (!data.success || !data.wish) {
+          setError(true);
+          return;
+        }
+        setWishData(data.wish);
+        if (data.wish.deliveryLock && Date.now() < new Date(data.wish.deliveryLock).getTime()) {
+          setLocked(true);
+          setUnlockTs(new Date(data.wish.deliveryLock).getTime());
+        }
+      })
+      .catch(() => setError(true));
+  }, [id]);
 
   const ambientPlayer = useRef<AmbientPlayer | null>(null);
 
@@ -158,9 +174,10 @@ function WishContent() {
       return ALL_STAGES.filter(s => ["gift", "cake", "letter", "finale"].includes(s.id));
     }
     return ALL_STAGES.filter(s => {
-      if (s.id === "doodle" && (!wishData.dt || wishData.dt === "heart")) return false;
-      if (s.id === "timeline" && (!wishData.tl || wishData.tl.length === 0)) return false;
-      if (s.id === "memories" && (!wishData.mm || wishData.mm.length === 0)) return false;
+      if (s.id === "doodle" && (!wishData.doodleType || wishData.doodleType === "heart")) return false;
+      if (s.id === "timeline" && (!wishData.timeline || wishData.timeline.length === 0)) return false;
+      if (s.id === "memories" && (!wishData.memories || wishData.memories.length === 0)) return false;
+      if (s.id === "trivia" && (!wishData.trivia || wishData.trivia.length === 0)) return false;
       return true;
     });
   }, [wishData]);
@@ -187,7 +204,7 @@ function WishContent() {
     if (stage === "finale" && wishData) {
       const playJingle = async () => {
         jingleRef.current = new JinglePlayer();
-        await jingleRef.current.play({ theme: wishData.t, name: wishData.n });
+        await jingleRef.current.play({ theme: wishData.theme, name: wishData.name });
       };
       playJingle();
     }
@@ -204,8 +221,8 @@ function WishContent() {
   }, [stage]);
 
   const handleOpenComplete = () => {
-    if (wishData?.am && wishData.am !== "none") {
-      ambientPlayer.current = new AmbientPlayer(wishData.am);
+    if (wishData?.ambience && wishData.ambience !== "none") {
+      ambientPlayer.current = new AmbientPlayer(wishData.ambience);
       ambientPlayer.current.play();
     }
     transition("cake");
@@ -244,8 +261,8 @@ function WishContent() {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: `Happy Birthday ${wishData?.n}! 🎂`,
-          text: `${wishData?.s} made you an interactive birthday surprise!`,
+          title: `Happy Birthday ${wishData?.name}! 🎂`,
+          text: `${wishData?.sender} made you an interactive birthday surprise!`,
           url,
         });
       } catch (e: any) {
@@ -281,9 +298,9 @@ function WishContent() {
   if (locked && unlockTs) return <CountdownLock unlockAt={unlockTs} onUnlock={() => setLocked(false)} />;
 
   return (
-    <div className="relative min-h-screen flex flex-col overflow-x-hidden" style={{ background: stage === "finale" && !showFinalCard ? "#000000" : "#FFF8F2" }}>
+    <div className="relative min-h-screen flex flex-col overflow-x-hidden" style={{ background: ((stage === "finale" && !showFinalCard) || stage === "cake") ? "#110e0d" : "#FFF8F2", transition: "background 2.5s ease" }}>
       <AmbientCanvas />
-      {stage === "finale" && <Fireworks name={wishData.n} />}
+      {stage === "finale" && <Fireworks name={wishData.name} />}
 
       {/* Fade transition overlay */}
       {transitioning && (
@@ -303,10 +320,10 @@ function WishContent() {
         {/* Step 1: The Envelope & Letter */}
         {stage === "gift" && (
           <GiftBoxSurprise
-            name={wishData.n}
-            sender={wishData.s}
-            message={wishData.m}
-            theme={wishData.t}
+            name={wishData.name}
+            sender={wishData.sender}
+            message={wishData.message}
+            theme={wishData.theme}
             onOpenComplete={handleOpenComplete}
           />
         )}
@@ -315,7 +332,7 @@ function WishContent() {
         {stage === "cake" && (
           <div className="flex flex-col items-center justify-center flex-1 my-auto">
             <div className="w-full max-w-lg surface rounded-[1.75rem] p-6 sm:p-10">
-              <BirthdayCake name={wishData.n} age={wishData.a} onCelebrationStart={handleCelebrationStart} />
+              <BirthdayCake name={wishData.name} age={wishData.age} onCelebrationStart={handleCelebrationStart} />
             </div>
           </div>
         )}
@@ -376,9 +393,9 @@ function WishContent() {
         )}
 
         {/* Step 4: Interactive Doodle Animation */}
-        {stage === "doodle" && wishData.dt && (
+        {stage === "doodle" && wishData.doodleType && (
           <div className="flex flex-col justify-between flex-1 animate-reveal-up space-y-6">
-            <DoodleAnimation name={wishData.n} type={wishData.dt} />
+            <DoodleAnimation name={wishData.name} type={wishData.doodleType} />
             <button
               onClick={() => transition(getNextStage("doodle"))}
               className="btn-primary px-6 py-3.5 text-sm flex items-center justify-center gap-2 self-center"
@@ -389,14 +406,14 @@ function WishContent() {
         )}
 
         {/* Step 5: Timeline Cards */}
-        {stage === "timeline" && wishData.tl && wishData.tl.length > 0 && (
+        {stage === "timeline" && wishData.timeline && wishData.timeline.length > 0 && (
           <div className="flex flex-col justify-between flex-1 animate-reveal-up space-y-6">
             <div className="surface rounded-[1.75rem] p-6 sm:p-8">
               <div className="text-center mb-6">
                 <span className="text-[0.6875rem] font-semibold text-[#C97B84] uppercase tracking-[0.15em]">Our Story</span>
                 <h3 className="font-serif text-[1.5rem] text-[#2E2A27] mt-1" style={{ fontWeight: 400, fontStyle: "italic" }}>Relationship Timeline</h3>
               </div>
-              <Timeline events={wishData.tl} />
+              <Timeline events={wishData.timeline} />
             </div>
             <button
               onClick={() => transition(getNextStage("timeline"))}
@@ -408,10 +425,10 @@ function WishContent() {
         )}
 
         {/* Step 6: Memory Polaroid Gallery */}
-        {stage === "memories" && wishData.mm && wishData.mm.length > 0 && (
+        {stage === "memories" && wishData.memories && wishData.memories.length > 0 && (
           <div className="flex flex-col justify-between flex-1 animate-reveal-up space-y-6">
             <div className="surface rounded-[1.75rem] p-6 sm:p-8">
-              <MemoryLane memories={wishData.mm} />
+              <MemoryLane memories={wishData.memories} />
             </div>
             <button
               onClick={() => transition(getNextStage("memories"))}
@@ -419,6 +436,15 @@ function WishContent() {
             >
               Continue <ArrowRight className="w-3.5 h-3.5" />
             </button>
+          </div>
+        )}
+
+                {/* Step 6.5: Trivia Game */}
+        {stage === "trivia" && wishData.trivia && wishData.trivia.length > 0 && (
+          <div className="flex flex-col justify-center flex-1 animate-reveal-up space-y-6">
+            <div className="surface rounded-[1.75rem] p-5 max-w-2xl mx-auto w-full">
+              <TriviaGame trivia={wishData.trivia} onComplete={() => transition(getNextStage("trivia"))} />
+            </div>
           </div>
         )}
 
@@ -443,11 +469,18 @@ function WishContent() {
         {stage === "letter" && (
           <div className="flex flex-col items-center justify-center flex-1 max-w-xl mx-auto w-full my-auto animate-reveal-up perspective-[1000px] select-none">
             <div className="surface p-8 rounded-[2rem] w-full max-w-md mx-auto flex flex-col items-center justify-center mb-8 shadow-sm">
-                <p className="font-serif text-lg text-[#2E2A27] mb-4 animate-reveal-up delay-[500ms]">
-                  (Voice note placeholder)
-                </p>
+                {wishData.voiceNoteUrl ? (
+                  <div className="animate-reveal-up delay-[500ms] w-full flex flex-col items-center">
+                    <p className="font-serif text-lg text-[#2E2A27] mb-4">A voice note for you:</p>
+                    <audio src={wishData.voiceNoteUrl} controls className="w-full h-10 rounded opacity-90" />
+                  </div>
+                ) : (
+                  <p className="font-cursive text-xl text-[#2E2A27] animate-reveal-up delay-[500ms]">
+                    (A secret message awaits...)
+                  </p>
+                )}
                 <p className="font-cursive text-lg text-[#6F655E] mt-6 animate-reveal-up delay-[1000ms]">
-                  With love, {wishData.s}
+                  With love, {wishData.sender}
                 </p>
             </div>
             

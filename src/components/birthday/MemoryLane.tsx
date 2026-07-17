@@ -4,6 +4,8 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Camera, ChevronLeft, ChevronRight, X, Heart } from "lucide-react";
 
+import DevelopingPolaroid from "./DevelopingPolaroid";
+
 interface Memory {
   url: string;
   caption: string;
@@ -38,7 +40,7 @@ export default function MemoryLane({ memories }: MemoryLaneProps) {
           <Camera className="w-5 h-5 text-[#C97B84] animate-pulse" />
           Our Memory Lane
         </h3>
-        <p className="text-xs text-[#6F655E] mt-1">Click a polaroid to open the full picture memories scrapbook.</p>
+        <p className="text-xs text-[#6F655E] mt-1">Rub the polaroids to reveal the memories, then click to enlarge.</p>
       </div>
 
       {/* Polaroid Grid */}
@@ -52,37 +54,18 @@ export default function MemoryLane({ memories }: MemoryLaneProps) {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.1, type: "spring", stiffness: 80 }}
-              whileHover={{
-                scale: 1.05,
-                rotate: 0,
-                y: -5,
-                zIndex: 10,
-                boxShadow: "0 20px 25px -5px rgba(46,42,39, 0.05), 0 8px 10px -6px rgba(46,42,39, 0.05)"
-              }}
-              style={{ rotate: `${tilt}deg` }}
-              className="bg-white p-4 pb-6 rounded-sm shadow-md border border-[#ECE3DA] w-64 cursor-pointer transition-shadow"
-              onClick={() => setActiveSlide(index)}
+              drag
+              dragConstraints={{ left: -30, right: 30, top: -30, bottom: 30 }}
+              dragElastic={0.2}
+              whileDrag={{ scale: 1.05, zIndex: 10, cursor: "grabbing", rotate: tilt * 1.5 }}
+              style={{ cursor: "grab" }}
             >
-              {/* Image box */}
-              <div className="w-full h-48 bg-[#F9F5F0] overflow-hidden relative border border-[#ECE3DA] rounded-sm">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={memory.url}
-                  alt={`Memory ${index + 1}`}
-                  className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
-                  loading="lazy"
-                />
-                
-                {/* Love tape on top of polaroid */}
-                <div className="absolute -top-3 left-[35%] right-[35%] h-6 bg-[#C97B84]/20 backdrop-blur-[1px] border border-white/40 rotate-[2deg] shadow-sm flex items-center justify-center text-[10px] text-[#C97B84] font-bold">
-                  <Heart className="w-2.5 h-2.5 fill-current" />
-                </div>
-              </div>
-
-              {/* Caption text */}
-              <p className="text-center font-cursive text-lg text-[#2E2A27] leading-normal mt-4 line-clamp-2 px-1">
-                {memory.caption}
-              </p>
+              <DevelopingPolaroid 
+                url={memory.url}
+                caption={memory.caption}
+                tilt={tilt}
+                onClick={() => setActiveSlide(index)}
+              />
             </motion.div>
           );
         })}
