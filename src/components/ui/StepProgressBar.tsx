@@ -9,23 +9,21 @@ interface StepProgressBarProps {
 }
 
 /**
- * Premium SaaS-style horizontal step progress bar.
- * Uses a smooth width transition — no bounce, no pulse.
+ * Warm editorial step progress bar with dusty rose fill.
  */
 export default function StepProgressBar({ current, total, labels }: StepProgressBarProps) {
   const pct = ((current) / (total - 1)) * 100;
 
   return (
-    <div className="w-full max-w-sm mx-auto mb-10 select-none">
+    <div className="w-full max-w-sm mx-auto mb-12 select-none">
       {/* Track */}
-      <div className="relative h-0.5 bg-white/[0.08] rounded-full">
+      <div className="relative h-[2px] bg-[#ECE3DA] rounded-full">
         {/* Fill */}
         <div
           className="absolute left-0 top-0 h-full rounded-full transition-all duration-700"
           style={{
             width: `${pct}%`,
-            background: "linear-gradient(90deg, #3B82F6, #818CF8)",
-            boxShadow: "0 0 8px rgba(59,130,246,0.5)",
+            background: "linear-gradient(90deg, #C97B84, #D8B88A)",
           }}
         />
 
@@ -42,12 +40,12 @@ export default function StepProgressBar({ current, total, labels }: StepProgress
               <div
                 className={`w-2.5 h-2.5 rounded-full border-2 transition-all duration-500 ${
                   isCompleted
-                    ? "bg-blue-500 border-blue-500 scale-100"
+                    ? "bg-[#C97B84] border-[#C97B84] scale-100"
                     : isActive
-                    ? "bg-white border-blue-400 scale-125"
-                    : "bg-transparent border-white/20 scale-100"
+                    ? "bg-white border-[#C97B84] scale-125"
+                    : "bg-white border-[#ECE3DA] scale-100"
                 }`}
-                style={isActive ? { boxShadow: "0 0 10px rgba(59,130,246,0.6)" } : {}}
+                style={isActive ? { boxShadow: "0 0 0 4px rgba(201,123,132,0.1)" } : {}}
               />
             </div>
           );
@@ -55,16 +53,16 @@ export default function StepProgressBar({ current, total, labels }: StepProgress
       </div>
 
       {/* Labels */}
-      <div className="flex justify-between mt-3 px-0.5">
+      <div className="flex justify-between mt-3.5 px-0.5">
         {labels.map((label, i) => (
           <span
             key={i}
-            className={`text-[10px] font-semibold uppercase tracking-wider transition-colors duration-300 ${
+            className={`text-[0.625rem] font-semibold uppercase tracking-wider transition-colors duration-300 ${
               i === current
-                ? "text-blue-400"
+                ? "text-[#C97B84]"
                 : i < current
-                ? "text-slate-500"
-                : "text-slate-700"
+                ? "text-[#6F655E]"
+                : "text-[#DDD4CB]"
             }`}
           >
             {label}

@@ -34,11 +34,11 @@ export default function MemoryLane({ memories }: MemoryLaneProps) {
   return (
     <div className="w-full max-w-4xl mx-auto py-10 px-4 select-none">
       <div className="text-center mb-8">
-        <h3 className="text-2xl font-bold flex items-center justify-center gap-2 text-slate-800">
-          <Camera className="w-5 h-5 text-theme-primary animate-pulse" />
+        <h3 className="text-2xl font-serif text-[#2E2A27] flex items-center justify-center gap-2">
+          <Camera className="w-5 h-5 text-[#C97B84] animate-pulse" />
           Our Memory Lane
         </h3>
-        <p className="text-xs opacity-70 mt-1">Click a polaroid to open the full picture memories scrapbook.</p>
+        <p className="text-xs text-[#6F655E] mt-1">Click a polaroid to open the full picture memories scrapbook.</p>
       </div>
 
       {/* Polaroid Grid */}
@@ -57,30 +57,30 @@ export default function MemoryLane({ memories }: MemoryLaneProps) {
                 rotate: 0,
                 y: -5,
                 zIndex: 10,
-                boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)"
+                boxShadow: "0 20px 25px -5px rgba(46,42,39, 0.05), 0 8px 10px -6px rgba(46,42,39, 0.05)"
               }}
               style={{ rotate: `${tilt}deg` }}
+              className="bg-white p-4 pb-6 rounded-sm shadow-md border border-[#ECE3DA] w-64 cursor-pointer transition-shadow"
               onClick={() => setActiveSlide(index)}
-              className="bg-white p-4 pb-6 rounded-sm shadow-md border border-slate-100 w-64 cursor-pointer transition-shadow"
             >
               {/* Image box */}
-              <div className="w-full h-48 bg-slate-100 overflow-hidden relative border border-slate-100 rounded-sm">
+              <div className="w-full h-48 bg-[#F9F5F0] overflow-hidden relative border border-[#ECE3DA] rounded-sm">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={memory.url}
                   alt={`Memory ${index + 1}`}
-                  className="w-full h-full object-cover transition-transform duration-500 hover:scale-108"
+                  className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
                   loading="lazy"
                 />
                 
                 {/* Love tape on top of polaroid */}
-                <div className="absolute -top-3 left-[35%] right-[35%] h-6 bg-theme-accent/40 backdrop-blur-[1px] border border-white/20 rotate-[2deg] shadow-sm flex items-center justify-center text-[10px] text-theme-primary font-bold">
+                <div className="absolute -top-3 left-[35%] right-[35%] h-6 bg-[#C97B84]/20 backdrop-blur-[1px] border border-white/40 rotate-[2deg] shadow-sm flex items-center justify-center text-[10px] text-[#C97B84] font-bold">
                   <Heart className="w-2.5 h-2.5 fill-current" />
                 </div>
               </div>
 
               {/* Caption text */}
-              <p className="text-center font-cursive text-lg text-slate-800 leading-normal mt-4 line-clamp-2 px-1">
+              <p className="text-center font-cursive text-lg text-[#2E2A27] leading-normal mt-4 line-clamp-2 px-1">
                 {memory.caption}
               </p>
             </motion.div>
@@ -95,7 +95,7 @@ export default function MemoryLane({ memories }: MemoryLaneProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4 backdrop-blur-sm"
+            className="fixed inset-0 z-50 bg-[#2E2A27]/90 flex items-center justify-center p-4 backdrop-blur-sm"
           >
             {/* Close Overlay Area */}
             <div className="absolute inset-0 cursor-pointer" onClick={() => setActiveSlide(null)} />
@@ -117,7 +117,7 @@ export default function MemoryLane({ memories }: MemoryLaneProps) {
               </button>
 
               {/* Image Frame */}
-              <div className="relative w-full h-[320px] sm:h-[400px] bg-slate-900 rounded overflow-hidden">
+              <div className="relative w-full h-[320px] sm:h-[400px] bg-[#F9F5F0] rounded overflow-hidden">
                 <AnimatePresence mode="wait">
                   <motion.img
                     key={activeSlide}
@@ -136,13 +136,13 @@ export default function MemoryLane({ memories }: MemoryLaneProps) {
                   <>
                     <button
                       onClick={handlePrev}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white p-2 rounded-full cursor-pointer transition-colors"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 bg-[#2E2A27]/40 hover:bg-[#2E2A27]/60 text-white p-2 rounded-full cursor-pointer transition-colors"
                     >
                       <ChevronLeft className="w-5 h-5" />
                     </button>
                     <button
                       onClick={handleNext}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white p-2 rounded-full cursor-pointer transition-colors"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 bg-[#2E2A27]/40 hover:bg-[#2E2A27]/60 text-white p-2 rounded-full cursor-pointer transition-colors"
                     >
                       <ChevronRight className="w-5 h-5" />
                     </button>
@@ -157,10 +157,10 @@ export default function MemoryLane({ memories }: MemoryLaneProps) {
                 animate={{ opacity: 1, y: 0 }}
                 className="text-center mt-6 px-4"
               >
-                <p className="font-cursive text-2xl text-theme-primary leading-normal">
+                <p className="font-cursive text-2xl text-[#C97B84] leading-normal">
                   {memories[activeSlide].caption}
                 </p>
-                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mt-2">
+                <span className="text-[10px] text-[#B5ADA5] font-bold uppercase tracking-wider block mt-2">
                   Memory {activeSlide + 1} of {memories.length}
                 </span>
               </motion.div>

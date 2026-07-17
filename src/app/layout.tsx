@@ -1,20 +1,15 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Outfit, Pacifico, Playfair_Display } from "next/font/google";
+import { Inter, Geist_Mono, Pacifico, Cormorant_Garamond } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-const outfit = Outfit({
-  variable: "--font-outfit",
   subsets: ["latin"],
 });
 
@@ -24,26 +19,27 @@ const pacifico = Pacifico({
   subsets: ["latin"],
 });
 
-const playfair = Playfair_Display({
-  variable: "--font-playfair",
+const cormorant = Cormorant_Garamond({
+  variable: "--font-cormorant",
   subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
   style: ["normal", "italic"],
 });
 
 export const metadata: Metadata = {
-  title: "WishMaker — Interactive Birthday Surprises",
+  title: "WishMaker — Unforgettable Birthday Experiences",
   description:
-    "Craft an immersive, personalized birthday page with an AI-composed jingle, Gemini-written letter, 3D WebGL cake, and scheduled surprise delivery — all in one shareable URL.",
+    "Create immersive, heartfelt birthday surprises that feel like opening a beautifully wrapped gift. No account needed.",
   openGraph: {
-    title: "WishMaker — Interactive Birthday Surprises",
-    description: "Premium interactive birthday experiences. No account needed.",
+    title: "WishMaker — Unforgettable Birthday Experiences",
+    description: "Create heartfelt birthday surprises that feel like opening a gift.",
     siteName: "WishMaker",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "WishMaker — Interactive Birthday Surprises",
-    description: "Premium interactive birthday experiences.",
+    title: "WishMaker — Unforgettable Birthday Experiences",
+    description: "Create heartfelt birthday surprises that feel like opening a gift.",
   },
 };
 
@@ -55,7 +51,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${outfit.variable} ${pacifico.variable} ${playfair.variable} h-full antialiased`}
+      className={`${inter.variable} ${geistMono.variable} ${pacifico.variable} ${cormorant.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col font-sans">
         {children}
@@ -65,23 +61,22 @@ export default function RootLayout({
           toastOptions={{
             duration: 3000,
             style: {
-              background: "rgba(15,17,26,0.95)",
-              color: "#F1F5F9",
-              border: "1px solid rgba(255,255,255,0.10)",
-              borderRadius: "0.75rem",
+              background: "#FFFFFF",
+              color: "#2E2A27",
+              border: "1px solid #ECE3DA",
+              borderRadius: "1rem",
               fontSize: "0.8125rem",
               fontWeight: 500,
-              backdropFilter: "blur(16px)",
               boxShadow:
-                "0 4px 24px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.05) inset",
+                "0 4px 24px rgba(46,42,39,0.06), 0 1px 3px rgba(46,42,39,0.04)",
               padding: "0.75rem 1rem",
               maxWidth: "340px",
             },
             success: {
-              iconTheme: { primary: "#3B82F6", secondary: "#ffffff" },
+              iconTheme: { primary: "#8FA27A", secondary: "#ffffff" },
             },
             error: {
-              iconTheme: { primary: "#EF4444", secondary: "#ffffff" },
+              iconTheme: { primary: "#C46D5E", secondary: "#ffffff" },
             },
           }}
         />
