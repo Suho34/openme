@@ -16,6 +16,7 @@ import { ITrivia } from "@/components/create/TriviaForm";
 import VoiceRecorder from "@/components/ui/VoiceRecorder";
 import { playChime } from "@/lib/audio";
 import { JinglePlayer } from "@/lib/jingle";
+import { generateMessage, recommendTheme, saveWish } from "@/lib/actions";
 
 // ── Types ─────────────────────────────────────────────────────
 interface Memory { url: string; caption: string; }
@@ -240,18 +241,12 @@ export default function CreateSurprise() {
         : tone <= 75 ? "heartfelt and emotional"
         : "formal and poetic";
 
-      const res = await fetch("/api/generate-message", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name, sender,
-          relationship: aiRelationship,
-          keywords: aiKeywords,
-          toneDescription: toneDesc,
-        }),
+      const data = await generateMessage({
+        name, sender,
+        relationship: aiRelationship,
+        keywords: aiKeywords,
+        toneDescription: toneDesc,
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
       setAiDrafts(data.drafts);
       toast.success("Select a draft below", { id: loadingToast });
     } catch (err: any) {
@@ -270,13 +265,7 @@ export default function CreateSurprise() {
     setThemeReason("");
     const tid = toast.loading("Finding the perfect mood…");
     try {
-      const res = await fetch("/api/recommend-theme", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message, keywords: aiKeywords, relationship: aiRelationship }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
+      const data = await recommendTheme({ message, keywords: aiKeywords, relationship: aiRelationship });
       setTheme(data.theme as ThemeId);
       setThemeReason(data.reason);
       toast.success(`Theme matched`, { id: tid });
@@ -319,15 +308,7 @@ export default function CreateSurprise() {
       payload.deliveryLock = new Date(deliveryDate).getTime();
     }
     try {
-      const res = await fetch("/api/wishes", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      const data = await res.json();
-      
-      if (!res.ok) throw new Error(data.error);
-      
+      const data = await saveWish(payload);
       const url = `${window.location.origin}/wish/${data.id}`;
       setGeneratedUrl(url);
       
