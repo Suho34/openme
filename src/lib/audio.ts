@@ -1,9 +1,3 @@
-/**
- * Web Audio API synthesizer for birthday celebration sounds and microphone blow detection.
- * This runs natively in the browser without requiring external audio asset downloads.
- */
-
-// Sound synthesis helper functions
 let audioCtx: AudioContext | null = null;
 
 function getAudioContext(): AudioContext {
@@ -16,90 +10,159 @@ function getAudioContext(): AudioContext {
   return audioCtx;
 }
 
-// 1. Synthesize a sparkling chime sound
+function playTone(freq: number, duration: number, type: OscillatorType, volume: number, delay = 0) {
+  try {
+    const ctx = getAudioContext();
+    const start = ctx.currentTime + delay;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, start);
+    gain.gain.setValueAtTime(0, start);
+    gain.gain.linearRampToValueAtTime(volume, start + 0.005);
+    gain.gain.exponentialRampToValueAtTime(0.001, start + duration);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(start);
+    osc.stop(start + duration);
+  } catch (_) { }
+}
+
+function playNoiseBurst(duration: number, volume: number, highpass = 0, lowpass = 22000) {
+  try {
+    const ctx = getAudioContext();
+    const bufferSize = ctx.sampleRate * duration;
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = Math.random() * 2 - 1;
+    }
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(volume, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+    const filter = ctx.createBiquadFilter();
+    filter.type = "bandpass";
+    filter.frequency.value = (highpass + lowpass) / 2;
+    filter.Q.value = 0.5;
+    source.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+    source.start();
+  } catch (_) { }
+}
+
 export function playChime() {
-  // Sound removed as requested
+  playTone(880, 0.4, "sine", 0.15);
+  playTone(1108, 0.35, "sine", 0.1, 0.07);
+  playTone(1320, 0.3, "sine", 0.07, 0.14);
 }
 
-// 2. Synthesize a confetti popping sound (noise burst + pop)
 export function playConfettiPop() {
-  // Sound removed as requested
+  playNoiseBurst(0.15, 0.12, 2000, 8000);
+  playTone(600, 0.08, "sine", 0.06);
 }
 
-// 3. Synthesize a realistic candle blowout sound (whispery white noise)
 export function playCandleBlow() {
-  // Sound removed as requested
+  playTone(200, 0.1, "sine", 0.06);
 }
 
-// 4. Play Synthesized "Happy Birthday" melody
 export class HappyBirthdayPlayer {
   private activeOscs: { osc: OscillatorNode; gain: GainNode }[] = [];
   private isPlaying = false;
-  private timerIds: any[] = [];
+  private stopRequested = false;
 
   play() {
     if (this.isPlaying) return;
     this.isPlaying = true;
-    this.timerIds = [];
+    this.stopRequested = false;
 
     try {
       const ctx = getAudioContext();
       const now = ctx.currentTime;
 
-      // Happy Birthday Melody
-      // Format: [note/freq, duration in beats]
       const melody = [
-        [261.63, 0.75], // C4
-        [261.63, 0.25], // C4
-        [293.66, 1.0],  // D4
-        [261.63, 1.0],  // C4
-        [349.23, 1.0],  // F4
-        [329.63, 2.0],  // E4
-
-        [261.63, 0.75], // C4
-        [261.63, 0.25], // C4
-        [293.66, 1.0],  // D4
-        [261.63, 1.0],  // C4
-        [392.00, 1.0],  // G4
-        [349.23, 2.0],  // F4
-
-        [261.63, 0.75], // C4
-        [261.63, 0.25], // C4
-        [523.25, 1.0],  // C5
-        [440.00, 1.0],  // A4
-        [349.23, 1.0],  // F4
-        [329.63, 1.0],  // E4
-        [293.66, 2.0],  // D4
-
-        [466.16, 0.75], // A#4/Bb4
-        [466.16, 0.25], // Bb4
-        [440.00, 1.0],  // A4
-        [349.23, 1.0],  // F4
-        [392.00, 1.0],  // G4
-        [349.23, 2.0],  // F4
+        [261.63, 0.75],
+        [261.63, 0.25],
+        [293.66, 1.0],
+        [261.63, 1.0],
+        [349.23, 1.0],
+        [329.63, 2.0],
+        [261.63, 0.75],
+        [261.63, 0.25],
+        [293.66, 1.0],
+        [261.63, 1.0],
+        [392.00, 1.0],
+        [349.23, 2.0],
+        [261.63, 0.75],
+        [261.63, 0.25],
+        [523.25, 1.0],
+        [440.00, 1.0],
+        [349.23, 1.0],
+        [329.63, 1.0],
+        [293.66, 2.0],
+        [466.16, 0.75],
+        [466.16, 0.25],
+        [440.00, 1.0],
+        [349.23, 1.0],
+        [392.00, 1.0],
+        [349.23, 2.0],
       ];
 
-      const tempo = 110; // BPM
+      const tempo = 80;
       const beatDuration = 60 / tempo;
-      let scheduledTime = now + 0.1;
+      let t = now + 0.1;
 
-      melody.forEach(([freq, beats], index) => {
+      // Create master gain for the whole melody
+      const masterGain = ctx.createGain();
+      masterGain.gain.setValueAtTime(0.35, now);
+      masterGain.gain.linearRampToValueAtTime(0.35, t);
+      masterGain.connect(ctx.destination);
+
+      melody.forEach(([freq, beats]) => {
         const dur = beats * beatDuration;
+        const noteEnd = t + dur;
 
-        const timerId = setTimeout(() => {
-          if (!this.isPlaying) return;
-          this.playNote(freq, dur - 0.05);
-        }, (scheduledTime - now) * 1000);
+        // Main sweet oscillator (sine wave - warmest tone)
+        const osc = ctx.createOscillator();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(freq, t);
+        // Gentle pitch vibrato for sweetness
+        const vibrato = ctx.createOscillator();
+        vibrato.type = "sine";
+        vibrato.frequency.value = 5.5;
+        const vibratoGain = ctx.createGain();
+        vibratoGain.gain.value = 1.8;
+        vibrato.connect(vibratoGain);
+        vibratoGain.connect(osc.frequency);
+        vibrato.start(t);
+        vibrato.stop(noteEnd);
 
-        this.timerIds.push(timerId);
-        scheduledTime += dur;
+        const gain = ctx.createGain();
+        // Smooth ADSR envelope
+        gain.gain.setValueAtTime(0, t);
+        gain.gain.linearRampToValueAtTime(0.28, t + 0.015);
+        gain.gain.setValueAtTime(0.28, noteEnd - 0.04);
+        gain.gain.exponentialRampToValueAtTime(0.001, noteEnd);
+
+        osc.connect(gain);
+        gain.connect(masterGain);
+
+        osc.start(t);
+        osc.stop(noteEnd + 0.02);
+
+        this.activeOscs.push({ osc, gain });
+
+        t = noteEnd;
       });
 
-      // Reset play status at end
-      const finalTimerId = setTimeout(() => {
+      // Schedule cleanup after melody ends
+      const totalDur = t - now;
+      setTimeout(() => {
         this.isPlaying = false;
-      }, (scheduledTime - now + 0.5) * 1000);
-      this.timerIds.push(finalTimerId);
+        try { masterGain.disconnect(); } catch (_) {}
+      }, (totalDur + 0.5) * 1000);
 
     } catch (err) {
       console.error("Melody player failed:", err);
@@ -107,75 +170,23 @@ export class HappyBirthdayPlayer {
     }
   }
 
-  private playNote(freq: number, duration: number) {
-    try {
-      const ctx = getAudioContext();
-      const now = ctx.currentTime;
-
-      // Melody Oscillator (Warm Triangle)
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = "triangle";
-      osc.frequency.setValueAtTime(freq, now);
-
-      // Simple synth volume envelope
-      gain.gain.setValueAtTime(0, now);
-      gain.gain.linearRampToValueAtTime(0.18, now + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
-
-      // Sub-harmonic oscillator for warmth (one octave down)
-      const subOsc = ctx.createOscillator();
-      const subGain = ctx.createGain();
-      subOsc.type = "sine";
-      subOsc.frequency.setValueAtTime(freq / 2, now);
-      subGain.gain.setValueAtTime(0, now);
-      subGain.gain.linearRampToValueAtTime(0.08, now + 0.05);
-      subGain.gain.exponentialRampToValueAtTime(0.001, now + duration);
-
-      // Routing
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      subOsc.connect(subGain);
-      subGain.connect(ctx.destination);
-
-      // Track oscillators to stop them if needed
-      const pair1 = { osc, gain };
-      const pair2 = { osc: subOsc, gain: subGain };
-      this.activeOscs.push(pair1, pair2);
-
-      osc.start(now);
-      subOsc.start(now);
-      osc.stop(now + duration);
-      subOsc.stop(now + duration);
-
-      setTimeout(() => {
-        this.activeOscs = this.activeOscs.filter(p => p.osc !== osc && p.osc !== subOsc);
-      }, duration * 1000 + 100);
-
-    } catch (err) {
-      console.error("Play note failed:", err);
-    }
-  }
-
   stop() {
+    this.stopRequested = true;
     this.isPlaying = false;
-    this.timerIds.forEach(id => clearTimeout(id));
-    this.timerIds = [];
-
     this.activeOscs.forEach(({ osc, gain }) => {
       try {
-        osc.stop();
-        osc.disconnect();
-        gain.disconnect();
-      } catch (err) {
-        // Ignore already stopped
-      }
+        const ctx = getAudioContext();
+        const now = ctx.currentTime;
+        gain.gain.cancelScheduledValues(now);
+        gain.gain.setValueAtTime(gain.gain.value, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+        setTimeout(() => { try { osc.stop(); osc.disconnect(); gain.disconnect(); } catch (_) {} }, 60);
+      } catch (_) { }
     });
     this.activeOscs = [];
   }
 }
 
-// 5. Microphone Blow Detector class
 export class MicBlowDetector {
   private audioContext: AudioContext | null = null;
   private analyser: AnalyserNode | null = null;
@@ -224,8 +235,6 @@ export class MicBlowDetector {
 
     this.analyser.getByteFrequencyData(this.dataArray as any);
 
-    // Low frequency energy represents blowing sound (breath/wind)
-    // We look at indices 0-6 (frequencies below ~250Hz)
     let lowFreqSum = 0;
     let totalSum = 0;
     for (let i = 0; i < this.dataArray.length; i++) {
@@ -239,13 +248,9 @@ export class MicBlowDetector {
     const avgLowFreq = lowFreqSum / 8;
 
     if (this.onVolumeUpdate) {
-      // Return relative level from 0 to 100
       this.onVolumeUpdate(Math.min((avgVolume / 128) * 100, 100));
     }
 
-    // Blow detection: high energy in low frequencies
-    // Require sustained rumble (a few consecutive frames of high low-freq energy)
-    // to prevent accidental triggers from speech or bumps.
     if (avgLowFreq > 120 && avgVolume > 20) {
       this.blowFrames++;
       if (this.blowFrames > 1) {
@@ -284,15 +289,83 @@ export class MicBlowDetector {
   }
 }
 
+// Ambient sound generator using oscillators and noise
+function createAmbientOscillator(ctx: AudioContext, freq: number, type: OscillatorType, gainValue: number, detune = 0) {
+  const osc = ctx.createOscillator();
+  osc.type = type;
+  osc.frequency.value = freq;
+  osc.detune.value = detune;
+  const gain = ctx.createGain();
+  gain.gain.value = gainValue;
+  osc.connect(gain);
+  return { osc, gain };
+}
+
 export class AmbientPlayer {
+  private ctx: AudioContext | null = null;
+  private sources: { stop: () => void }[] = [];
+  private type: "fire" | "rain" | "ocean" | "none";
+
   constructor(type: "fire" | "rain" | "ocean" | "none") {
+    this.type = type;
   }
 
   play() {
-    // Sound removed as requested
+    if (this.type === "none") return;
+    this.stop();
+    try {
+      this.ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const ctx = this.ctx;
+
+      if (this.type === "fire") {
+        const noiseDur = 2;
+        const repeat = () => {
+          if (!this.ctx) return;
+          playNoiseBurst(noiseDur, 0.04, 100, 4000);
+          const next = setTimeout(repeat, 300 + Math.random() * 800);
+          this.sources.push({ stop: () => clearTimeout(next) });
+        };
+        repeat();
+        const lowOsc = createAmbientOscillator(ctx, 80, "sawtooth", 0.015);
+        lowOsc.osc.start();
+        this.sources.push({ stop: () => { try { lowOsc.osc.stop(); lowOsc.osc.disconnect(); lowOsc.gain.disconnect(); } catch (_) { } } });
+        lowOsc.gain.connect(ctx.destination);
+      }
+
+      if (this.type === "rain") {
+        const noiseInterval = setInterval(() => {
+          if (!this.ctx) { clearInterval(noiseInterval); return; }
+          playNoiseBurst(0.5, 0.02, 3000, 12000);
+        }, 100);
+        this.sources.push({ stop: () => clearInterval(noiseInterval) });
+        const humOsc = createAmbientOscillator(ctx, 120, "sine", 0.01);
+        humOsc.osc.start();
+        this.sources.push({ stop: () => { try { humOsc.osc.stop(); humOsc.osc.disconnect(); humOsc.gain.disconnect(); } catch (_) { } } });
+        humOsc.gain.connect(ctx.destination);
+      }
+
+      if (this.type === "ocean") {
+        const wave = () => {
+          if (!this.ctx) return;
+          playNoiseBurst(3, 0.03, 100, 3000);
+          const next = setTimeout(wave, 4000 + Math.random() * 3000);
+          this.sources.push({ stop: () => clearTimeout(next) });
+        };
+        wave();
+        const droneOsc = createAmbientOscillator(ctx, 60, "sine", 0.015);
+        droneOsc.osc.start();
+        this.sources.push({ stop: () => { try { droneOsc.osc.stop(); droneOsc.osc.disconnect(); droneOsc.gain.disconnect(); } catch (_) { } } });
+        droneOsc.gain.connect(ctx.destination);
+      }
+    } catch (_) { }
   }
 
   stop() {
-    // Sound removed as requested
+    this.sources.forEach(s => s.stop());
+    this.sources = [];
+    if (this.ctx && this.ctx.state !== "closed") {
+      this.ctx.close().catch(() => { });
+    }
+    this.ctx = null;
   }
 }
