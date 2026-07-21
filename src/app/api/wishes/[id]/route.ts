@@ -6,7 +6,7 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
   const params = await context.params;
   try {
     await connectToDatabase();
-    
+
     const { id } = params;
     const wish = await Wish.findById(id);
 
