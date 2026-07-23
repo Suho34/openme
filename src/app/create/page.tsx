@@ -148,8 +148,8 @@ const SectionHeader = ({ icon, children }: {
   icon: React.ReactNode;
   children: React.ReactNode;
 }) => (
-  <div className="flex items-center gap-2.5 text-[0.8125rem] font-semibold text-[#6F655E] uppercase tracking-[0.1em]">
-    <span className="text-[#C97B84]">{icon}</span>
+  <div className="flex items-center gap-3 text-sm font-semibold text-[#2E2A27]">
+    <span className="w-6 h-6 rounded-lg bg-[#C97B84]/10 flex items-center justify-center text-[#C97B84]">{icon}</span>
     {children}
   </div>
 );
@@ -184,6 +184,7 @@ export default function CreateSurprise() {
 
   // Accordion folder state
   const [activeFolder, setActiveFolder] = useState<"basics" | "ai-writer" | "theme" | "schedule" | "doodle" | "timeline" | "trivia" | "memories">("basics");
+  const [showExtras, setShowExtras] = useState(false);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
   const [doodleType, setDoodleType] = useState<"heart" | "rose" | "hearts" | "coffee">("heart");
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -373,14 +374,14 @@ export default function CreateSurprise() {
           <>
             <form onSubmit={handleGenerate} className="space-y-5 w-full">
               
-              <div className="animate-reveal-up mb-8">
-                <h1 className="font-serif text-[2rem] sm:text-[2.5rem] text-[#2E2A27] mb-2" style={{ fontWeight: 400 }}>Craft your keepsake</h1>
-                <p className="text-[0.9375rem] text-[#6F655E]">Fill in the details below. Everything will be packed into a single shareable link.</p>
+              <div className="animate-reveal-up mb-10">
+                <h1 className="font-serif text-[2.25rem] sm:text-[2.75rem] text-[#2E2A27] mb-3 text-balance" style={{ fontWeight: 400, letterSpacing: "-0.02em" }}>Craft your keepsake</h1>
+                <p className="text-[1rem] text-[#6F655E] leading-[1.6] max-w-lg">Fill in the details below. Everything will be packed into a single shareable link.</p>
               </div>
 
               {/* Templates bar */}
-              <div className="surface rounded-[1.375rem] p-5 animate-reveal-up">
-                <span className="text-[0.6875rem] font-semibold text-[#C97B84] uppercase tracking-[0.12em] block mb-4">Quick Presets</span>
+              <div className="surface p-5 animate-reveal-up">
+                <p className="text-xs font-semibold text-[#6F655E] mb-4">Start with a preset</p>
                 <div className="grid grid-cols-4 gap-3">
                   {WISH_TEMPLATES.map(tmpl => (
                     <button
@@ -411,7 +412,7 @@ export default function CreateSurprise() {
                   onClick={() => setActiveFolder("basics")}
                   className="w-full flex items-center justify-between p-5 hover:bg-[#F9F5F0] transition-colors border-b border-[#ECE3DA]"
                 >
-                  <SectionHeader icon={<Gift className="w-3.5 h-3.5" />}>1. Who is it for?</SectionHeader>
+                  <SectionHeader icon={<Gift className="w-3.5 h-3.5" />}>Who is it for?</SectionHeader>
                   <ChevronDown className={`w-4 h-4 text-[#B5ADA5] transition-transform ${activeFolder === "basics" ? "rotate-180" : ""}`} />
                 </button>
                 {activeFolder === "basics" && (
@@ -441,7 +442,7 @@ export default function CreateSurprise() {
                   onClick={() => setActiveFolder(activeFolder === "ai-writer" ? "basics" : "ai-writer")}
                   className="w-full flex items-center justify-between p-5 hover:bg-[#F9F5F0] transition-colors border-b border-[#ECE3DA]"
                 >
-                  <SectionHeader icon={<Wand2 className="w-3.5 h-3.5" />}>2. Write the letter</SectionHeader>
+                  <SectionHeader icon={<Wand2 className="w-3.5 h-3.5" />}>Write the letter</SectionHeader>
                   <ChevronDown className={`w-4 h-4 text-[#B5ADA5] transition-transform ${activeFolder === "ai-writer" ? "rotate-180" : ""}`} />
                 </button>
                 {activeFolder === "ai-writer" && (
@@ -538,7 +539,7 @@ export default function CreateSurprise() {
                   onClick={() => setActiveFolder(activeFolder === "theme" ? "basics" : "theme")}
                   className="w-full flex items-center justify-between p-5 hover:bg-[#F9F5F0] transition-colors border-b border-[#ECE3DA]"
                 >
-                  <SectionHeader icon={<Sparkles className="w-3.5 h-3.5" />}>3. Choose the mood</SectionHeader>
+                  <SectionHeader icon={<Sparkles className="w-3.5 h-3.5" />}>Choose the mood</SectionHeader>
                   <ChevronDown className={`w-4 h-4 text-[#B5ADA5] transition-transform ${activeFolder === "theme" ? "rotate-180" : ""}`} />
                 </button>
                 {activeFolder === "theme" && (
@@ -609,14 +610,35 @@ export default function CreateSurprise() {
                 )}
               </div>
 
-              {/* Accordion 4: Scheduled Lock */}
-              <div className="surface rounded-[1.375rem] overflow-hidden animate-reveal-up">
+              {/* ── Add more magic expander ── */}
+              {!showExtras && (
+                <button
+                  type="button"
+                  onClick={() => setShowExtras(true)}
+                  className="w-full surface p-4 animate-reveal-up flex items-center justify-center gap-2 text-sm font-semibold text-[#C97B84] hover:bg-[#F9F5F0] transition-all cursor-pointer"
+                >
+                  <Sparkles className="w-4 h-4" /> Add more magic (schedule, doodle, timeline, trivia)
+                </button>
+              )}
+
+              {showExtras && (
+                <div className="space-y-5">
+                  <div className="flex items-center justify-between animate-reveal-up">
+                    <span className="text-xs font-semibold text-[#6F655E] uppercase tracking-[0.1em]">Extra touches</span>
+                    <button type="button" onClick={() => { setShowExtras(false); setActiveFolder("basics"); }}
+                      className="text-xs text-[#B5ADA5] hover:text-[#6F655E] transition-colors">
+                      Hide
+                    </button>
+                  </div>
+
+                  {/* Accordion 4: Scheduled Lock */}
+                  <div className="surface rounded-[1.375rem] overflow-hidden animate-reveal-up">
                 <button
                   type="button"
                   onClick={() => setActiveFolder(activeFolder === "schedule" ? "basics" : "schedule")}
                   className="w-full flex items-center justify-between p-5 hover:bg-[#F9F5F0] transition-colors border-b border-[#ECE3DA]"
                 >
-                  <SectionHeader icon={<Clock className="w-3.5 h-3.5" />}>4. Schedule delivery</SectionHeader>
+                  <SectionHeader icon={<Clock className="w-3.5 h-3.5" />}>Schedule delivery</SectionHeader>
                   <ChevronDown className={`w-4 h-4 text-[#B5ADA5] transition-transform ${activeFolder === "schedule" ? "rotate-180" : ""}`} />
                 </button>
                 {activeFolder === "schedule" && (
@@ -649,7 +671,7 @@ export default function CreateSurprise() {
                   onClick={() => setActiveFolder(activeFolder === "doodle" ? "basics" : "doodle")}
                   className="w-full flex items-center justify-between p-5 hover:bg-[#F9F5F0] transition-colors border-b border-[#ECE3DA]"
                 >
-                  <SectionHeader icon={<Heart className="w-3.5 h-3.5" />}>5. Pick a keepsake doodle</SectionHeader>
+                  <SectionHeader icon={<Heart className="w-3.5 h-3.5" />}>Pick a keepsake doodle</SectionHeader>
                   <ChevronDown className={`w-4 h-4 text-[#B5ADA5] transition-transform ${activeFolder === "doodle" ? "rotate-180" : ""}`} />
                 </button>
                 {activeFolder === "doodle" && (
@@ -688,7 +710,7 @@ export default function CreateSurprise() {
                   onClick={() => setActiveFolder(activeFolder === "timeline" ? "basics" : "timeline")}
                   className="w-full flex items-center justify-between p-5 hover:bg-[#F9F5F0] transition-colors border-b border-[#ECE3DA]"
                 >
-                  <SectionHeader icon={<Calendar className="w-3.5 h-3.5" />}>6. Timeline milestones</SectionHeader>
+                  <SectionHeader icon={<Calendar className="w-3.5 h-3.5" />}>Timeline milestones</SectionHeader>
                   <ChevronDown className={`w-4 h-4 text-[#B5ADA5] transition-transform ${activeFolder === "timeline" ? "rotate-180" : ""}`} />
                 </button>
                 {activeFolder === "timeline" && (
@@ -728,8 +750,10 @@ export default function CreateSurprise() {
                 setTriviaQuestions={setTriviaQuestions}
                 SectionHeader={SectionHeader}
               />
+              </div>
+              )}
 
-              {/* Accordion 8: Memory Lane Grid */}
+              {/* Memory Lane Grid */}
               <MemoryLaneForm
                 activeFolder={activeFolder}
                 setActiveFolder={setActiveFolder as any}
@@ -739,16 +763,27 @@ export default function CreateSurprise() {
               />
 
               {/* Submit */}
-              <div className="pt-3 animate-reveal-up">
-                <button type="submit" disabled={isGenerating}
-                  className="w-full btn-gold py-4 text-sm font-semibold tracking-wide flex items-center justify-center gap-2"
-                  style={{ boxShadow: "0 8px 24px rgba(216,184,138,0.25)" }}>
-                  {isGenerating ? (
-                    <><Loader2 className="w-4 h-4 animate-spin" /> Magically Packing Gift...</>
-                  ) : (
-                    <><Sparkles className="w-4 h-4" /> Wrap Surprise Gift & Generate Link</>
-                  )}
-                </button>
+              <div className="pt-6 animate-reveal-up">
+                <div className="surface p-6 border-2 border-[#D8B88A]/20">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-8 h-8 rounded-lg bg-[#D8B88A]/15 flex items-center justify-center">
+                      <Gift className="w-4 h-4 text-[#D8B88A]" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-[#2E2A27]">Ready to share the joy?</p>
+                      <p className="text-xs text-[#6F655E]">Everything above gets packed into one link</p>
+                    </div>
+                  </div>
+                  <button type="submit" disabled={isGenerating}
+                    className="w-full btn-gold py-4 text-sm font-semibold tracking-wide flex items-center justify-center gap-2"
+                    style={{ boxShadow: "0 8px 24px rgba(216,184,138,0.25)" }}>
+                    {isGenerating ? (
+                      <><Loader2 className="w-4 h-4 animate-spin" /> Magically Packing Gift...</>
+                    ) : (
+                      <><Sparkles className="w-4 h-4" /> Wrap Surprise Gift & Generate Link</>
+                    )}
+                  </button>
+                </div>
               </div>
 
             </form>
@@ -756,23 +791,22 @@ export default function CreateSurprise() {
         ) : (
           /* ── SUCCESS STATE ── */
           <div className="animate-reveal-up text-center py-16 px-4 flex flex-col items-center max-w-xl mx-auto w-full">
-            <div className="w-16 h-16 rounded-2xl bg-[#F9F5F0] border border-[#ECE3DA] flex items-center justify-center mb-8"
+            <div className="w-20 h-20 rounded-2xl bg-[#C97B84]/5 border border-[#C97B84]/15 flex items-center justify-center mb-8"
               style={{ boxShadow: "0 2px 12px rgba(46,42,39,0.04)" }}>
-              <Heart className="w-7 h-7 text-[#C97B84] fill-current" />
+              <Heart className="w-8 h-8 text-[#C97B84] fill-current" />
             </div>
-            <h2 className="font-serif text-[2rem] text-[#2E2A27] mb-3" style={{ fontWeight: 400 }}>Your surprise is ready</h2>
-            <p className="text-[0.9375rem] text-[#6F655E] max-w-md mb-10">
+            <h2 className="font-serif text-[2.25rem] sm:text-[2.5rem] text-[#2E2A27] mb-3 text-balance" style={{ fontWeight: 400 }}>Your surprise is ready</h2>
+            <p className="text-[1rem] text-[#6F655E] max-w-md mb-10 leading-[1.6]">
               Send the link below to {name}.
               {scheduleEnabled && deliveryDate && (
-                <span className="block mt-2 text-[#D8B88A] font-medium">
-                  🔒 Locked until {new Date(deliveryDate).toLocaleString()}
+                <span className="block mt-2 text-[#D8B88A] font-medium flex items-center justify-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5" /> Locked until {new Date(deliveryDate).toLocaleString()}
                 </span>
               )}
             </p>
 
             <div className="w-full space-y-4 mb-8">
-              {/* Link Input Box */}
-              <div className="w-full surface rounded-2xl p-4 flex gap-3 items-center">
+              <div className="w-full surface p-4 flex gap-3 items-center">
                 <input
                   readOnly
                   value={generatedUrl}
@@ -790,15 +824,15 @@ export default function CreateSurprise() {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 w-full">
-              <button onClick={handleShare} className="flex-1 btn-gold py-3.5 text-sm flex items-center justify-center gap-2">
+              <button onClick={handleShare} className="flex-1 btn-gold py-4 text-sm flex items-center justify-center gap-2">
                 <Share2 className="w-4 h-4" /> Share Surprise
               </button>
               <a href={generatedUrl} target="_blank" rel="noopener noreferrer"
-                className="flex-1 py-3.5 text-sm text-[#6F655E] font-semibold rounded-[1.375rem] border border-[#ECE3DA] bg-white hover:bg-[#F9F5F0] transition-all flex items-center justify-center gap-2">
+                className="flex-1 py-4 text-sm text-[#6F655E] font-semibold rounded-xl border border-[#ECE3DA] bg-white hover:bg-[#F9F5F0] transition-all flex items-center justify-center gap-2">
                 <ExternalLink className="w-4 h-4" /> Preview
               </a>
               <button onClick={() => setGeneratedUrl("")}
-                className="flex-1 py-3.5 text-sm text-[#B5ADA5] font-semibold rounded-[1.375rem] border border-[#ECE3DA] bg-white hover:bg-[#F9F5F0] transition-all">
+                className="flex-1 py-4 text-sm text-[#B5ADA5] font-semibold rounded-xl border border-[#ECE3DA] bg-white hover:bg-[#F9F5F0] transition-all">
                 Create another
               </button>
             </div>

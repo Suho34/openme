@@ -61,7 +61,7 @@ export default function TriviaForm({
         onClick={() => setActiveFolder(isOpen ? "basics" : "trivia")}
         className="w-full flex items-center justify-between p-5 hover:bg-[#F9F5F0] transition-colors border-b border-[#ECE3DA]"
       >
-        <SectionHeader icon={<Lightbulb className="w-3.5 h-3.5" />}>7. Relationship Trivia</SectionHeader>
+        <SectionHeader icon={<Lightbulb className="w-3.5 h-3.5" />}>Relationship Trivia</SectionHeader>
         <ChevronDown className={`w-4 h-4 text-[#B5ADA5] transition-transform ${isOpen ? "rotate-180" : ""}`} />
       </button>
       

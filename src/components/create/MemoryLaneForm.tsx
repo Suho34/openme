@@ -34,19 +34,23 @@ export default function MemoryLaneForm({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Compress image to Base64 (for demo MVP)
     const reader = new FileReader();
     reader.onload = (event) => {
       const img = new Image();
       img.onload = () => {
         const canvas = document.createElement("canvas");
-        const MAX_WIDTH = 800; // Better quality
-        const scaleSize = MAX_WIDTH / img.width;
-        canvas.width = MAX_WIDTH;
-        canvas.height = img.height * scaleSize;
+        const MAX = 640;
+        const scale = MAX / Math.max(img.width, img.height);
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
         const ctx = canvas.getContext("2d");
         ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
-        const dataUrl = canvas.toDataURL("image/jpeg", 0.6);
+        let quality = 0.5;
+        let dataUrl = canvas.toDataURL("image/jpeg", quality);
+        while (dataUrl.length > 500000 && quality > 0.1) {
+          quality -= 0.1;
+          dataUrl = canvas.toDataURL("image/jpeg", quality);
+        }
         updateMemory(index, "url", dataUrl);
       };
       if (typeof event.target?.result === "string") {
@@ -63,7 +67,7 @@ export default function MemoryLaneForm({
         onClick={() => setActiveFolder(isOpen ? "basics" : "memories")}
         className="w-full flex items-center justify-between p-5 hover:bg-[#F9F5F0] transition-colors border-b border-[#ECE3DA]"
       >
-        <SectionHeader icon={<Camera className="w-3.5 h-3.5" />}>8. Photo memories</SectionHeader>
+        <SectionHeader icon={<Camera className="w-3.5 h-3.5" />}>Photo memories</SectionHeader>
         <ChevronDown className={`w-4 h-4 text-[#B5ADA5] transition-transform ${isOpen ? "rotate-180" : ""}`} />
       </button>
       

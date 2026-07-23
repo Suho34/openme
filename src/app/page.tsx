@@ -81,8 +81,8 @@ export default function Home() {
       </header>
 
       {/* ── Hero Section ── */}
-      <section className="relative z-10 max-w-5xl mx-auto w-full px-6 pt-16 sm:pt-24 pb-32">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+      <section className="relative z-10 max-w-5xl mx-auto w-full px-6 pt-16 sm:pt-24 pb-24 sm:pb-32">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
 
           {/* Left: Editorial copy */}
           <div className="flex flex-col items-start max-w-lg">
@@ -93,22 +93,22 @@ export default function Home() {
               </span>
             </div>
 
-            <h1 className="animate-reveal-up delay-75 font-serif text-[3.25rem] sm:text-[4rem] leading-[1.05] text-[#2E2A27] mb-8" style={{ fontWeight: 400 }}>
+            <h1 className="animate-reveal-up delay-75 font-serif text-[3.5rem] sm:text-[4.5rem] lg:text-[5rem] leading-[1.0] text-[#2E2A27] mb-8 text-balance" style={{ fontWeight: 400, letterSpacing: "-0.03em" }}>
               Every birthday deserves more than a message.
             </h1>
 
-            <p className="animate-reveal-up delay-150 text-[1.0625rem] text-[#6F655E] leading-[1.75] max-w-[38rem] mb-10">
+            <p className="animate-reveal-up delay-150 text-[1.125rem] text-[#6F655E] leading-[1.75] max-w-[40rem] mb-10">
               Create unforgettable birthday experiences that feel like opening a beautifully wrapped gift. Pack a handwritten letter, interactive cake, photo memories, and a personal melody into a single link.
             </p>
 
             <div className="animate-reveal-up delay-225 flex flex-col sm:flex-row items-start gap-4">
               <Link href="/create">
-                <button className="btn-primary px-7 py-3.5 text-[0.9375rem]">
+                <button className="btn-primary px-8 py-4 text-[1rem]">
                   Create Your Surprise <ArrowRight className="w-4 h-4" />
                 </button>
               </Link>
               <Link href="/wish?d=eyJuIjoiQWxleGEiLCJhIjoyNSwicyI6Ikphc29uIiwibSI6IllvdSBicmluZyBzbyBtdWNoIGxpZ2h0IGFuZCBqb3kgaW50byBteSBsaWZlLiBFdmVyeSBzaW5nbGUgbW9tZW50IHNoYXJlZCB3aXRoIHlvdSBpcyBhIG1lbW9yeSBJIHRyZWFzdXJlLiBIYXBweSBCaXJ0aGRheSEiLCJ0Ijoicm9tYW5jZSIsImRlbW8iOnRydWV9">
-                <button className="btn-ghost px-6 py-3 text-[0.9375rem]">
+                <button className="btn-ghost px-6 py-4 text-[1rem]">
                   See a Demo
                 </button>
               </Link>
@@ -120,11 +120,10 @@ export default function Home() {
             </p>
           </div>
 
-          {/* Right: Golden-hour hero photograph */}
-          <div className="animate-reveal-up delay-150 hidden lg:block">
-            <div className="relative">
-              {/* Main photo — warm golden-hour */}
-              <div className="rounded-[1.75rem] overflow-hidden shadow-xl border border-[#ECE3DA]" style={{ boxShadow: "0 16px 48px rgba(46,42,39,0.08)" }}>
+          {/* Right: Hero imagery — visible on all screens */}
+          <div className="animate-reveal-up delay-150">
+            <div className="relative max-w-md mx-auto lg:mx-0">
+              <div className="rounded-xl overflow-hidden shadow-xl border border-[#ECE3DA]" style={{ boxShadow: "0 16px 48px rgba(46,42,39,0.08)" }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="/hero_main.png"
@@ -133,8 +132,7 @@ export default function Home() {
                 />
               </div>
 
-              {/* Floating Polaroid #1 — offset bottom-left */}
-              <div className="absolute -bottom-8 -left-8 bg-white p-3 pb-10 rounded-sm shadow-lg border border-[#ECE3DA] w-40 -rotate-3"
+              <div className="absolute -bottom-8 -left-4 sm:-left-8 bg-white p-3 pb-10 rounded-sm shadow-lg border border-[#ECE3DA] w-32 sm:w-40 -rotate-3"
                 style={{ boxShadow: "0 8px 24px rgba(46,42,39,0.06)" }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -145,8 +143,7 @@ export default function Home() {
                 <p className="font-cursive text-xs text-[#6F655E] text-center mt-2 absolute bottom-2.5 left-0 right-0">&ldquo;Best day ever.&rdquo;</p>
               </div>
 
-              {/* Floating Polaroid #2 — offset top-right */}
-              <div className="absolute -top-6 -right-6 bg-white p-3 pb-10 rounded-sm shadow-lg border border-[#ECE3DA] w-36 rotate-2"
+              <div className="absolute -top-6 -right-4 sm:-right-6 bg-white p-3 pb-10 rounded-sm shadow-lg border border-[#ECE3DA] w-28 sm:w-36 rotate-2"
                 style={{ boxShadow: "0 8px 24px rgba(46,42,39,0.06)" }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -165,24 +162,23 @@ export default function Home() {
       {/* ── How It Works ── */}
       <section className="relative z-10 w-full bg-[#F9F5F0] py-28">
         <div className="max-w-5xl mx-auto px-6">
-          <div className="mb-20">
-            <span className="text-[0.6875rem] font-semibold text-[#C97B84] uppercase tracking-[0.15em] block mb-3">How it works</span>
-            <h2 className="font-serif text-[2.5rem] sm:text-[3rem] text-[#2E2A27] leading-[1.1]" style={{ fontWeight: 400 }}>
-              Three simple steps<br />to something unforgettable.
+          <div className="mb-20 max-w-2xl">
+            <h2 className="font-serif text-[2.5rem] sm:text-[3rem] text-[#2E2A27] leading-[1.1] text-balance" style={{ fontWeight: 400 }}>
+              Three simple steps to something unforgettable.
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-16">
-            {STEPS.map((step) => (
-              <div key={step.num} className="flex flex-col">
-                <div className="flex items-center gap-3 mb-5">
-                  <span className="font-serif text-[2rem] text-[#ECE3DA]" style={{ fontWeight: 300 }}>{step.num}</span>
-                  <div className="w-10 h-10 rounded-full bg-white border border-[#ECE3DA] flex items-center justify-center text-[#C97B84]"
+          <div className="flex flex-col md:flex-row gap-12 md:gap-8 lg:gap-16">
+            {STEPS.map((step, idx) => (
+              <div key={step.num} className={`flex-1 flex flex-col ${idx === 1 ? "md:pt-8" : ""}`}>
+                <div className={`flex items-center gap-4 mb-6 ${idx === 1 ? "md:flex-row-reverse md:justify-end" : ""}`}>
+                  <span className="font-serif text-[3rem] sm:text-[4rem] leading-none text-[#C97B84]/20" style={{ fontWeight: 300 }}>{step.num}</span>
+                  <div className={`w-12 h-12 rounded-full bg-white border border-[#ECE3DA] flex items-center justify-center text-[#C97B84] ${idx === 1 ? "md:ml-0" : ""}`}
                     style={{ boxShadow: "0 2px 8px rgba(46,42,39,0.04)" }}>
                     {step.icon}
                   </div>
                 </div>
-                <h3 className="font-serif text-[1.5rem] text-[#2E2A27] mb-3" style={{ fontWeight: 500 }}>{step.title}</h3>
+                <h3 className="font-serif text-[1.5rem] sm:text-[1.75rem] text-[#2E2A27] mb-3" style={{ fontWeight: 500 }}>{step.title}</h3>
                 <p className="text-[0.9375rem] text-[#6F655E] leading-[1.75] max-w-[32rem]">
                   {step.description}
                 </p>
@@ -194,31 +190,57 @@ export default function Home() {
 
       {/* ── What's Inside ── */}
       <section className="relative z-10 max-w-5xl mx-auto w-full px-6 py-28">
-        <div className="mb-20">
-          <span className="text-[0.6875rem] font-semibold text-[#C97B84] uppercase tracking-[0.15em] block mb-3">What&apos;s inside</span>
-          <h2 className="font-serif text-[2.5rem] sm:text-[3rem] text-[#2E2A27] leading-[1.1] max-w-lg" style={{ fontWeight: 400 }}>
+        <div className="mb-16">
+          <h2 className="font-serif text-[2.5rem] sm:text-[3rem] text-[#2E2A27] leading-[1.1] text-balance" style={{ fontWeight: 400 }}>
             Every detail crafted to feel personal.
           </h2>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {FEATURES.map((feature, idx) => (
             <div
               key={feature.title}
-              className="bg-white rounded-[1.375rem] p-7 border border-[#ECE3DA] transition-all duration-300 hover:-translate-y-1"
+              className={`rounded-xl p-7 border transition-all duration-300 hover:-translate-y-1 ${
+                idx % 3 === 1
+                  ? "bg-[#F9F5F0] border-[#ECE3DA]"
+                  : "bg-white border-[#ECE3DA]"
+              }`}
               style={{
-                boxShadow: "0 2px 16px rgba(46,42,39,0.04)",
-                rotate: idx % 3 === 1 ? "0deg" : idx % 2 === 0 ? "-0.5deg" : "0.5deg",
+                boxShadow: idx === 4
+                  ? "0 2px 16px rgba(216,184,138,0.1)"
+                  : "0 2px 12px rgba(46,42,39,0.04)",
               }}
             >
-              <div className="w-9 h-9 rounded-full bg-[#F9F5F0] border border-[#ECE3DA] flex items-center justify-center mb-5 text-[#C97B84]">
-                {idx === 0 && <Gift className="w-4 h-4" />}
-                {idx === 1 && <Sparkles className="w-4 h-4" />}
-                {idx === 2 && <span className="text-sm">🎂</span>}
-                {idx === 3 && <Camera className="w-4 h-4" />}
-                {idx === 4 && <Music className="w-4 h-4" />}
-                {idx === 5 && <Heart className="w-4 h-4" />}
-              </div>
+              {idx === 0 && (
+                <div className="w-10 h-10 rounded-xl bg-[#C97B84]/10 flex items-center justify-center mb-5">
+                  <Gift className="w-5 h-5 text-[#C97B84]" />
+                </div>
+              )}
+              {idx === 1 && (
+                <div className="w-10 h-10 rounded-xl bg-[#D8B88A]/15 flex items-center justify-center mb-5">
+                  <Sparkles className="w-5 h-5 text-[#D8B88A]" />
+                </div>
+              )}
+              {idx === 2 && (
+                <div className="w-10 h-10 rounded-full bg-[#C97B84] flex items-center justify-center mb-5">
+                  <span className="text-sm text-white">🎂</span>
+                </div>
+              )}
+              {idx === 3 && (
+                <div className="w-10 h-10 rounded-xl bg-[#C97B84]/10 flex items-center justify-center mb-5">
+                  <Camera className="w-5 h-5 text-[#C97B84]" />
+                </div>
+              )}
+              {idx === 4 && (
+                <div className="w-10 h-10 rounded-full bg-[#D8B88A] flex items-center justify-center mb-5">
+                  <Music className="w-5 h-5 text-white" />
+                </div>
+              )}
+              {idx === 5 && (
+                <div className="w-10 h-10 rounded-xl bg-[#C97B84]/10 flex items-center justify-center mb-5">
+                  <Heart className="w-5 h-5 text-[#C97B84]" />
+                </div>
+              )}
               <h4 className="font-serif text-[1.25rem] text-[#2E2A27] mb-2.5" style={{ fontWeight: 500 }}>{feature.title}</h4>
               <p className="text-[0.875rem] text-[#6F655E] leading-[1.7]">{feature.description}</p>
             </div>
@@ -227,21 +249,20 @@ export default function Home() {
       </section>
 
       {/* ── Emotional CTA ── */}
-      <section className="relative z-10 max-w-3xl mx-auto w-full px-6 pb-32">
-        <div className="rounded-[1.75rem] p-12 sm:p-16 text-center flex flex-col items-center bg-[#F9F5F0] border border-[#ECE3DA]"
-          style={{ boxShadow: "0 4px 24px rgba(46,42,39,0.04)" }}>
-          <div className="w-12 h-12 rounded-full bg-white border border-[#ECE3DA] flex items-center justify-center mb-8"
+      <section className="relative z-10 w-full bg-[#F9F5F0] border-t border-[#ECE3DA] py-24 sm:py-32">
+        <div className="max-w-2xl mx-auto px-6 text-center flex flex-col items-center">
+          <div className="w-14 h-14 rounded-2xl bg-white border border-[#ECE3DA] flex items-center justify-center mb-8"
             style={{ boxShadow: "0 2px 8px rgba(46,42,39,0.04)" }}>
-            <Heart className="w-5 h-5 text-[#C97B84] fill-current" />
+            <Heart className="w-6 h-6 text-[#C97B84] fill-current" />
           </div>
-          <h2 className="font-serif text-[2rem] sm:text-[2.5rem] text-[#2E2A27] mb-5 leading-[1.15]" style={{ fontWeight: 400 }}>
-            Craft a digital keepsake<br />for someone special today.
+          <h2 className="font-serif text-[2.25rem] sm:text-[2.75rem] text-[#2E2A27] mb-5 leading-[1.1] text-balance" style={{ fontWeight: 400 }}>
+            Craft a digital keepsake for someone special today.
           </h2>
-          <p className="text-[#6F655E] text-[0.9375rem] mb-10 max-w-sm leading-[1.7]">
+          <p className="text-[#6F655E] text-[1.0625rem] mb-10 max-w-md leading-[1.7]">
             It takes just a few minutes to create. But the memory lasts forever.
           </p>
           <Link href="/create">
-            <button className="btn-primary px-8 py-4 text-[0.9375rem]">
+            <button className="btn-gold px-10 py-4 text-[1rem]">
               Begin Creating <ArrowRight className="w-4 h-4" />
             </button>
           </Link>
@@ -249,7 +270,7 @@ export default function Home() {
       </section>
 
       {/* ── Footer ── */}
-      <footer className="relative z-10 max-w-5xl mx-auto w-full px-6 pb-10 border-t border-[#ECE3DA] pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-[0.8125rem] text-[#B5ADA5]">
+      <footer className="relative z-10 max-w-5xl mx-auto w-full px-6 pb-10 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-[0.8125rem] text-[#B5ADA5]">
         <span className="flex items-center gap-1.5">
           <span className="font-serif text-[#6F655E]" style={{ fontWeight: 500 }}>WishMaker</span> &copy; {new Date().getFullYear()}
         </span>
