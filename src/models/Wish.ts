@@ -30,6 +30,8 @@ export interface IWish extends Document {
   doodleType?: string;
   ambience?: string;
   voiceNoteUrl?: string; // Base64 audio string or URL
+  tuneUrl?: string;
+  tuneDurationSeconds?: number | null;
   createdAt: Date;
   deleteAt: Date; // Used for TTL index
 }
@@ -64,6 +66,8 @@ const WishSchema = new Schema<IWish>({
   doodleType: { type: String },
   ambience: { type: String },
   voiceNoteUrl: { type: String },
+  tuneUrl: { type: String },
+  tuneDurationSeconds: { type: Number, default: null },
   createdAt: { type: Date, default: Date.now },
   deleteAt: { type: Date, required: true },
 });

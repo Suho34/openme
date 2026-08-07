@@ -1,12 +1,11 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Mic, Square, Play, Trash2 } from 'lucide-react';
+import React, { useState, useRef, useEffect } from "react";
+import { Mic, Square, Play, Trash2 } from "lucide-react";
+import type { VoiceRecorderProps } from "@/lib/types";
 
-interface VoiceRecorderProps {
-  onRecordingComplete: (base64Audio: string) => void;
-  onClear: () => void;
-}
-
-export default function VoiceRecorder({ onRecordingComplete, onClear }: VoiceRecorderProps) {
+export default function VoiceRecorder({
+  onRecordingComplete,
+  onClear,
+}: VoiceRecorderProps) {
   const [isRecording, setIsRecording] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [recordingTime, setRecordingTime] = useState(0);
@@ -60,7 +59,7 @@ export default function VoiceRecorder({ onRecordingComplete, onClear }: VoiceRec
       };
 
       mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(chunksRef.current, { type: 'audio/webm' });
+        const audioBlob = new Blob(chunksRef.current, { type: "audio/webm" });
         const url = URL.createObjectURL(audioBlob);
         setAudioUrl(url);
 
@@ -80,13 +79,16 @@ export default function VoiceRecorder({ onRecordingComplete, onClear }: VoiceRec
       setIsRecording(true);
       setRecordingTime(0);
     } catch (err) {
-      console.error('Error accessing microphone:', err);
-      alert('Could not access microphone.');
+      console.error("Error accessing microphone:", err);
+      alert("Could not access microphone.");
     }
   };
 
   const stopRecording = () => {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
+    if (
+      mediaRecorderRef.current &&
+      mediaRecorderRef.current.state === "recording"
+    ) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
     }
@@ -100,7 +102,7 @@ export default function VoiceRecorder({ onRecordingComplete, onClear }: VoiceRec
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
-    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
   };
 
   return (
@@ -109,7 +111,7 @@ export default function VoiceRecorder({ onRecordingComplete, onClear }: VoiceRec
         <Mic className="w-4 h-4 text-[#C97B84]" />
         <p className="text-sm font-semibold text-[#2E2A27]">Voice Note</p>
       </div>
-      
+
       {!audioUrl ? (
         <button
           type="button"
@@ -123,7 +125,9 @@ export default function VoiceRecorder({ onRecordingComplete, onClear }: VoiceRec
           {isRecording ? (
             <>
               <Square className="w-3.5 h-3.5" fill="currentColor" />
-              <span>{formatTime(recordingTime)} / {formatTime(maxDuration)}</span>
+              <span>
+                {formatTime(recordingTime)} / {formatTime(maxDuration)}
+              </span>
             </>
           ) : (
             <>

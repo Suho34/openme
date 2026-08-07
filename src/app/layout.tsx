@@ -1,5 +1,10 @@
 import type { Metadata } from "next";
-import { Inter, Geist_Mono, Pacifico, Cormorant_Garamond } from "next/font/google";
+import {
+  Inter,
+  Geist_Mono,
+  Pacifico,
+  Cormorant_Garamond,
+} from "next/font/google";
 import { Toaster } from "react-hot-toast";
 import "./globals.css";
 
@@ -26,20 +31,31 @@ const cormorant = Cormorant_Garamond({
   style: ["normal", "italic"],
 });
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: "WishMaker — Unforgettable Birthday Experiences",
   description:
     "Create immersive, heartfelt birthday surprises that feel like opening a beautifully wrapped gift. No account needed.",
+  icons: {
+    icon: "/wm-logo.svg",
+    shortcut: "/wm-logo.svg",
+    apple: "/wm-logo.svg",
+  },
   openGraph: {
     title: "WishMaker — Unforgettable Birthday Experiences",
-    description: "Create heartfelt birthday surprises that feel like opening a gift.",
+    description:
+      "Create heartfelt birthday surprises that feel like opening a gift.",
     siteName: "WishMaker",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "WishMaker — Unforgettable Birthday Experiences",
-    description: "Create heartfelt birthday surprises that feel like opening a gift.",
+    description:
+      "Create heartfelt birthday surprises that feel like opening a gift.",
+    images: ["/wm-logo.svg"],
   },
 };
 

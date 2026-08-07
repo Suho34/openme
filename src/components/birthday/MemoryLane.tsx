@@ -2,18 +2,10 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Camera, ChevronLeft, ChevronRight, X, Heart } from "lucide-react";
+import { Camera, ChevronLeft, ChevronRight, X } from "lucide-react";
 
 import DevelopingPolaroid from "./DevelopingPolaroid";
-
-interface Memory {
-  url: string;
-  caption: string;
-}
-
-interface MemoryLaneProps {
-  memories: Memory[];
-}
+import type { MemoryLaneProps } from "@/lib/types";
 
 export default function MemoryLane({ memories }: MemoryLaneProps) {
   const [activeSlide, setActiveSlide] = useState<number | null>(null);
@@ -40,7 +32,9 @@ export default function MemoryLane({ memories }: MemoryLaneProps) {
           <Camera className="w-5 h-5 text-[#C97B84] animate-pulse" />
           Our Memory Lane
         </h3>
-        <p className="text-xs text-[#6F655E] mt-1">Rub the polaroids to reveal the memories, then click to enlarge.</p>
+        <p className="text-xs text-[#6F655E] mt-1">
+          Rub the polaroids to reveal the memories, then click to enlarge.
+        </p>
       </div>
 
       {/* Polaroid Grid */}
@@ -57,10 +51,15 @@ export default function MemoryLane({ memories }: MemoryLaneProps) {
               drag
               dragConstraints={{ left: -30, right: 30, top: -30, bottom: 30 }}
               dragElastic={0.2}
-              whileDrag={{ scale: 1.05, zIndex: 10, cursor: "grabbing", rotate: tilt * 1.5 }}
+              whileDrag={{
+                scale: 1.05,
+                zIndex: 10,
+                cursor: "grabbing",
+                rotate: tilt * 1.5,
+              }}
               style={{ cursor: "grab" }}
             >
-              <DevelopingPolaroid 
+              <DevelopingPolaroid
                 url={memory.url}
                 caption={memory.caption}
                 tilt={tilt}
@@ -81,7 +80,10 @@ export default function MemoryLane({ memories }: MemoryLaneProps) {
             className="fixed inset-0 z-50 bg-[#2E2A27]/90 flex items-center justify-center p-4 backdrop-blur-sm"
           >
             {/* Close Overlay Area */}
-            <div className="absolute inset-0 cursor-pointer" onClick={() => setActiveSlide(null)} />
+            <div
+              className="absolute inset-0 cursor-pointer"
+              onClick={() => setActiveSlide(null)}
+            />
 
             {/* Lightbox Container */}
             <motion.div
@@ -94,13 +96,13 @@ export default function MemoryLane({ memories }: MemoryLaneProps) {
               {/* Close Button */}
               <button
                 onClick={() => setActiveSlide(null)}
-                className="absolute -top-12 right-0 sm:right-[-12px] bg-white/20 hover:bg-white/30 text-white rounded-full p-2 cursor-pointer transition-colors"
+                className="absolute -top-12 right-0 sm:-right-3 bg-white/20 hover:bg-white/30 text-white rounded-full p-2 cursor-pointer transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
 
               {/* Image Frame */}
-              <div className="relative w-full h-[320px] sm:h-[400px] bg-[#F9F5F0] rounded overflow-hidden">
+              <div className="relative w-full h-80 sm:h-100 bg-[#F9F5F0] rounded overflow-hidden">
                 <AnimatePresence mode="wait">
                   <motion.img
                     key={activeSlide}

@@ -4,26 +4,37 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, Trophy } from "lucide-react";
 import { playConfettiPop } from "@/lib/audio";
-
-interface Balloon {
-  id: number;
-  x: number; // left offset (10 - 90)
-  speed: number; // duration of animation
-  color: string;
-  glow: string;
-  popped: boolean;
-  wish: string;
-}
+import type { Balloon } from "@/lib/types";
 
 // Premium color styling for metallic helium balloons
 const EASE = [0.25, 0.1, 0.25, 1] as const;
 
 const METALLIC_BALLOONS = [
-  { color: "linear-gradient(135deg, #E6C88F 0%, #D4B26F 100%)", border: "rgba(212,178,111,0.45)", glow: "rgba(212,178,111,0.22)" }, // Champagne Gold
-  { color: "linear-gradient(135deg, #D47A86 0%, #C86A76 100%)", border: "rgba(200,106,118,0.45)", glow: "rgba(200,106,118,0.22)" }, // Soft Rose Gold
-  { color: "linear-gradient(135deg, #A4B2A6 0%, #7B8C7E 100%)", border: "rgba(123,140,126,0.35)", glow: "rgba(123,140,126,0.18)" }, // Sage Green Accent
-  { color: "linear-gradient(135deg, #EADDC9 0%, #dfceb5 100%)", border: "rgba(223,206,181,0.45)", glow: "rgba(223,206,181,0.22)" }, // Ivory Pearl
-  { color: "linear-gradient(135deg, #EFC7C2 0%, #D8A49E 100%)", border: "rgba(216,164,158,0.45)", glow: "rgba(216,164,158,0.2)" }, // Peach Coral
+  {
+    color: "linear-gradient(135deg, #EAD9B8 0%, #D8B88A 100%)",
+    border: "rgba(216,184,138,0.45)",
+    glow: "rgba(216,184,138,0.22)",
+  }, // Champagne Gold
+  {
+    color: "linear-gradient(135deg, #D88F97 0%, #C97B84 100%)",
+    border: "rgba(201,123,132,0.45)",
+    glow: "rgba(201,123,132,0.22)",
+  }, // Soft Rose Gold
+  {
+    color: "linear-gradient(135deg, #A4B2A6 0%, #7B8C7E 100%)",
+    border: "rgba(166,179,157,0.35)",
+    glow: "rgba(123,140,126,0.18)",
+  }, // Sage Green Accent
+  {
+    color: "linear-gradient(135deg, #EADDC9 0%, #dfceb5 100%)",
+    border: "rgba(223,206,181,0.45)",
+    glow: "rgba(223,206,181,0.22)",
+  }, // Ivory Pearl
+  {
+    color: "linear-gradient(135deg, #EFC7C2 0%, #D8A49E 100%)",
+    border: "rgba(216,164,158,0.45)",
+    glow: "rgba(216,164,158,0.2)",
+  }, // Peach Coral
 ];
 
 const POETIC_QUOTES = [
@@ -36,17 +47,13 @@ const POETIC_QUOTES = [
   "To live is the rarest thing in the world. Most people exist.",
   "A mind troubled by doubt cannot focus on the course to victory.",
   "Keep your face always toward the sunshine, and shadows will fall behind.",
-  "Let your life lightly dance on the edges of Time like dew on the tip of a leaf."
+  "Let your life lightly dance on the edges of Time like dew on the tip of a leaf.",
 ];
 
 export default function BalloonGame() {
   const [balloons, setBalloons] = useState<Balloon[]>([]);
   const [poppedCount, setPoppedCount] = useState(0);
   const [revealedWish, setRevealedWish] = useState<string | null>(null);
-
-  useEffect(() => {
-    generateBalloons();
-  }, []);
 
   const generateBalloons = () => {
     const list: Balloon[] = [];
@@ -59,7 +66,7 @@ export default function BalloonGame() {
         color: cfg.color,
         glow: cfg.glow,
         popped: false,
-        wish: POETIC_QUOTES[i % POETIC_QUOTES.length]
+        wish: POETIC_QUOTES[i % POETIC_QUOTES.length],
       });
     }
     setBalloons(list);
@@ -67,17 +74,25 @@ export default function BalloonGame() {
     setRevealedWish(null);
   };
 
+  useEffect(() => {
+    generateBalloons();
+  }, []);
+
   const handlePop = (id: number, wish: string) => {
-    setBalloons(prev => prev.map(b => b.id === id ? { ...b, popped: true } : b));
-    setPoppedCount(c => c + 1);
+    setBalloons((prev) =>
+      prev.map((b) => (b.id === id ? { ...b, popped: true } : b)),
+    );
+    setPoppedCount((c) => c + 1);
     setRevealedWish(wish);
     playConfettiPop();
   };
 
   return (
-    <div className="relative w-full h-[460px] border border-[#E6DFD3] bg-[#FAF3EC] rounded-2xl shadow-inner overflow-hidden select-none flex flex-col justify-between p-4"
+    <div
+      className="relative w-full h-[460px] border border-[#ECE3DA] bg-[#FFF8F2] rounded-2xl shadow-inner overflow-hidden select-none flex flex-col justify-between p-4"
       style={{
-        backgroundImage: "url('data:image/svg+xml,%3Csvg xmlns=\"http://www.w3.org/2000/svg\" width=\"100\" height=\"100\" opacity=\"0.015\"%3E%3Cfilter id=\"n\"%3E%3CfeTurbulence type=\"fractalNoise\" baseFrequency=\"0.8\"/%3E%3C/filter%3E%3Crect width=\"100\" height=\"100\" filter=\"url(%23n)\"/%3E%3C/svg%3E')",
+        backgroundImage:
+          'url(\'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100" opacity="0.015"%3E%3Cfilter id="n"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.8"/%3E%3C/filter%3E%3Crect width="100" height="100" filter="url(%23n)"/%3E%3C/svg%3E\')',
       }}
     >
       {/* Elevated dark glass status top bar */}
@@ -106,17 +121,17 @@ export default function BalloonGame() {
                     `${balloon.x}%`,
                     `${balloon.x + 8}%`,
                     `${balloon.x - 6}%`,
-                    `${balloon.x + 4}%`
-                  ]
+                    `${balloon.x + 4}%`,
+                  ],
                 }}
                 transition={{
                   duration: balloon.speed,
                   ease: "easeInOut",
                   repeat: Infinity,
-                  delay: balloon.id * 1.5
+                  delay: balloon.id * 1.5,
                 }}
                 onClick={() => handlePop(balloon.id, balloon.wish)}
-                className="absolute w-12 h-15 sm:w-14 sm:h-18 rounded-full cursor-pointer group"
+                className="absolute w-12 h-16 sm:w-14 sm:h-20 rounded-full cursor-pointer group"
                 style={{ left: `${balloon.x}%` }}
               >
                 {/* Balloon Outer Gradient */}
@@ -131,13 +146,15 @@ export default function BalloonGame() {
 
                 {/* Highlight/shine */}
                 <div className="absolute top-[12%] left-[20%] w-3.5 h-5 bg-white/20 rounded-full blur-[0.5px]" />
-                
+
                 {/* String tie bottom */}
-                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 rounded-sm rotate-45 border-r border-b border-white/10"
-                  style={{ background: balloon.color }} />
+                <div
+                  className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 rounded-sm rotate-45 border-r border-b border-white/10"
+                  style={{ background: balloon.color }}
+                />
 
                 {/* Long swaying string */}
-                <div className="absolute -bottom-12 left-1/2 -translate-x-1/2 w-[1px] h-12 bg-[#C97B84]/20" />
+                <div className="absolute -bottom-12 left-1/2 -translate-x-1/2 w-[1px] h-12 bg-[#C97B84]/15" />
               </motion.div>
             )}
           </AnimatePresence>
@@ -159,9 +176,7 @@ export default function BalloonGame() {
               <span className="text-[0.625rem] text-[#C97B84] font-semibold uppercase tracking-widest">
                 WISH COMMITTED
               </span>
-              <span
-                className="text-[#2E2A27] text-[0.9375rem] leading-relaxed font-serif italic"
-              >
+              <span className="text-[#2E2A27] text-[0.9375rem] leading-relaxed font-serif italic">
                 &ldquo;{revealedWish}&rdquo;
               </span>
             </motion.div>
@@ -175,9 +190,12 @@ export default function BalloonGame() {
           <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mb-4 border border-[#ECE3DA] shadow-md">
             <Trophy className="w-5 h-5 text-[#C97B84]" />
           </div>
-          <h3 className="text-xl font-serif italic text-[#2E2A27]">Wishes Released</h3>
+          <h3 className="text-xl font-serif italic text-[#2E2A27]">
+            Wishes Released
+          </h3>
           <p className="text-[0.8125rem] text-[#6F655E] mt-1.5 max-w-xs leading-relaxed">
-            All warm thoughts and poetic intentions have been scattered into the celebration space.
+            All warm thoughts and poetic intentions have been scattered into the
+            celebration space.
           </p>
           <button
             onClick={generateBalloons}
@@ -190,7 +208,9 @@ export default function BalloonGame() {
 
       {/* Background Hint */}
       <div className="text-center relative z-20 text-[0.625rem] text-[#B5ADA5] font-semibold tracking-wider uppercase">
-        {poppedCount < 10 ? "Tap floating balloons to commit wishes" : "All wishes released"}
+        {poppedCount < 10
+          ? "Tap floating balloons to commit wishes"
+          : "All wishes released"}
       </div>
     </div>
   );

@@ -2,35 +2,27 @@
 
 import React from "react";
 import { Camera, ChevronDown, Plus, Trash2 } from "lucide-react";
-
-export interface Memory {
-  url: string;
-  caption: string;
-}
-
-interface MemoryLaneFormProps {
-  activeFolder: string;
-  setActiveFolder: (f: string) => void;
-  memories: Memory[];
-  setMemories: (m: Memory[]) => void;
-  SectionHeader: React.FC<{ icon: React.ReactNode; children: React.ReactNode }>;
-}
+import type { Memory, MemoryLaneFormProps } from "@/lib/types";
 
 export default function MemoryLaneForm({
   activeFolder,
   setActiveFolder,
   memories,
   setMemories,
-  SectionHeader
+  SectionHeader,
 }: MemoryLaneFormProps) {
   const isOpen = activeFolder === "memories";
 
   const addMemory = () => setMemories([...memories, { url: "", caption: "" }]);
-  const removeMemory = (i: number) => setMemories(memories.filter((_, idx) => idx !== i));
+  const removeMemory = (i: number) =>
+    setMemories(memories.filter((_, idx) => idx !== i));
   const updateMemory = (i: number, f: keyof Memory, v: string) =>
     setMemories(memories.map((m, idx) => (idx === i ? { ...m, [f]: v } : m)));
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+  const handleImageUpload = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    index: number,
+  ) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -67,48 +59,69 @@ export default function MemoryLaneForm({
         onClick={() => setActiveFolder(isOpen ? "basics" : "memories")}
         className="w-full flex items-center justify-between p-5 hover:bg-[#F9F5F0] transition-colors border-b border-[#ECE3DA]"
       >
-        <SectionHeader icon={<Camera className="w-3.5 h-3.5" />}>Photo memories</SectionHeader>
-        <ChevronDown className={`w-4 h-4 text-[#B5ADA5] transition-transform ${isOpen ? "rotate-180" : ""}`} />
+        <SectionHeader icon={<Camera className="w-3.5 h-3.5" />}>
+          Photo memories
+        </SectionHeader>
+        <ChevronDown
+          className={`w-4 h-4 text-[#B5ADA5] transition-transform ${isOpen ? "rotate-180" : ""}`}
+        />
       </button>
-      
+
       {isOpen && (
         <div className="p-5 space-y-4 bg-white">
           <div className="flex items-center justify-between">
-            <span className="text-[0.75rem] text-[#6F655E] font-semibold">Shared Photos</span>
-            <button type="button" onClick={addMemory} className="text-[0.75rem] text-[#C97B84] font-semibold flex items-center gap-1 hover:text-[#B5616B]">
+            <span className="text-[0.75rem] text-[#6F655E] font-semibold">
+              Shared Photos
+            </span>
+            <button
+              type="button"
+              onClick={addMemory}
+              className="text-[0.75rem] text-[#C97B84] font-semibold flex items-center gap-1 hover:text-[#B5616B]"
+            >
               <Plus className="w-3 h-3" /> Add Photo
             </button>
           </div>
-          
+
           <div className="space-y-3">
             {memories.map((m, i) => (
-              <div key={i} className="flex items-center gap-3 bg-[#F9F5F0] border border-[#ECE3DA] p-4 rounded-2xl">
+              <div
+                key={i}
+                className="flex items-center gap-3 bg-[#F9F5F0] border border-[#ECE3DA] p-4 rounded-2xl"
+              >
                 {m.url ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={m.url} alt="Thumbnail" className="w-14 h-14 object-cover rounded-xl border border-[#ECE3DA]" />
+                  <img
+                    src={m.url}
+                    alt="Thumbnail"
+                    className="w-14 h-14 object-cover rounded-xl border border-[#ECE3DA]"
+                  />
                 ) : (
                   <div className="w-14 h-14 bg-white rounded-xl flex items-center justify-center text-[#B5ADA5] border border-[#ECE3DA]">
                     <Camera className="w-4 h-4" />
                   </div>
                 )}
-                
+
                 <div className="flex-1 space-y-1.5 min-w-0">
                   <input
                     type="file"
                     accept="image/*"
-                    onChange={e => handleImageUpload(e, i)}
+                    onChange={(e) => handleImageUpload(e, i)}
                     className="w-full text-[0.75rem] text-[#6F655E] file:mr-2 file:py-1 file:px-3 file:rounded-lg file:border file:border-[#ECE3DA] file:text-[0.75rem] file:font-semibold file:bg-white file:text-[#6F655E] hover:file:bg-[#F9F5F0]"
                   />
                   <input
                     type="text"
                     placeholder="Caption…"
                     value={m.caption}
-                    onChange={e => updateMemory(i, "caption", e.target.value)}
+                    onChange={(e) => updateMemory(i, "caption", e.target.value)}
                     className="input-saas text-sm py-2"
                   />
                 </div>
-                
-                <button type="button" onClick={() => removeMemory(i)} className="text-[#B5ADA5] hover:text-[#C46D5E] transition-colors px-1">
+
+                <button
+                  type="button"
+                  onClick={() => removeMemory(i)}
+                  className="text-[#B5ADA5] hover:text-[#C46D5E] transition-colors px-1"
+                >
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>

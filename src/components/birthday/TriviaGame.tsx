@@ -4,17 +4,7 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check, X, Lightbulb } from "lucide-react";
 import confetti from "canvas-confetti";
-
-interface ITrivia {
-  question: string;
-  options: string[];
-  correctAnswerIndex: number;
-}
-
-interface TriviaGameProps {
-  trivia: ITrivia[];
-  onComplete: () => void;
-}
+import type { TriviaGameProps } from "@/lib/types";
 
 export default function TriviaGame({ trivia, onComplete }: TriviaGameProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -31,12 +21,14 @@ export default function TriviaGame({ trivia, onComplete }: TriviaGameProps) {
 
     if (correct) {
       confetti({
-        particleCount: 50, spread: 60, origin: { y: 0.7 },
-        colors: ["#8FA27A", "#FFFFFF"]
+        particleCount: 50,
+        spread: 60,
+        origin: { y: 0.7 },
+        colors: ["#8FA27A", "#FFFFFF"],
       });
       setTimeout(() => {
         if (currentIndex < trivia.length - 1) {
-          setCurrentIndex(c => c + 1);
+          setCurrentIndex((c) => c + 1);
           setSelected(null);
           setIsCorrect(null);
         } else {
@@ -54,14 +46,25 @@ export default function TriviaGame({ trivia, onComplete }: TriviaGameProps) {
 
   if (completed) {
     return (
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center py-10">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="text-center py-10"
+      >
         <div className="w-16 h-16 rounded-full bg-[#8FA27A]/10 text-[#8FA27A] flex items-center justify-center mx-auto mb-4 border border-[#8FA27A]/20">
           <Check className="w-8 h-8" />
         </div>
-        <h3 className="font-serif text-2xl text-[#2E2A27] mb-2">You know me so well!</h3>
-        <p className="text-[#6F655E] text-sm mb-6">You answered all the trivia correctly.</p>
-        <button onClick={onComplete} className="btn-primary px-8 py-3.5 text-sm">
-          Continue ✨
+        <h3 className="font-serif text-2xl text-[#2E2A27] mb-2">
+          You know me so well!
+        </h3>
+        <p className="text-[#6F655E] text-sm mb-6">
+          You answered all the trivia correctly.
+        </p>
+        <button
+          onClick={onComplete}
+          className="btn-primary px-8 py-3.5 text-sm"
+        >
+          Continue
         </button>
       </motion.div>
     );
@@ -77,7 +80,7 @@ export default function TriviaGame({ trivia, onComplete }: TriviaGameProps) {
           Trivia {currentIndex + 1} of {trivia.length}
         </span>
       </div>
-      
+
       <AnimatePresence mode="wait">
         <motion.div
           key={currentIndex}

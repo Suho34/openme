@@ -1,23 +1,22 @@
 "use client";
 
 import React from "react";
-
-interface StepProgressBarProps {
-  current: number; // 0-indexed
-  total: number;
-  labels: string[];
-}
+import type { StepProgressBarProps } from "@/lib/types";
 
 /**
  * Warm editorial step progress bar with dusty rose fill.
  */
-export default function StepProgressBar({ current, total, labels }: StepProgressBarProps) {
-  const pct = ((current) / (total - 1)) * 100;
+export default function StepProgressBar({
+  current,
+  total,
+  labels,
+}: StepProgressBarProps) {
+  const pct = (current / (total - 1)) * 100;
 
   return (
     <div className="w-full max-w-sm mx-auto mb-12 select-none">
       {/* Track */}
-      <div className="relative h-[2px] bg-[#ECE3DA] rounded-full">
+      <div className="relative h-0.5 bg-[#ECE3DA] rounded-full">
         {/* Fill */}
         <div
           className="absolute left-0 top-0 h-full rounded-full transition-all duration-700"
@@ -30,7 +29,7 @@ export default function StepProgressBar({ current, total, labels }: StepProgress
         {/* Step dots */}
         {Array.from({ length: total }).map((_, i) => {
           const isCompleted = i < current;
-          const isActive    = i === current;
+          const isActive = i === current;
           return (
             <div
               key={i}
@@ -42,10 +41,14 @@ export default function StepProgressBar({ current, total, labels }: StepProgress
                   isCompleted
                     ? "bg-[#C97B84] border-[#C97B84] scale-100"
                     : isActive
-                    ? "bg-white border-[#C97B84] scale-125"
-                    : "bg-white border-[#ECE3DA] scale-100"
+                      ? "bg-white border-[#C97B84] scale-125"
+                      : "bg-white border-[#ECE3DA] scale-100"
                 }`}
-                style={isActive ? { boxShadow: "0 0 0 4px rgba(201,123,132,0.1)" } : {}}
+                style={
+                  isActive
+                    ? { boxShadow: "0 0 0 4px rgba(201,123,132,0.1)" }
+                    : {}
+                }
               />
             </div>
           );
@@ -61,8 +64,8 @@ export default function StepProgressBar({ current, total, labels }: StepProgress
               i === current
                 ? "text-[#C97B84]"
                 : i < current
-                ? "text-[#6F655E]"
-                : "text-[#DDD4CB]"
+                  ? "text-[#6F655E]"
+                  : "text-[#DDD4CB]"
             }`}
           >
             {label}

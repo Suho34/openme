@@ -1,30 +1,23 @@
 "use client";
 
 import React, { useRef, useEffect } from "react";
+import type { FireworksProps, Particle, Rocket } from "@/lib/types";
 
 // Warm editorial fireworks palette: champagne gold, dusty rose, sage, ivory — no blue/neon
 const PALETTES = [
-  ["#D8B88A", "#E5CDA5", "#EDD9B8"],   // champagne gold
-  ["#C97B84", "#D89BA3", "#E8BCC2"],   // dusty rose
-  ["#F5EDE3", "#FFF8F2", "#FFFFFF"],   // warm ivory
-  ["#A6B39D", "#BCC9B5", "#D3DDCE"],   // muted sage
-  ["#D8B88A", "#C97B84", "#FFFFFF"],   // gold + rose mix
+  ["#D8B88A", "#E5CDA5", "#EDD9B8"], // champagne gold
+  ["#C97B84", "#D89BA3", "#E8BCC2"], // dusty rose
+  ["#F5EDE3", "#FFF8F2", "#FFFFFF"], // warm ivory
+  ["#A6B39D", "#BCC9B5", "#D3DDCE"], // muted sage
+  ["#D8B88A", "#C97B84", "#FFFFFF"], // gold + rose mix
 ];
-
-interface Particle {
-  x: number; y: number;
-  vx: number; vy: number;
-  alpha: number; decay: number;
-  gravity: number; friction: number;
-  color: string;
-  length: number; // trail segment length
-}
 
 function createParticle(x: number, y: number, color: string): Particle {
   const angle = Math.random() * Math.PI * 2;
   const speed = Math.random() * 5.5 + 1.5;
   return {
-    x, y,
+    x,
+    y,
     vx: Math.cos(angle) * speed,
     vy: Math.sin(angle) * speed,
     alpha: 1,
@@ -34,17 +27,6 @@ function createParticle(x: number, y: number, color: string): Particle {
     color,
     length: Math.random() * 6 + 2,
   };
-}
-
-
-interface Rocket {
-  x: number; y: number; vx: number; vy: number;
-  palette: string[];
-  exploded: boolean;
-  targetY: number;
-  trail: { x: number; y: number; alpha: number }[];
-  isText: boolean;
-  textIndex?: number;
 }
 
 function createRocket(w: number, h: number): Rocket {
@@ -77,11 +59,6 @@ function createTextRocket(w: number, h: number, index: number): Rocket {
   };
 }
 
-
-interface FireworksProps {
-  name?: string;
-}
-
 export default function Fireworks({ name = "Friend" }: FireworksProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -91,11 +68,11 @@ export default function Fireworks({ name = "Friend" }: FireworksProps) {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    let w = canvas.width  = window.innerWidth;
-    let h = canvas.height = window.innerHeight;
+    let w = (canvas.width = window.innerWidth);
+    let h = (canvas.height = window.innerHeight);
 
     const onResize = () => {
-      w = canvas.width  = window.innerWidth;
+      w = canvas.width = window.innerWidth;
       h = canvas.height = window.innerHeight;
     };
     window.addEventListener("resize", onResize);
@@ -113,11 +90,17 @@ export default function Fireworks({ name = "Friend" }: FireworksProps) {
         if (textIndex === 2) {
           textFade = 3.0; // Stay solid for ~4 seconds before fading
         }
-        
+
         // Everyone gets a small normal explosion too
         const count = 40;
         for (let i = 0; i < count; i++) {
-          particles.push(createParticle(x, y, palette[Math.floor(Math.random() * palette.length)]));
+          particles.push(
+            createParticle(
+              x,
+              y,
+              palette[Math.floor(Math.random() * palette.length)],
+            ),
+          );
         }
       } else {
         const count = Math.floor(Math.random() * 50) + 80;
@@ -148,7 +131,7 @@ export default function Fireworks({ name = "Friend" }: FireworksProps) {
       }
 
       // Update rockets
-      rockets = rockets.filter(r => {
+      rockets = rockets.filter((r) => {
         // Trail
         r.trail.push({ x: r.x, y: r.y, alpha: 0.9 });
         if (r.trail.length > 12) r.trail.shift();
@@ -171,8 +154,8 @@ export default function Fireworks({ name = "Friend" }: FireworksProps) {
           r.trail[i].alpha *= 0.87;
         }
 
-        r.x  += r.vx;
-        r.y  += r.vy;
+        r.x += r.vx;
+        r.y += r.vy;
         r.vy += r.isText ? 0.025 : 0.045; // gravity slows ascent
 
         if (r.y <= r.targetY || r.vy >= -0.4) {
@@ -183,7 +166,7 @@ export default function Fireworks({ name = "Friend" }: FireworksProps) {
       });
 
       // Update normal particles
-      particles = particles.filter(p => {
+      particles = particles.filter((p) => {
         ctx.save();
         ctx.globalAlpha = p.alpha;
         ctx.strokeStyle = p.color;
@@ -201,8 +184,8 @@ export default function Fireworks({ name = "Friend" }: FireworksProps) {
         p.vx *= p.friction;
         p.vy *= p.friction;
         p.vy += p.gravity;
-        p.x  += p.vx;
-        p.y  += p.vy;
+        p.x += p.vx;
+        p.y += p.vy;
         p.alpha -= p.decay;
 
         return p.alpha > 0;
@@ -222,15 +205,15 @@ export default function Fireworks({ name = "Friend" }: FireworksProps) {
           // Stack on mobile
           let fontSize = Math.min(w / 8, 60);
           ctx.font = `bold ${fontSize}px Georgia, serif`;
-          
+
           // Ensure it doesn't overflow even on very small screens
           const nameText = `${name}!`;
           const nameWidth = ctx.measureText(nameText).width;
           if (nameWidth > w * 0.9) {
-            fontSize = fontSize * (w * 0.9 / nameWidth);
+            fontSize = fontSize * ((w * 0.9) / nameWidth);
             ctx.font = `bold ${fontSize}px Georgia, serif`;
           }
-          
+
           ctx.fillText("Happy Birthday,", w / 2, h * 0.35 - fontSize * 0.6);
           ctx.fillText(nameText, w / 2, h * 0.35 + fontSize * 0.6);
         } else {
@@ -239,14 +222,14 @@ export default function Fireworks({ name = "Friend" }: FireworksProps) {
           ctx.font = `bold ${fontSize}px Georgia, serif`;
           const text = `Happy Birthday, ${name}!`;
           let textWidth = ctx.measureText(text).width;
-          
+
           if (textWidth > w * 0.9) {
-            fontSize = fontSize * (w * 0.9 / textWidth);
+            fontSize = fontSize * ((w * 0.9) / textWidth);
             ctx.font = `bold ${fontSize}px Georgia, serif`;
           }
           ctx.fillText(text, w / 2, h * 0.35);
         }
-        
+
         ctx.restore();
         textFade -= 0.003; // very slow fade out
       }

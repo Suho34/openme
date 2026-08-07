@@ -1,58 +1,44 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState } from "react";
 import toast from "react-hot-toast";
 import {
-  Sparkles, Copy, ExternalLink, Plus, Trash2,
-  Camera, Gift, Wand2, Music, Clock, 
-  Loader2, Play, Square, Check, Share2,
-  Users, Star, Heart, Briefcase, Lightbulb, ChevronDown, Calendar
+  Sparkles,
+  Copy,
+  ExternalLink,
+  Plus,
+  Trash2,
+  Gift,
+  Wand2,
+  Clock,
+  Loader2,
+  Check,
+  Share2,
+  Users,
+  Star,
+  Heart,
+  Briefcase,
+  ChevronDown,
+  Calendar,
 } from "lucide-react";
 import confetti from "canvas-confetti";
-import StepProgressBar from "@/components/ui/StepProgressBar";
 import TriviaForm from "@/components/create/TriviaForm";
 import MemoryLaneForm from "@/components/create/MemoryLaneForm";
-import { ITrivia } from "@/components/create/TriviaForm";
+import type { TriviaQuestion } from "@/lib/types";
 import VoiceRecorder from "@/components/ui/VoiceRecorder";
+import TunePicker from "@/components/create/TunePicker";
 import { playChime } from "@/lib/audio";
-import { JinglePlayer } from "@/lib/jingle";
-import { generateMessage, recommendTheme, saveWish } from "@/lib/actions";
+import { generateMessage, saveWish } from "@/lib/actions";
+import Link from "next/link";
 
 // ── Types ─────────────────────────────────────────────────────
-interface Memory { url: string; caption: string; }
-type ThemeId = "starry" | "neon" | "romance" | "pastel" | "retro";
-type RelationType = "best friend" | "partner" | "sibling" | "family" | "colleague" | "mentor";
-
-interface TimelineEvent {
-  date: string;
-  title: string;
-  description: string;
-}
-
-
-
-interface StarMemory {
-  id: number;
-  label: string;
-  date: string;
-  description: string;
-  x: number;
-  y: number;
-}
-
-interface WishTemplate {
-  id: string;
-  label: string;
-  icon: React.ReactNode;
-  description: string;
-  defaults: {
-    theme: ThemeId;
-    relationship: RelationType;
-    tone: number;
-    keywords: string;
-    messagePlaceholder: string;
-  };
-}
+import type {
+  Memory,
+  ThemeId,
+  RelationType,
+  TimelineEvent,
+  WishTemplate,
+} from "@/lib/types";
 
 const WISH_TEMPLATES: WishTemplate[] = [
   {
@@ -64,8 +50,12 @@ const WISH_TEMPLATES: WishTemplate[] = [
       theme: "romance",
       relationship: "partner",
       tone: 80,
-      keywords: "love, memories, forever",
-      messagePlaceholder: "Every day with you is a gift. Here's to celebrating you and everything you mean to me…",
+      keywords:
+        "partner, lover, inside date-night rituals, the way they laugh, small thoughtful gestures, growing old together, chosen family, your favorite album, the first time we met, love story",
+      prompt:
+        "This is a romantic birthday letter to a romantic partner. Make it tender, specific, and quietly intimate — reference real shared moments like a favorite song, a place you both love, a small ritual or an inside connection. Avoid grand clichés; write like you're speaking to them across a pillow. Mix affectionate openness with genuine, grounded detail. Each draft should feel unmistakably written for this one person, not a generic love note.",
+      messagePlaceholder:
+        "Every day with you is a gift. Here's to celebrating you and everything you mean to me…",
     },
   },
   {
@@ -77,8 +67,12 @@ const WISH_TEMPLATES: WishTemplate[] = [
       theme: "neon",
       relationship: "best friend",
       tone: 25,
-      keywords: "adventures, laughs, memories",
-      messagePlaceholder: "Another year older, but still just as chaotic and wonderful as ever…",
+      keywords:
+        "best friend, laughing till we can't breathe, shared misdeeds, all-night conversations, the inside joke only we understand, spontaneous road trip, your worst karaoke, always on my side, chosen family",
+      prompt:
+        "Write a warm, playful birthday letter to a best friend. Be funny and nostalgic — call back to ridiculous shared memories, jokes, or moments only the two of you would know. The energy should feel like a late-night text thread: lively, affectionate, a little chaotic, with real fondness underneath the teasing. Keep it specific and personal, not generic 'best friend ever' filler.",
+      messagePlaceholder:
+        "Another year older, but still just as chaotic and wonderful as ever…",
     },
   },
   {
@@ -90,8 +84,12 @@ const WISH_TEMPLATES: WishTemplate[] = [
       theme: "pastel",
       relationship: "family",
       tone: 60,
-      keywords: "family, support, love",
-      messagePlaceholder: "Thank you for always being my rock, my support system, and my home. I'm so grateful for you…",
+      keywords:
+        "family, home, unconditional, the person who always had your back, family dinner, protective, the lessons you taught me, growing up, gratitude, roots",
+      prompt:
+        "Write a sincere, appreciative birthday letter to a family member. Ground it in the role they've played — elder, parent, sibling, cousin — and in specific, warm memories of home, being protected, or growing up together. Tone: grateful, steady, deeply affectionate; sentimental but never overwrought. Reference the quiet, steady ways they showed up for you.",
+      messagePlaceholder:
+        "Thank you for always being my rock, my support system, and my home. I'm so grateful for you…",
     },
   },
   {
@@ -103,112 +101,127 @@ const WISH_TEMPLATES: WishTemplate[] = [
       theme: "starry",
       relationship: "colleague",
       tone: 50,
-      keywords: "teamwork, achievements, growth",
-      messagePlaceholder: "Wishing an incredible colleague a year as brilliant as your ideas…",
+      keywords:
+        "colleague, teamwork, late-night, project, the win, mental strength, our close collaboration, respect, genuine, growth, your ideas",
+      prompt:
+        "Write a sincere, professional-but-warm birthday message to a colleague. Celebrate their work, ideas, and what they add to the team — reference concrete moments like a project, a late night, a win that felt shared. Keep it respectful and genuine, with an optimistic note for the year ahead. Avoid intimacy or sentimentality; this is a colleague, not a confidant.",
+      messagePlaceholder:
+        "Wishing an incredible colleague a year as brilliant as your ideas…",
     },
   },
 ];
 
-const THEMES = [
-  { id: "starry"  as ThemeId, label: "Starry Night",  desc: "Deep & dreamy" },
-  { id: "neon"    as ThemeId, label: "Electric",       desc: "Bold & fun" },
-  { id: "romance" as ThemeId, label: "Romantic",       desc: "Warm glow" },
-  { id: "pastel"  as ThemeId, label: "Pastel Dream",   desc: "Soft & gentle" },
-  { id: "retro"   as ThemeId, label: "Vintage",        desc: "Nostalgic" },
-];
-
-const THEME_COLORS: Record<ThemeId, string> = {
-  starry:  "#4A6FA5",
-  neon:    "#9B72CF",
-  romance: "#C97B84",
-  pastel:  "#87B5A2",
-  retro:   "#C4956A",
-};
-
 const RELATIONSHIP_OPTIONS: RelationType[] = [
-  "best friend", "partner", "sibling", "family", "colleague", "mentor",
+  "best friend",
+  "partner",
+  "sibling",
+  "family",
+  "colleague",
+  "mentor",
 ];
 
 const TONE_LABELS: Record<number, string> = {
-  0:   "😄 Very Playful",
-  25:  "😊 Playful",
-  50:  "💭 Balanced",
-  75:  "🥺 Heartfelt",
+  0: "😄 Very Playful",
+  25: "😊 Playful",
+  50: "💭 Balanced",
+  75: "🥺 Heartfelt",
   100: "🎩 Formal",
 };
 
 function toneLabel(v: number) {
   const snapped = [0, 25, 50, 75, 100].reduce((prev, curr) =>
-    Math.abs(curr - v) < Math.abs(prev - v) ? curr : prev
+    Math.abs(curr - v) < Math.abs(prev - v) ? curr : prev,
   );
   return TONE_LABELS[snapped];
 }
 
-const SectionHeader = ({ icon, children }: {
+const SectionHeader = ({
+  icon,
+  children,
+}: {
   icon: React.ReactNode;
   children: React.ReactNode;
 }) => (
   <div className="flex items-center gap-3 text-sm font-semibold text-[#2E2A27]">
-    <span className="w-6 h-6 rounded-lg bg-[#C97B84]/10 flex items-center justify-center text-[#C97B84]">{icon}</span>
+    <span className="w-6 h-6 rounded-lg bg-[#C97B84]/10 flex items-center justify-center text-[#C97B84]">
+      {icon}
+    </span>
     {children}
   </div>
 );
 
 // ── Main Page ──
 export default function CreateSurprise() {
-  const [name, setName]         = useState("");
-  const [age, setAge]           = useState("");
-  const [sender, setSender]     = useState("");
-  const [message, setMessage]   = useState("");
-  const [theme, setTheme]       = useState<ThemeId>("starry");
-  const [ambience, setAmbience] = useState<"fire" | "rain" | "ocean" | "none">("none");
+  const [name, setName] = useState("");
+  const [age, setAge] = useState("");
+  const [sender, setSender] = useState("");
+  const [message, setMessage] = useState("");
+  const [theme, setTheme] = useState<ThemeId>("starry");
   const [voiceNoteUrl, setVoiceNoteUrl] = useState("");
   const [memories, setMemories] = useState<Memory[]>([
-    { url: "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=600&auto=format&fit=crop&q=80", caption: "Laughter and joy together!" },
+    {
+      url: "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=600&auto=format&fit=crop&q=80",
+      caption: "Laughter and joy together!",
+    },
   ]);
 
   // Timeline state
   const [timelineEvents, setTimelineEvents] = useState<TimelineEvent[]>([
-    { date: "Oct 2021", title: "The Day We Met", description: "A simple introduction that quickly turned into hours of talking." },
-    { date: "May 2022", title: "First Adventure", description: "Our first road trip away from the city, singing along to custom playlists." },
+    {
+      date: "Oct 2021",
+      title: "The Day We Met",
+      description:
+        "A simple introduction that quickly turned into hours of talking.",
+    },
+    {
+      date: "May 2022",
+      title: "First Adventure",
+      description:
+        "Our first road trip away from the city, singing along to custom playlists.",
+    },
   ]);
 
   // Trivia state
-  const [triviaQuestions, setTriviaQuestions] = useState<ITrivia[]>([
-    { question: "", options: ["", "", "", ""], correctAnswerIndex: 0 }
+  const [triviaQuestions, setTriviaQuestions] = useState<TriviaQuestion[]>([
+    { question: "", options: ["", "", "", ""], correctAnswerIndex: 0 },
   ]);
 
   const [generatedUrl, setGeneratedUrl] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
-  const [copied, setCopied]             = useState(false);
+  const [copied, setCopied] = useState(false);
 
   // Accordion folder state
-  const [activeFolder, setActiveFolder] = useState<"basics" | "ai-writer" | "theme" | "schedule" | "doodle" | "timeline" | "trivia" | "memories">("basics");
+  const [activeFolder, setActiveFolder] = useState<
+    | "basics"
+    | "ai-writer"
+    | "theme"
+    | "schedule"
+    | "doodle"
+    | "timeline"
+    | "trivia"
+    | "memories"
+  >("basics");
   const [showExtras, setShowExtras] = useState(false);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
-  const [doodleType, setDoodleType] = useState<"heart" | "rose" | "hearts" | "coffee">("heart");
+  const [doodleType, setDoodleType] = useState<
+    "heart" | "rose" | "hearts" | "coffee"
+  >("heart");
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [tuneUrl, setTuneUrl] = useState("");
 
   // Feature C — Scheduled delivery
   const [scheduleEnabled, setScheduleEnabled] = useState(false);
-  const [deliveryDate, setDeliveryDate]        = useState("");
+  const [deliveryDate, setDeliveryDate] = useState("");
 
   // Feature D — AI letter writer
-  const [aiRelationship, setAiRelationship] = useState<RelationType>("best friend");
-  const [aiKeywords, setAiKeywords]         = useState("");
-  const [aiDrafts, setAiDrafts]             = useState<string[]>([]);
-  const [aiLoading, setAiLoading]           = useState(false);
+  const [aiRelationship, setAiRelationship] =
+    useState<RelationType>("best friend");
+  const [aiKeywords, setAiKeywords] = useState("");
+  const [aiDrafts, setAiDrafts] = useState<string[]>([]);
+  const [aiLoading, setAiLoading] = useState(false);
 
   // Letter tone slider (0 = playful → 100 = formal)
   const [tone, setTone] = useState(50);
-
-  // AI theme recommendation
-  const [themeLoading, setThemeLoading] = useState(false);
-  const [themeReason, setThemeReason]  = useState("");
-
-  // Feature E — Jingle
-  const jingleRef    = useRef<JinglePlayer | null>(null);
-  const [jinglePlaying, setJinglePlaying] = useState(false);
 
   const applyTemplate = (tmpl: WishTemplate) => {
     setSelectedTemplateId(tmpl.id);
@@ -220,13 +233,16 @@ export default function CreateSurprise() {
     toast.success(`Template applied`);
   };
 
-  const addMemory    = () => setMemories(p => [...p, { url: "", caption: "" }]);
-
-
-  const addTimelineEvent = () => setTimelineEvents(p => [...p, { date: "", title: "", description: "" }]);
-  const removeTimelineEvent = (i: number) => setTimelineEvents(p => p.filter((_, idx) => idx !== i));
+  const addTimelineEvent = () =>
+    setTimelineEvents((p) => [...p, { date: "", title: "", description: "" }]);
+  const removeTimelineEvent = (i: number) =>
+    setTimelineEvents((p) => p.filter((_, idx) => idx !== i));
   const updateTimelineEvent = (i: number, f: keyof TimelineEvent, v: string) =>
-    setTimelineEvents(p => { const n = [...p]; n[i] = { ...n[i], [f]: v }; return n; });
+    setTimelineEvents((p) => {
+      const n = [...p];
+      n[i] = { ...n[i], [f]: v };
+      return n;
+    });
 
   const handleGenerateDrafts = async () => {
     if (!name || !sender) {
@@ -237,73 +253,54 @@ export default function CreateSurprise() {
     setAiDrafts([]);
     const loadingToast = toast.loading("Composing heartfelt drafts…");
     try {
-      const toneDesc = tone <= 25 ? "very playful and funny"
-        : tone <= 50 ? "warm and friendly"
-        : tone <= 75 ? "heartfelt and emotional"
-        : "formal and poetic";
+      const toneDesc =
+        tone <= 25
+          ? "very playful and funny"
+          : tone <= 50
+            ? "warm and friendly"
+            : tone <= 75
+              ? "heartfelt and emotional"
+              : "formal and poetic";
 
       const data = await generateMessage({
-        name, sender,
+        name,
+        sender,
         relationship: aiRelationship,
         keywords: aiKeywords,
         toneDescription: toneDesc,
       });
       setAiDrafts(data.drafts);
       toast.success("Select a draft below", { id: loadingToast });
-    } catch (err: any) {
-      toast.error(err.message || "Failed to generate drafts", { id: loadingToast });
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Failed to generate drafts";
+      toast.error(message, {
+        id: loadingToast,
+      });
     } finally {
       setAiLoading(false);
-    }
-  };
-
-  const handleRecommendTheme = async () => {
-    if (!message && !aiKeywords) {
-      toast.error("Write a message or add keywords first");
-      return;
-    }
-    setThemeLoading(true);
-    setThemeReason("");
-    const tid = toast.loading("Finding the perfect mood…");
-    try {
-      const data = await recommendTheme({ message, keywords: aiKeywords, relationship: aiRelationship });
-      setTheme(data.theme as ThemeId);
-      setThemeReason(data.reason);
-      toast.success(`Theme matched`, { id: tid });
-    } catch (err: any) {
-      toast.error(err.message || "Failed to recommend theme", { id: tid });
-    } finally {
-      setThemeLoading(false);
-    }
-  };
-
-  const handleToggleJingle = async () => {
-    if (!jingleRef.current) jingleRef.current = new JinglePlayer();
-    if (jinglePlaying) {
-      jingleRef.current.stop();
-      setJinglePlaying(false);
-    } else {
-      await jingleRef.current.play({ theme, name: name || "friend" });
-      setJinglePlaying(true);
     }
   };
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsGenerating(true);
-    const active = memories.filter(m => m.url.trim());
-    const payload: Record<string, any> = {
-      name: name.trim()   || "Someone Special",
+    const active = memories.filter((m) => m.url.trim());
+    const payload: Record<string, unknown> = {
+      name: name.trim() || "Someone Special",
       age: age ? parseInt(age) : undefined,
       sender: sender.trim() || "A Loved One",
-      message: message.trim() || "Happy Birthday! Wishing you a magical year ahead.",
+      message:
+        message.trim() || "Happy Birthday! Wishing you a magical year ahead.",
       theme: theme,
-      ambience: ambience,
       memories: active,
-      timeline: timelineEvents.filter(ev => ev.title.trim()),
-      trivia: triviaQuestions.filter(t => t.question.trim() && t.options.some(o => o.trim())),
+      timeline: timelineEvents.filter((ev) => ev.title.trim()),
+      trivia: triviaQuestions.filter(
+        (t) => t.question.trim() && t.options.some((o) => o.trim()),
+      ),
       doodleType: doodleType,
-      voiceNoteUrl: voiceNoteUrl
+      voiceNoteUrl: voiceNoteUrl,
+      tuneUrl: tuneUrl || undefined,
     };
     if (scheduleEnabled && deliveryDate) {
       payload.deliveryLock = new Date(deliveryDate).getTime();
@@ -312,14 +309,16 @@ export default function CreateSurprise() {
       const data = await saveWish(payload);
       const url = `${window.location.origin}/wish/${data.id}`;
       setGeneratedUrl(url);
-      
+
       playChime();
       confetti({
-        particleCount: 80, spread: 60, origin: { y: 0.6 },
+        particleCount: 80,
+        spread: 60,
+        origin: { y: 0.6 },
         colors: ["#C97B84", "#D8B88A", "#A6B39D", "#FFFFFF"],
       });
       toast.success("Your surprise link is ready!");
-    } catch (err) {
+    } catch {
       toast.error("Failed to save to database");
     } finally {
       setIsGenerating(false);
@@ -343,8 +342,10 @@ export default function CreateSurprise() {
           text: `${sender} made you an interactive birthday surprise!`,
           url: generatedUrl,
         });
-      } catch (err: any) {
-        if (err.name !== "AbortError") toast.error("Share failed");
+      } catch (err: unknown) {
+        if (err instanceof Error && err.name !== "AbortError")
+          toast.error("Share failed");
+        else if (!(err instanceof Error)) toast.error("Share failed");
       }
     } else {
       handleCopy();
@@ -353,51 +354,67 @@ export default function CreateSurprise() {
 
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden bg-[#FFF8F2]">
-
       {/* Nav */}
       <header className="relative z-20 border-b border-[#ECE3DA] px-6 py-5 flex items-center justify-between w-full max-w-3xl mx-auto">
-        <a href="/" className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg bg-[#C97B84] flex items-center justify-center"
-            style={{ boxShadow: "0 2px 6px rgba(201,123,132,0.15)" }}>
+        <Link href="/" className="flex items-center gap-2.5">
+          <div
+            className="w-7 h-7 rounded-lg bg-[#C97B84] flex items-center justify-center"
+            style={{ boxShadow: "0 2px 6px rgba(201,123,132,0.15)" }}
+          >
             <Gift className="w-3.5 h-3.5 text-white" />
           </div>
-          <span className="font-serif text-lg text-[#2E2A27]" style={{ fontWeight: 500 }}>
+          <span
+            className="font-serif text-lg text-[#2E2A27]"
+            style={{ fontWeight: 500 }}
+          >
             WishMaker<span className="text-[#C97B84]">.</span>
           </span>
-        </a>
+        </Link>
       </header>
 
       {/* Centered Main Workspace */}
       <main className="relative z-10 flex-1 w-full max-w-2xl mx-auto px-4 sm:px-6 py-10">
-        
         {!generatedUrl ? (
           <>
             <form onSubmit={handleGenerate} className="space-y-5 w-full">
-              
               <div className="animate-reveal-up mb-10">
-                <h1 className="font-serif text-[2.25rem] sm:text-[2.75rem] text-[#2E2A27] mb-3 text-balance" style={{ fontWeight: 400, letterSpacing: "-0.02em" }}>Craft your keepsake</h1>
-                <p className="text-[1rem] text-[#6F655E] leading-[1.6] max-w-lg">Fill in the details below. Everything will be packed into a single shareable link.</p>
+                <h1
+                  className="font-serif text-[2.25rem] sm:text-[2.75rem] text-[#2E2A27] mb-3 text-balance"
+                  style={{ fontWeight: 400, letterSpacing: "-0.02em" }}
+                >
+                  Craft your keepsake
+                </h1>
+                <p className="text-[1rem] text-[#6F655E] leading-[1.6] max-w-lg">
+                  Fill in the details below. Everything will be packed into a
+                  single shareable link.
+                </p>
               </div>
 
               {/* Templates bar */}
               <div className="surface p-5 animate-reveal-up">
-                <p className="text-xs font-semibold text-[#6F655E] mb-4">Start with a preset</p>
+                <p className="text-xs font-semibold text-[#6F655E] mb-4">
+                  Start with a preset
+                </p>
                 <div className="grid grid-cols-4 gap-3">
-                  {WISH_TEMPLATES.map(tmpl => (
+                  {WISH_TEMPLATES.map((tmpl) => (
                     <button
                       key={tmpl.id}
                       type="button"
                       onClick={() => applyTemplate(tmpl)}
                       className={`rounded-2xl p-3 flex flex-col items-center justify-center text-center transition-all duration-200 group border ${
                         selectedTemplateId === tmpl.id
-                          ? "border-[#C97B84] bg-[#C97B84]/[0.04] scale-[1.02]"
+                          ? "border-[#C97B84] bg-[#C97B84]/4 scale-[1.02]"
                           : "border-[#ECE3DA] bg-white hover:bg-[#F9F5F0]"
                       }`}
                     >
-                      <span className={`transition-colors mb-1.5 ${selectedTemplateId === tmpl.id ? "text-[#C97B84]" : "text-[#B5ADA5] group-hover:text-[#C97B84]"}`}>
+                      <span
+                        className={`transition-colors mb-1.5 ${selectedTemplateId === tmpl.id ? "text-[#C97B84]" : "text-[#B5ADA5] group-hover:text-[#C97B84]"}`}
+                      >
                         {tmpl.icon}
                       </span>
-                      <span className={`text-[0.6875rem] font-semibold ${selectedTemplateId === tmpl.id ? "text-[#2E2A27]" : "text-[#6F655E]"}`}>
+                      <span
+                        className={`text-[0.6875rem] font-semibold ${selectedTemplateId === tmpl.id ? "text-[#2E2A27]" : "text-[#6F655E]"}`}
+                      >
                         {tmpl.label.split(" ").slice(-1)[0]}
                       </span>
                     </button>
@@ -412,24 +429,52 @@ export default function CreateSurprise() {
                   onClick={() => setActiveFolder("basics")}
                   className="w-full flex items-center justify-between p-5 hover:bg-[#F9F5F0] transition-colors border-b border-[#ECE3DA]"
                 >
-                  <SectionHeader icon={<Gift className="w-3.5 h-3.5" />}>Who is it for?</SectionHeader>
-                  <ChevronDown className={`w-4 h-4 text-[#B5ADA5] transition-transform ${activeFolder === "basics" ? "rotate-180" : ""}`} />
+                  <SectionHeader icon={<Gift className="w-3.5 h-3.5" />}>
+                    Who is it for?
+                  </SectionHeader>
+                  <ChevronDown
+                    className={`w-4 h-4 text-[#B5ADA5] transition-transform ${activeFolder === "basics" ? "rotate-180" : ""}`}
+                  />
                 </button>
                 {activeFolder === "basics" && (
                   <div className="p-5 space-y-4 bg-white">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-[0.75rem] text-[#6F655E] font-semibold mb-1.5">Recipient Name *</label>
-                        <input required value={name} onChange={e => setName(e.target.value)} placeholder="Alexa" className="input-saas" />
+                        <label className="block text-[0.75rem] text-[#6F655E] font-semibold mb-1.5">
+                          Recipient Name *
+                        </label>
+                        <input
+                          required
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          placeholder="Alexa"
+                          className="input-saas"
+                        />
                       </div>
                       <div>
-                        <label className="block text-[0.75rem] text-[#6F655E] font-semibold mb-1.5">Age (optional)</label>
-                        <input type="number" value={age} onChange={e => setAge(e.target.value)} placeholder="25" className="input-saas" />
+                        <label className="block text-[0.75rem] text-[#6F655E] font-semibold mb-1.5">
+                          Age (optional)
+                        </label>
+                        <input
+                          type="number"
+                          value={age}
+                          onChange={(e) => setAge(e.target.value)}
+                          placeholder="25"
+                          className="input-saas"
+                        />
                       </div>
                     </div>
                     <div>
-                      <label className="block text-[0.75rem] text-[#6F655E] font-semibold mb-1.5">Your Name *</label>
-                      <input required value={sender} onChange={e => setSender(e.target.value)} placeholder="Jason" className="input-saas" />
+                      <label className="block text-[0.75rem] text-[#6F655E] font-semibold mb-1.5">
+                        Your Name *
+                      </label>
+                      <input
+                        required
+                        value={sender}
+                        onChange={(e) => setSender(e.target.value)}
+                        placeholder="Jason"
+                        className="input-saas"
+                      />
                     </div>
                   </div>
                 )}
@@ -439,17 +484,27 @@ export default function CreateSurprise() {
               <div className="surface rounded-[1.375rem] overflow-hidden animate-reveal-up">
                 <button
                   type="button"
-                  onClick={() => setActiveFolder(activeFolder === "ai-writer" ? "basics" : "ai-writer")}
+                  onClick={() =>
+                    setActiveFolder(
+                      activeFolder === "ai-writer" ? "basics" : "ai-writer",
+                    )
+                  }
                   className="w-full flex items-center justify-between p-5 hover:bg-[#F9F5F0] transition-colors border-b border-[#ECE3DA]"
                 >
-                  <SectionHeader icon={<Wand2 className="w-3.5 h-3.5" />}>Write the letter</SectionHeader>
-                  <ChevronDown className={`w-4 h-4 text-[#B5ADA5] transition-transform ${activeFolder === "ai-writer" ? "rotate-180" : ""}`} />
+                  <SectionHeader icon={<Wand2 className="w-3.5 h-3.5" />}>
+                    Write the letter
+                  </SectionHeader>
+                  <ChevronDown
+                    className={`w-4 h-4 text-[#B5ADA5] transition-transform ${activeFolder === "ai-writer" ? "rotate-180" : ""}`}
+                  />
                 </button>
                 {activeFolder === "ai-writer" && (
                   <div className="p-5 space-y-4 bg-white">
                     <div className="grid grid-cols-2 gap-4">
                       <div className="relative">
-                        <label className="block text-[0.75rem] text-[#6F655E] font-semibold mb-1.5">Relationship</label>
+                        <label className="block text-[0.75rem] text-[#6F655E] font-semibold mb-1.5">
+                          Relationship
+                        </label>
                         <button
                           type="button"
                           onClick={() => setDropdownOpen(!dropdownOpen)}
@@ -460,10 +515,14 @@ export default function CreateSurprise() {
                         </button>
                         {dropdownOpen && (
                           <div className="absolute top-[105%] left-0 w-full surface-float z-50 py-1 overflow-hidden">
-                            {RELATIONSHIP_OPTIONS.map(r => (
+                            {RELATIONSHIP_OPTIONS.map((r) => (
                               <button
-                                key={r} type="button"
-                                onClick={() => { setAiRelationship(r); setDropdownOpen(false); }}
+                                key={r}
+                                type="button"
+                                onClick={() => {
+                                  setAiRelationship(r);
+                                  setDropdownOpen(false);
+                                }}
                                 className="w-full text-left px-4 py-2.5 text-sm text-[#6F655E] hover:bg-[#F9F5F0] hover:text-[#2E2A27] capitalize transition-colors"
                               >
                                 {r}
@@ -473,43 +532,84 @@ export default function CreateSurprise() {
                         )}
                       </div>
                       <div>
-                        <label className="block text-[0.75rem] text-[#6F655E] font-semibold mb-1.5">Keywords</label>
-                        <input value={aiKeywords} onChange={e => setAiKeywords(e.target.value)} placeholder="coffee, travel" className="input-saas" />
+                        <label className="block text-[0.75rem] text-[#6F655E] font-semibold mb-1.5">
+                          Keywords
+                        </label>
+                        <input
+                          value={aiKeywords}
+                          onChange={(e) => setAiKeywords(e.target.value)}
+                          placeholder="coffee, travel"
+                          className="input-saas"
+                        />
                       </div>
                     </div>
 
                     {/* Tone Slider */}
                     <div className="py-2">
                       <div className="flex items-center justify-between mb-2">
-                        <label className="text-[0.75rem] text-[#6F655E] font-semibold">Letter Tone</label>
-                        <span className="text-sm font-semibold text-[#C97B84]">{toneLabel(tone)}</span>
+                        <label className="text-[0.75rem] text-[#6F655E] font-semibold">
+                          Letter Tone
+                        </label>
+                        <span className="text-sm font-semibold text-[#C97B84]">
+                          {toneLabel(tone)}
+                        </span>
                       </div>
                       <div className="relative flex items-center h-4">
                         <input
-                          type="range" min={0} max={100} step={25}
-                          value={tone} onChange={e => setTone(Number(e.target.value))}
+                          type="range"
+                          min={0}
+                          max={100}
+                          step={25}
+                          value={tone}
+                          onChange={(e) => setTone(Number(e.target.value))}
                           className="w-full h-1 bg-[#ECE3DA] rounded-lg appearance-none cursor-pointer accent-[#C97B84]"
                         />
                       </div>
                     </div>
 
-                    <button type="button" onClick={handleGenerateDrafts} disabled={aiLoading}
-                      className="btn-primary w-full py-3 text-sm flex items-center justify-center gap-2">
-                      {aiLoading
-                        ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Composing...</>
-                        : <><Wand2 className="w-3.5 h-3.5" /> Compose Letter Drafts</>}
+                    <button
+                      type="button"
+                      onClick={handleGenerateDrafts}
+                      disabled={aiLoading}
+                      className="btn-primary w-full py-3 text-sm flex items-center justify-center gap-2"
+                    >
+                      {aiLoading ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />{" "}
+                          Composing...
+                        </>
+                      ) : (
+                        <>
+                          <Wand2 className="w-3.5 h-3.5" /> Compose Letter
+                          Drafts
+                        </>
+                      )}
                     </button>
 
                     {aiDrafts.length > 0 && (
                       <div className="space-y-2.5 pt-2">
                         {aiDrafts.map((draft, i) => (
-                          <button key={i} type="button" onClick={() => { setMessage(draft); toast.success("Letter updated"); }}
+                          <button
+                            key={i}
+                            type="button"
+                            onClick={() => {
+                              setMessage(draft);
+                              toast.success("Letter updated");
+                            }}
                             className={`w-full text-left p-4 rounded-2xl border text-sm leading-relaxed transition-all ${
                               message === draft
-                                ? "border-[#C97B84] bg-[#C97B84]/[0.03] text-[#2E2A27] shadow-sm"
-                                : "border-[#ECE3DA] bg-white hover:bg-[#F9F5F0] text-[#6F655E]"}`}>
+                                ? "border-[#C97B84] bg-[#C97B84]/3 text-[#2E2A27] shadow-sm"
+                                : "border-[#ECE3DA] bg-white hover:bg-[#F9F5F0] text-[#6F655E]"
+                            }`}
+                          >
                             <span className="block text-[0.625rem] text-[#B5ADA5] font-semibold uppercase tracking-wider mb-1.5">
-                              {["Draft 1 (Heartfelt)", "Draft 2 (Nostalgic)", "Draft 3 (Inspiring)"][i]}
+                              {
+                                [
+                                  "Draft 1 (Heartfelt)",
+                                  "Draft 2 (Nostalgic)",
+                                  "Draft 3 (Inspiring)",
+                                ][i]
+                              }
                             </span>
                             {draft}
                           </button>
@@ -518,12 +618,19 @@ export default function CreateSurprise() {
                     )}
 
                     <div>
-                      <label className="block text-[0.75rem] text-[#6F655E] font-semibold mb-1.5">Letter Text *</label>
-                      <textarea required rows={4} value={message} onChange={e => setMessage(e.target.value)}
+                      <label className="block text-[0.75rem] text-[#6F655E] font-semibold mb-1.5">
+                        Letter Text *
+                      </label>
+                      <textarea
+                        required
+                        rows={4}
+                        value={message}
+                        onChange={(e) => setMessage(e.target.value)}
                         placeholder="Write your heartfelt letter…"
-                        className="input-saas resize-none text-sm leading-relaxed mb-4" />
-                        
-                      <VoiceRecorder 
+                        className="input-saas resize-none text-sm leading-relaxed mb-4"
+                      />
+
+                      <VoiceRecorder
                         onRecordingComplete={(url) => setVoiceNoteUrl(url)}
                         onClear={() => setVoiceNoteUrl("")}
                       />
@@ -532,80 +639,27 @@ export default function CreateSurprise() {
                 )}
               </div>
 
-              {/* Accordion 3: Theme & Jingle */}
+              {/* Accordion 3: Theme & Tune */}
               <div className="surface rounded-[1.375rem] overflow-hidden animate-reveal-up">
                 <button
                   type="button"
-                  onClick={() => setActiveFolder(activeFolder === "theme" ? "basics" : "theme")}
+                  onClick={() =>
+                    setActiveFolder(
+                      activeFolder === "theme" ? "basics" : "theme",
+                    )
+                  }
                   className="w-full flex items-center justify-between p-5 hover:bg-[#F9F5F0] transition-colors border-b border-[#ECE3DA]"
                 >
-                  <SectionHeader icon={<Sparkles className="w-3.5 h-3.5" />}>Choose the mood</SectionHeader>
-                  <ChevronDown className={`w-4 h-4 text-[#B5ADA5] transition-transform ${activeFolder === "theme" ? "rotate-180" : ""}`} />
+                  <SectionHeader icon={<Sparkles className="w-3.5 h-3.5" />}>
+                    Choose the mood
+                  </SectionHeader>
+                  <ChevronDown
+                    className={`w-4 h-4 text-[#B5ADA5] transition-transform ${activeFolder === "theme" ? "rotate-180" : ""}`}
+                  />
                 </button>
                 {activeFolder === "theme" && (
                   <div className="p-5 space-y-4 bg-white">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[0.75rem] text-[#6F655E] font-semibold">Visual Theme</span>
-                      <button type="button" onClick={handleRecommendTheme} disabled={themeLoading}
-                        className="text-[0.6875rem] text-[#D8B88A] font-semibold uppercase tracking-wide flex items-center gap-1.5 hover:text-[#C4956A] disabled:opacity-50">
-                        {themeLoading
-                          ? <><Loader2 className="w-3 h-3 animate-spin" /> Matching…</>
-                          : <><Lightbulb className="w-3 h-3" /> AI Suggest</>}
-                      </button>
-                    </div>
-
-                    {themeReason && (
-                      <div className="glass-gold rounded-xl px-4 py-3 text-[0.8125rem] text-[#6F655E] leading-normal flex items-start gap-2.5">
-                        <Lightbulb className="w-3.5 h-3.5 flex-shrink-0 mt-0.5 text-[#D8B88A]" />
-                        <span>{themeReason}</span>
-                      </div>
-                    )}
-
-                    <div className="grid grid-cols-5 gap-2.5">
-                      {THEMES.map(t => (
-                        <button key={t.id} type="button" onClick={() => { setTheme(t.id); setThemeReason(""); }}
-                          className={`relative flex flex-col items-center justify-center p-3 rounded-2xl border text-center transition-all ${
-                            theme === t.id ? "border-[#C97B84] scale-[1.03] bg-[#F9F5F0]" : "border-[#ECE3DA] bg-white hover:bg-[#F9F5F0]"}`}>
-                          <div className="w-5 h-5 rounded-full mb-1.5 border border-[#ECE3DA]" style={{ background: THEME_COLORS[t.id] }} />
-                          <span className="font-semibold text-[0.625rem] text-[#2E2A27]">{t.label}</span>
-                        </button>
-                      ))}
-                    </div>
-
-                    <div className="surface rounded-2xl p-4 flex items-center gap-4">
-                      <div className="flex-1">
-                        <p className="text-sm font-semibold text-[#2E2A27] mb-0.5 flex items-center gap-1.5">
-                          <Music className="w-3.5 h-3.5 text-[#D8B88A]" /> Birthday Melody
-                        </p>
-                        <p className="text-[0.8125rem] text-[#6F655E] leading-normal">Synthesizes a Happy Birthday jingle live in their browser.</p>
-                      </div>
-                      <button type="button" onClick={handleToggleJingle}
-                        className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-all border ${
-                          jinglePlaying ? "bg-[#D8B88A]/10 border-[#D8B88A] text-[#D8B88A]" : "bg-white border-[#ECE3DA] text-[#6F655E] hover:text-[#2E2A27] hover:border-[#DDD4CB]"}`}>
-                        {jinglePlaying ? <Square className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
-                      </button>
-                    </div>
-
-                    <div className="surface rounded-2xl p-4">
-                      <p className="text-sm font-semibold text-[#2E2A27] mb-2 flex items-center gap-1.5">
-                        <Sparkles className="w-3.5 h-3.5 text-[#D8B88A]" /> Background Ambience
-                      </p>
-                      <div className="grid grid-cols-4 gap-2">
-                        {[ 
-                          { id: "none", label: "None" }, 
-                          { id: "fire", label: "Fireplace" }, 
-                          { id: "rain", label: "Soft Rain" }, 
-                          { id: "ocean", label: "Ocean Waves" } 
-                        ].map(a => (
-                          <button key={a.id} type="button" onClick={() => setAmbience(a.id as any)}
-                            className={`py-2 px-1 rounded-xl border text-[0.6875rem] font-semibold text-center transition-all ${
-                              ambience === a.id ? "border-[#C97B84] bg-[#F9F5F0] text-[#2E2A27]" : "border-[#ECE3DA] bg-white text-[#6F655E] hover:bg-[#F9F5F0]"
-                            }`}>
-                            {a.label}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
+                    <TunePicker value={tuneUrl} onSelect={setTuneUrl} />
                   </div>
                 )}
               </div>
@@ -617,146 +671,267 @@ export default function CreateSurprise() {
                   onClick={() => setShowExtras(true)}
                   className="w-full surface p-4 animate-reveal-up flex items-center justify-center gap-2 text-sm font-semibold text-[#C97B84] hover:bg-[#F9F5F0] transition-all cursor-pointer"
                 >
-                  <Sparkles className="w-4 h-4" /> Add more magic (schedule, doodle, timeline, trivia)
+                  <Sparkles className="w-4 h-4" /> Add more magic (schedule,
+                  doodle, timeline, trivia)
                 </button>
               )}
 
               {showExtras && (
                 <div className="space-y-5">
                   <div className="flex items-center justify-between animate-reveal-up">
-                    <span className="text-xs font-semibold text-[#6F655E] uppercase tracking-[0.1em]">Extra touches</span>
-                    <button type="button" onClick={() => { setShowExtras(false); setActiveFolder("basics"); }}
-                      className="text-xs text-[#B5ADA5] hover:text-[#6F655E] transition-colors">
+                    <span className="text-xs font-semibold text-[#6F655E] uppercase tracking-widest">
+                      Extra touches
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowExtras(false);
+                        setActiveFolder("basics");
+                      }}
+                      className="text-xs text-[#B5ADA5] hover:text-[#6F655E] transition-colors"
+                    >
                       Hide
                     </button>
                   </div>
 
                   {/* Accordion 4: Scheduled Lock */}
                   <div className="surface rounded-[1.375rem] overflow-hidden animate-reveal-up">
-                <button
-                  type="button"
-                  onClick={() => setActiveFolder(activeFolder === "schedule" ? "basics" : "schedule")}
-                  className="w-full flex items-center justify-between p-5 hover:bg-[#F9F5F0] transition-colors border-b border-[#ECE3DA]"
-                >
-                  <SectionHeader icon={<Clock className="w-3.5 h-3.5" />}>Schedule delivery</SectionHeader>
-                  <ChevronDown className={`w-4 h-4 text-[#B5ADA5] transition-transform ${activeFolder === "schedule" ? "rotate-180" : ""}`} />
-                </button>
-                {activeFolder === "schedule" && (
-                  <div className="p-5 space-y-4 bg-white">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-semibold text-[#2E2A27]">Scheduled Surprise</p>
-                        <p className="text-[0.8125rem] text-[#6F655E]">Lock the surprise until a chosen time.</p>
-                      </div>
-                      <button type="button" onClick={() => setScheduleEnabled(!scheduleEnabled)}
-                        className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${scheduleEnabled ? "bg-[#C97B84]" : "bg-[#ECE3DA]"}`}>
-                        <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform duration-200 shadow-sm ${scheduleEnabled ? "translate-x-5" : "translate-x-0"}`} />
-                      </button>
-                    </div>
-                    {scheduleEnabled && (
-                      <div className="animate-reveal-up pt-1">
-                        <label className="block text-[0.75rem] text-[#6F655E] font-semibold mb-1.5">Unlock Time</label>
-                        <input type="datetime-local" value={deliveryDate} onChange={e => setDeliveryDate(e.target.value)}
-                          required={scheduleEnabled} className="input-saas" />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setActiveFolder(
+                          activeFolder === "schedule" ? "basics" : "schedule",
+                        )
+                      }
+                      className="w-full flex items-center justify-between p-5 hover:bg-[#F9F5F0] transition-colors border-b border-[#ECE3DA]"
+                    >
+                      <SectionHeader icon={<Clock className="w-3.5 h-3.5" />}>
+                        Schedule delivery
+                      </SectionHeader>
+                      <ChevronDown
+                        className={`w-4 h-4 text-[#B5ADA5] transition-transform ${activeFolder === "schedule" ? "rotate-180" : ""}`}
+                      />
+                    </button>
+                    {activeFolder === "schedule" && (
+                      <div className="p-5 space-y-4 bg-white">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-semibold text-[#2E2A27]">
+                              Scheduled Surprise
+                            </p>
+                            <p className="text-[0.8125rem] text-[#6F655E]">
+                              Lock the surprise until a chosen time.
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setScheduleEnabled(!scheduleEnabled)}
+                            className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${scheduleEnabled ? "bg-[#C97B84]" : "bg-[#ECE3DA]"}`}
+                          >
+                            <span
+                              className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform duration-200 shadow-sm ${scheduleEnabled ? "translate-x-5" : "translate-x-0"}`}
+                            />
+                          </button>
+                        </div>
+                        {scheduleEnabled && (
+                          <div className="animate-reveal-up pt-1">
+                            <label className="block text-[0.75rem] text-[#6F655E] font-semibold mb-1.5">
+                              Unlock Time
+                            </label>
+                            <input
+                              type="datetime-local"
+                              value={deliveryDate}
+                              onChange={(e) => setDeliveryDate(e.target.value)}
+                              required={scheduleEnabled}
+                              className="input-saas"
+                            />
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
-                )}
-              </div>
 
-              {/* Accordion 5: Choose Keepsake Doodle */}
-              <div className="surface rounded-[1.375rem] overflow-hidden animate-reveal-up">
-                <button
-                  type="button"
-                  onClick={() => setActiveFolder(activeFolder === "doodle" ? "basics" : "doodle")}
-                  className="w-full flex items-center justify-between p-5 hover:bg-[#F9F5F0] transition-colors border-b border-[#ECE3DA]"
-                >
-                  <SectionHeader icon={<Heart className="w-3.5 h-3.5" />}>Pick a keepsake doodle</SectionHeader>
-                  <ChevronDown className={`w-4 h-4 text-[#B5ADA5] transition-transform ${activeFolder === "doodle" ? "rotate-180" : ""}`} />
-                </button>
-                {activeFolder === "doodle" && (
-                  <div className="p-5 space-y-4 bg-white">
-                    <span className="text-[0.75rem] text-[#6F655E] font-semibold block mb-1">Doodle Animation Style</span>
-                    <div className="grid grid-cols-2 gap-3">
-                      {[
-                        { id: "heart" as const, label: "Classic Heart", desc: "Heart & arrow sketch" },
-                        { id: "rose" as const, label: "Blooming Rose", desc: "A lovely single-line rose" },
-                        { id: "hearts" as const, label: "Linked Hearts", desc: "Interlocking line hearts" },
-                        { id: "coffee" as const, label: "Cozy Coffee", desc: "Steaming coffee cups sketch" }
-                      ].map(d => (
-                        <button
-                          key={d.id}
-                          type="button"
-                          onClick={() => setDoodleType(d.id)}
-                          className={`p-4 rounded-2xl border text-left transition-all ${
-                            doodleType === d.id
-                              ? "border-[#C97B84] bg-[#C97B84]/[0.03] scale-[1.01]"
-                              : "border-[#ECE3DA] bg-white hover:bg-[#F9F5F0]"
-                          }`}
-                        >
-                          <span className="block text-sm font-semibold text-[#2E2A27]">{d.label}</span>
-                          <span className="block text-[0.8125rem] text-[#6F655E] mt-0.5 leading-normal">{d.desc}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Accordion 6: Relationship Timeline */}
-              <div className="surface rounded-[1.375rem] overflow-hidden animate-reveal-up">
-                <button
-                  type="button"
-                  onClick={() => setActiveFolder(activeFolder === "timeline" ? "basics" : "timeline")}
-                  className="w-full flex items-center justify-between p-5 hover:bg-[#F9F5F0] transition-colors border-b border-[#ECE3DA]"
-                >
-                  <SectionHeader icon={<Calendar className="w-3.5 h-3.5" />}>Timeline milestones</SectionHeader>
-                  <ChevronDown className={`w-4 h-4 text-[#B5ADA5] transition-transform ${activeFolder === "timeline" ? "rotate-180" : ""}`} />
-                </button>
-                {activeFolder === "timeline" && (
-                  <div className="p-5 space-y-4 bg-white">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[0.75rem] text-[#6F655E] font-semibold">Milestones</span>
-                      <button type="button" onClick={addTimelineEvent} className="text-[0.75rem] text-[#C97B84] font-semibold flex items-center gap-1 hover:text-[#B5616B]">
-                        <Plus className="w-3 h-3" /> Add Event
-                      </button>
-                    </div>
-                    <div className="space-y-3">
-                      {timelineEvents.map((ev, i) => (
-                        <div key={i} className="flex flex-col gap-2 p-4 rounded-2xl bg-[#F9F5F0] border border-[#ECE3DA]">
-                          <div className="grid grid-cols-2 gap-2">
-                            <input type="text" placeholder="Title" value={ev.title} onChange={e => updateTimelineEvent(i, "title", e.target.value)} className="input-saas text-sm py-2.5" />
-                            <input type="text" placeholder="Date/Period" value={ev.date} onChange={e => updateTimelineEvent(i, "date", e.target.value)} className="input-saas text-sm py-2.5" />
-                          </div>
-                          <div className="flex gap-2">
-                            <input type="text" placeholder="Event details..." value={ev.description} onChange={e => updateTimelineEvent(i, "description", e.target.value)} className="input-saas text-sm py-2.5 flex-1" />
-                            <button type="button" onClick={() => removeTimelineEvent(i)} className="text-[#B5ADA5] hover:text-[#C46D5E] transition-colors px-2">
-                              <Trash2 className="w-3.5 h-3.5" />
+                  {/* Accordion 5: Choose Keepsake Doodle */}
+                  <div className="surface rounded-[1.375rem] overflow-hidden animate-reveal-up">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setActiveFolder(
+                          activeFolder === "doodle" ? "basics" : "doodle",
+                        )
+                      }
+                      className="w-full flex items-center justify-between p-5 hover:bg-[#F9F5F0] transition-colors border-b border-[#ECE3DA]"
+                    >
+                      <SectionHeader icon={<Heart className="w-3.5 h-3.5" />}>
+                        Pick a keepsake doodle
+                      </SectionHeader>
+                      <ChevronDown
+                        className={`w-4 h-4 text-[#B5ADA5] transition-transform ${activeFolder === "doodle" ? "rotate-180" : ""}`}
+                      />
+                    </button>
+                    {activeFolder === "doodle" && (
+                      <div className="p-5 space-y-4 bg-white">
+                        <span className="text-[0.75rem] text-[#6F655E] font-semibold block mb-1">
+                          Doodle Animation Style
+                        </span>
+                        <div className="grid grid-cols-2 gap-3">
+                          {[
+                            {
+                              id: "heart" as const,
+                              label: "Classic Heart",
+                              desc: "Heart & arrow sketch",
+                            },
+                            {
+                              id: "rose" as const,
+                              label: "Blooming Rose",
+                              desc: "A lovely single-line rose",
+                            },
+                            {
+                              id: "hearts" as const,
+                              label: "Linked Hearts",
+                              desc: "Interlocking line hearts",
+                            },
+                            {
+                              id: "coffee" as const,
+                              label: "Cozy Coffee",
+                              desc: "Steaming coffee cups sketch",
+                            },
+                          ].map((d) => (
+                            <button
+                              key={d.id}
+                              type="button"
+                              onClick={() => setDoodleType(d.id)}
+                              className={`p-4 rounded-2xl border text-left transition-all ${
+                                doodleType === d.id
+                                  ? "border-[#C97B84] bg-[#C97B84]/3 scale-[1.01]"
+                                  : "border-[#ECE3DA] bg-white hover:bg-[#F9F5F0]"
+                              }`}
+                            >
+                              <span className="block text-sm font-semibold text-[#2E2A27]">
+                                {d.label}
+                              </span>
+                              <span className="block text-[0.8125rem] text-[#6F655E] mt-0.5 leading-normal">
+                                {d.desc}
+                              </span>
                             </button>
-                          </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
 
-              
-              {/* Accordion 7: Trivia */}
-              <TriviaForm
-                activeFolder={activeFolder}
-                setActiveFolder={setActiveFolder as any}
-                triviaQuestions={triviaQuestions}
-                setTriviaQuestions={setTriviaQuestions}
-                SectionHeader={SectionHeader}
-              />
-              </div>
+                  {/* Accordion 6: Relationship Timeline */}
+                  <div className="surface rounded-[1.375rem] overflow-hidden animate-reveal-up">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setActiveFolder(
+                          activeFolder === "timeline" ? "basics" : "timeline",
+                        )
+                      }
+                      className="w-full flex items-center justify-between p-5 hover:bg-[#F9F5F0] transition-colors border-b border-[#ECE3DA]"
+                    >
+                      <SectionHeader
+                        icon={<Calendar className="w-3.5 h-3.5" />}
+                      >
+                        Timeline milestones
+                      </SectionHeader>
+                      <ChevronDown
+                        className={`w-4 h-4 text-[#B5ADA5] transition-transform ${activeFolder === "timeline" ? "rotate-180" : ""}`}
+                      />
+                    </button>
+                    {activeFolder === "timeline" && (
+                      <div className="p-5 space-y-4 bg-white">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[0.75rem] text-[#6F655E] font-semibold">
+                            Milestones
+                          </span>
+                          <button
+                            type="button"
+                            onClick={addTimelineEvent}
+                            className="text-[0.75rem] text-[#C97B84] font-semibold flex items-center gap-1 hover:text-[#B5616B]"
+                          >
+                            <Plus className="w-3 h-3" /> Add Event
+                          </button>
+                        </div>
+                        <div className="space-y-3">
+                          {timelineEvents.map((ev, i) => (
+                            <div
+                              key={i}
+                              className="flex flex-col gap-2 p-4 rounded-2xl bg-[#F9F5F0] border border-[#ECE3DA]"
+                            >
+                              <div className="grid grid-cols-2 gap-2">
+                                <input
+                                  type="text"
+                                  placeholder="Title"
+                                  value={ev.title}
+                                  onChange={(e) =>
+                                    updateTimelineEvent(
+                                      i,
+                                      "title",
+                                      e.target.value,
+                                    )
+                                  }
+                                  className="input-saas text-sm py-2.5"
+                                />
+                                <input
+                                  type="text"
+                                  placeholder="Date/Period"
+                                  value={ev.date}
+                                  onChange={(e) =>
+                                    updateTimelineEvent(
+                                      i,
+                                      "date",
+                                      e.target.value,
+                                    )
+                                  }
+                                  className="input-saas text-sm py-2.5"
+                                />
+                              </div>
+                              <div className="flex gap-2">
+                                <input
+                                  type="text"
+                                  placeholder="Event details..."
+                                  value={ev.description}
+                                  onChange={(e) =>
+                                    updateTimelineEvent(
+                                      i,
+                                      "description",
+                                      e.target.value,
+                                    )
+                                  }
+                                  className="input-saas text-sm py-2.5 flex-1"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => removeTimelineEvent(i)}
+                                  className="text-[#B5ADA5] hover:text-[#C46D5E] transition-colors px-2"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Accordion 7: Trivia */}
+                  <TriviaForm
+                    activeFolder={activeFolder}
+                    setActiveFolder={setActiveFolder}
+                    triviaQuestions={triviaQuestions}
+                    setTriviaQuestions={setTriviaQuestions}
+                    SectionHeader={SectionHeader}
+                  />
+                </div>
               )}
 
               {/* Memory Lane Grid */}
               <MemoryLaneForm
                 activeFolder={activeFolder}
-                setActiveFolder={setActiveFolder as any}
+                setActiveFolder={setActiveFolder}
                 memories={memories}
                 setMemories={setMemories}
                 SectionHeader={SectionHeader}
@@ -770,37 +945,57 @@ export default function CreateSurprise() {
                       <Gift className="w-4 h-4 text-[#D8B88A]" />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-[#2E2A27]">Ready to share the joy?</p>
-                      <p className="text-xs text-[#6F655E]">Everything above gets packed into one link</p>
+                      <p className="text-sm font-semibold text-[#2E2A27]">
+                        Ready to share the joy?
+                      </p>
+                      <p className="text-xs text-[#6F655E]">
+                        Everything above gets packed into one link
+                      </p>
                     </div>
                   </div>
-                  <button type="submit" disabled={isGenerating}
+                  <button
+                    type="submit"
+                    disabled={isGenerating}
                     className="w-full btn-gold py-4 text-sm font-semibold tracking-wide flex items-center justify-center gap-2"
-                    style={{ boxShadow: "0 8px 24px rgba(216,184,138,0.25)" }}>
+                    style={{ boxShadow: "0 8px 24px rgba(216,184,138,0.25)" }}
+                  >
                     {isGenerating ? (
-                      <><Loader2 className="w-4 h-4 animate-spin" /> Magically Packing Gift...</>
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" /> Magically
+                        Packing Gift...
+                      </>
                     ) : (
-                      <><Sparkles className="w-4 h-4" /> Wrap Surprise Gift & Generate Link</>
+                      <>
+                        <Sparkles className="w-4 h-4" /> Wrap Surprise Gift &
+                        Generate Link
+                      </>
                     )}
                   </button>
                 </div>
               </div>
-
             </form>
           </>
         ) : (
           /* ── SUCCESS STATE ── */
           <div className="animate-reveal-up text-center py-16 px-4 flex flex-col items-center max-w-xl mx-auto w-full">
-            <div className="w-20 h-20 rounded-2xl bg-[#C97B84]/5 border border-[#C97B84]/15 flex items-center justify-center mb-8"
-              style={{ boxShadow: "0 2px 12px rgba(46,42,39,0.04)" }}>
+            <div
+              className="w-20 h-20 rounded-2xl bg-[#C97B84]/5 border border-[#C97B84]/15 flex items-center justify-center mb-8"
+              style={{ boxShadow: "0 2px 12px rgba(46,42,39,0.04)" }}
+            >
               <Heart className="w-8 h-8 text-[#C97B84] fill-current" />
             </div>
-            <h2 className="font-serif text-[2.25rem] sm:text-[2.5rem] text-[#2E2A27] mb-3 text-balance" style={{ fontWeight: 400 }}>Your surprise is ready</h2>
+            <h2
+              className="font-serif text-[2.25rem] sm:text-[2.5rem] text-[#2E2A27] mb-3 text-balance"
+              style={{ fontWeight: 400 }}
+            >
+              Your surprise is ready
+            </h2>
             <p className="text-[1rem] text-[#6F655E] max-w-md mb-10 leading-[1.6]">
               Send the link below to {name}.
               {scheduleEnabled && deliveryDate && (
-                <span className="block mt-2 text-[#D8B88A] font-medium flex items-center justify-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5" /> Locked until {new Date(deliveryDate).toLocaleString()}
+                <span className="block mt-2 text-[#D8B88A] font-medium items-center justify-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5" /> Locked until{" "}
+                  {new Date(deliveryDate).toLocaleString()}
                 </span>
               )}
             </p>
@@ -814,25 +1009,44 @@ export default function CreateSurprise() {
                 />
                 <button
                   onClick={handleCopy}
-                  className={`flex-shrink-0 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center gap-1.5 ${
-                    copied ? "bg-[#8FA27A]/10 text-[#8FA27A] border border-[#8FA27A]/20" : "btn-primary"
+                  className={`shrink-0 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center gap-1.5 ${
+                    copied
+                      ? "bg-[#8FA27A]/10 text-[#8FA27A] border border-[#8FA27A]/20"
+                      : "btn-primary"
                   }`}
                 >
-                  {copied ? <><Check className="w-3.5 h-3.5" /> Copied!</> : <><Copy className="w-3.5 h-3.5" /> Copy</>}
+                  {copied ? (
+                    <>
+                      <Check className="w-3.5 h-3.5" /> Copied!
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3.5 h-3.5" /> Copy
+                    </>
+                  )}
                 </button>
               </div>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 w-full">
-              <button onClick={handleShare} className="flex-1 btn-gold py-4 text-sm flex items-center justify-center gap-2">
+              <button
+                onClick={handleShare}
+                className="flex-1 btn-gold py-4 text-sm flex items-center justify-center gap-2"
+              >
                 <Share2 className="w-4 h-4" /> Share Surprise
               </button>
-              <a href={generatedUrl} target="_blank" rel="noopener noreferrer"
-                className="flex-1 py-4 text-sm text-[#6F655E] font-semibold rounded-xl border border-[#ECE3DA] bg-white hover:bg-[#F9F5F0] transition-all flex items-center justify-center gap-2">
+              <a
+                href={generatedUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 py-4 text-sm text-[#6F655E] font-semibold rounded-xl border border-[#ECE3DA] bg-white hover:bg-[#F9F5F0] transition-all flex items-center justify-center gap-2"
+              >
                 <ExternalLink className="w-4 h-4" /> Preview
               </a>
-              <button onClick={() => setGeneratedUrl("")}
-                className="flex-1 py-4 text-sm text-[#B5ADA5] font-semibold rounded-xl border border-[#ECE3DA] bg-white hover:bg-[#F9F5F0] transition-all">
+              <button
+                onClick={() => setGeneratedUrl("")}
+                className="flex-1 py-4 text-sm text-[#B5ADA5] font-semibold rounded-xl border border-[#ECE3DA] bg-white hover:bg-[#F9F5F0] transition-all"
+              >
                 Create another
               </button>
             </div>

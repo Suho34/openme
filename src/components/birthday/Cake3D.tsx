@@ -4,17 +4,24 @@ import React, { useRef, useEffect } from "react";
 import * as THREE from "three";
 import { createScene, addLighting, handleResize } from "./cake/setup";
 import { createMaterials } from "./cake/materials";
-import { buildTable, buildPlate, buildBottomTier, buildTopTier, buildCandles, buildSprinkles, buildParticles } from "./cake/builders";
+import {
+  buildTable,
+  buildPlate,
+  buildBottomTier,
+  buildTopTier,
+  buildCandles,
+  buildSprinkles,
+  buildParticles,
+} from "./cake/builders";
 import { setupInteraction } from "./cake/interaction";
 import { runAnimationLoop } from "./cake/animation";
+import type { Cake3DProps } from "@/lib/types";
 
-interface Cake3DProps {
-  numCandles: number;
-  candlesLit: boolean[];
-  onCandleClick: (index: number) => void;
-}
-
-export default function Cake3D({ numCandles, candlesLit, onCandleClick }: Cake3DProps) {
+export default function Cake3D({
+  numCandles,
+  candlesLit,
+  onCandleClick,
+}: Cake3DProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const flamesRef = useRef<THREE.Group[]>([]);
   const lightsRef = useRef<THREE.PointLight[]>([]);
@@ -34,18 +41,39 @@ export default function Cake3D({ numCandles, candlesLit, onCandleClick }: Cake3D
     buildBottomTier(rootGroup, materials);
     const topTierGroup = buildTopTier(rootGroup, materials);
 
-    const { candlesGroup, candleData, flames, lights } = buildCandles(rootGroup, topTierGroup, numCandles, materials);
+    const { candlesGroup, candleData, flames, lights } = buildCandles(
+      rootGroup,
+      topTierGroup,
+      numCandles,
+      materials,
+    );
     flamesRef.current = flames;
     lightsRef.current = lights;
 
-    flames.forEach((f, i) => f.visible = candlesLit[i] ?? true);
-    lights.forEach((l, i) => l.visible = candlesLit[i] ?? true);
+    flames.forEach((f, i) => (f.visible = candlesLit[i] ?? true));
+    lights.forEach((l, i) => (l.visible = candlesLit[i] ?? true));
 
     buildSprinkles(rootGroup);
     const particleData = buildParticles(rootGroup);
 
-    const interaction = setupInteraction(renderer, camera, rootGroup, candlesGroup, onCandleClick);
-    const cleanupAnimation = runAnimationLoop(scene, camera, renderer, rootGroup, candleData, particleData, flamesRef, materials, interaction);
+    const interaction = setupInteraction(
+      renderer,
+      camera,
+      rootGroup,
+      candlesGroup,
+      onCandleClick,
+    );
+    const cleanupAnimation = runAnimationLoop(
+      scene,
+      camera,
+      renderer,
+      rootGroup,
+      candleData,
+      particleData,
+      flamesRef,
+      materials,
+      interaction,
+    );
 
     const onResize = () => {
       if (!container) return;
@@ -59,7 +87,9 @@ export default function Cake3D({ numCandles, candlesLit, onCandleClick }: Cake3D
       cleanupAnimation();
       renderer.dispose();
       if (container && renderer.domElement) {
-        try { container.removeChild(renderer.domElement); } catch (_) {}
+        try {
+          container.removeChild(renderer.domElement);
+        } catch (_) {}
       }
     };
   }, [numCandles]);
