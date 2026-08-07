@@ -42,3 +42,7 @@ next-env.d.ts
 
 # scratch directory
 /scratch/
+
+# impeccable local tooling
+/.impeccable/
+/PRODUCT.md
