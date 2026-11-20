@@ -6,277 +6,188 @@ import {
   Sparkles,
   Copy,
   ExternalLink,
-  Plus,
-  Trash2,
   Gift,
   Wand2,
-  Clock,
-  Loader2,
+  Calendar,
   Check,
   Share2,
   Users,
   Star,
   Heart,
   Briefcase,
-  ChevronDown,
-  Calendar,
+  ChevronRight,
+  ChevronLeft,
+  Flame,
+  Music,
+  Camera,
+  Download,
+  Smartphone,
 } from "lucide-react";
 import confetti from "canvas-confetti";
-import TriviaForm from "@/components/create/TriviaForm";
 import MemoryLaneForm from "@/components/create/MemoryLaneForm";
-import type { TriviaQuestion } from "@/lib/types";
+import ScrollJarForm from "@/components/create/ScrollJarForm";
+import TimeCapsulesForm from "@/components/create/TimeCapsulesForm";
 import VoiceRecorder from "@/components/ui/VoiceRecorder";
 import TunePicker from "@/components/create/TunePicker";
+import CakeStylePicker from "@/components/create/CakeStylePicker";
+import type { CakeStyle } from "@/lib/cakeStyles";
 import { playChime } from "@/lib/audio";
 import { generateMessage, saveWish } from "@/lib/actions";
+import { shareSurpriseLink } from "@/lib/capacitor";
 import Link from "next/link";
-
-// ── Types ─────────────────────────────────────────────────────
 import type {
   Memory,
   ThemeId,
-  RelationType,
   TimelineEvent,
   WishTemplate,
+  ScrollNote,
+  TimeCapsule,
 } from "@/lib/types";
 
 const WISH_TEMPLATES: WishTemplate[] = [
   {
     id: "partner",
-    label: "For a Partner",
+    label: "Partner",
     icon: <Heart className="w-4 h-4" />,
     description: "Romantic, intimate",
     defaults: {
       theme: "romance",
-      relationship: "partner",
+      convey: "how much they make everyday moments feel magical and cherished.",
       tone: 80,
-      keywords:
-        "partner, lover, inside date-night rituals, the way they laugh, small thoughtful gestures, growing old together, chosen family, your favorite album, the first time we met, love story",
-      prompt:
-        "This is a romantic birthday letter to a romantic partner. Make it tender, specific, and quietly intimate — reference real shared moments like a favorite song, a place you both love, a small ritual or an inside connection. Avoid grand clichés; write like you're speaking to them across a pillow. Mix affectionate openness with genuine, grounded detail. Each draft should feel unmistakably written for this one person, not a generic love note.",
-      messagePlaceholder:
-        "Every day with you is a gift. Here's to celebrating you and everything you mean to me…",
+      keywords: "your laugh, our late night talks, favorite cozy memory",
+      prompt: "Write an intimate love letter for a romantic partner that feels lived-in and deeply genuine.",
+      messagePlaceholder: "I keep thinking about how easy it is to love being with you, even in the quietest, ordinary moments…",
     },
   },
   {
     id: "best-friend",
-    label: "For a Friend",
+    label: "Friend",
     icon: <Star className="w-4 h-4" />,
-    description: "Fun, nostalgic, laughs",
+    description: "Fun & loyal",
     defaults: {
       theme: "neon",
-      relationship: "best friend",
-      tone: 25,
-      keywords:
-        "best friend, laughing till we can't breathe, shared misdeeds, all-night conversations, the inside joke only we understand, spontaneous road trip, your worst karaoke, always on my side, chosen family",
-      prompt:
-        "Write a warm, playful birthday letter to a best friend. Be funny and nostalgic — call back to ridiculous shared memories, jokes, or moments only the two of you would know. The energy should feel like a late-night text thread: lively, affectionate, a little chaotic, with real fondness underneath the teasing. Keep it specific and personal, not generic 'best friend ever' filler.",
-      messagePlaceholder:
-        "Another year older, but still just as chaotic and wonderful as ever…",
+      convey: "how grateful I am for our friendship and all the chaos.",
+      tone: 30,
+      keywords: "inside jokes, late night calls, always showing up",
+      prompt: "Write a warm, fun birthday letter for a close friend with nostalgia and humor.",
+      messagePlaceholder: "I still laugh thinking about all our wild memories. Happy birthday to my favorite human…",
     },
   },
   {
     id: "family",
-    label: "For Family",
+    label: "Family",
     icon: <Users className="w-4 h-4" />,
-    description: "Warm, grateful, sincere",
+    description: "Warm & grateful",
     defaults: {
       theme: "pastel",
-      relationship: "family",
+      convey: "how much you have taught me and how much your support means.",
       tone: 60,
-      keywords:
-        "family, home, unconditional, the person who always had your back, family dinner, protective, the lessons you taught me, growing up, gratitude, roots",
-      prompt:
-        "Write a sincere, appreciative birthday letter to a family member. Ground it in the role they've played — elder, parent, sibling, cousin — and in specific, warm memories of home, being protected, or growing up together. Tone: grateful, steady, deeply affectionate; sentimental but never overwrought. Reference the quiet, steady ways they showed up for you.",
-      messagePlaceholder:
-        "Thank you for always being my rock, my support system, and my home. I'm so grateful for you…",
+      keywords: "your guidance, family dinners, unwavering care",
+      prompt: "Write a heartfelt, respectful birthday letter for family expressing genuine appreciation.",
+      messagePlaceholder: "I have learned so much from your warmth and patience over the years…",
     },
   },
   {
     id: "colleague",
-    label: "For a Colleague",
+    label: "Colleague",
     icon: <Briefcase className="w-4 h-4" />,
-    description: "Professional, warm",
+    description: "Respectful & warm",
     defaults: {
       theme: "starry",
-      relationship: "colleague",
+      convey: "how inspiring it is to collaborate and work together.",
       tone: 50,
-      keywords:
-        "colleague, teamwork, late-night, project, the win, mental strength, our close collaboration, respect, genuine, growth, your ideas",
-      prompt:
-        "Write a sincere, professional-but-warm birthday message to a colleague. Celebrate their work, ideas, and what they add to the team — reference concrete moments like a project, a late night, a win that felt shared. Keep it respectful and genuine, with an optimistic note for the year ahead. Avoid intimacy or sentimentality; this is a colleague, not a confidant.",
-      messagePlaceholder:
-        "Wishing an incredible colleague a year as brilliant as your ideas…",
+      keywords: "great teamwork, launches, calm in chaos",
+      prompt: "Write a warm, professional birthday message for a respected colleague.",
+      messagePlaceholder: "Happy birthday! Working with you always makes the hardest projects feel rewarding…",
     },
   },
 ];
 
-const RELATIONSHIP_OPTIONS: RelationType[] = [
-  "best friend",
-  "partner",
-  "sibling",
-  "family",
-  "colleague",
-  "mentor",
+const STEPS = [
+  { id: 1, title: "The Honoree", icon: <Gift className="w-4 h-4" /> },
+  { id: 2, title: "The Letter", icon: <Heart className="w-4 h-4" /> },
+  { id: 3, title: "Cake & Melody", icon: <Flame className="w-4 h-4" /> },
+  { id: 4, title: "Jar of Scrolls", icon: <Sparkles className="w-4 h-4" /> },
+  { id: 5, title: "Memories & Capsules", icon: <Camera className="w-4 h-4" /> },
+  { id: 6, title: "Delivery", icon: <Calendar className="w-4 h-4" /> },
 ];
 
-const TONE_LABELS: Record<number, string> = {
-  0: "😄 Very Playful",
-  25: "😊 Playful",
-  50: "💭 Balanced",
-  75: "🥺 Heartfelt",
-  100: "🎩 Formal",
-};
-
-function toneLabel(v: number) {
-  const snapped = [0, 25, 50, 75, 100].reduce((prev, curr) =>
-    Math.abs(curr - v) < Math.abs(prev - v) ? curr : prev,
-  );
-  return TONE_LABELS[snapped];
-}
-
-const SectionHeader = ({
-  icon,
-  children,
-}: {
-  icon: React.ReactNode;
-  children: React.ReactNode;
-}) => (
-  <div className="flex items-center gap-3 text-sm font-semibold text-[#2E2A27]">
-    <span className="w-6 h-6 rounded-lg bg-[#C97B84]/10 flex items-center justify-center text-[#C97B84]">
-      {icon}
-    </span>
-    {children}
-  </div>
-);
-
-// ── Main Page ──
 export default function CreateSurprise() {
+  const [currentStep, setCurrentStep] = useState(1);
   const [name, setName] = useState("");
   const [age, setAge] = useState("");
   const [sender, setSender] = useState("");
   const [message, setMessage] = useState("");
-  const [theme, setTheme] = useState<ThemeId>("starry");
+  const [theme, setTheme] = useState<ThemeId>("romance");
   const [voiceNoteUrl, setVoiceNoteUrl] = useState("");
   const [memories, setMemories] = useState<Memory[]>([
     {
       url: "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=600&auto=format&fit=crop&q=80",
-      caption: "Laughter and joy together!",
+      caption: "A favorite memory we share",
     },
   ]);
-
-  // Timeline state
-  const [timelineEvents, setTimelineEvents] = useState<TimelineEvent[]>([
-    {
-      date: "Oct 2021",
-      title: "The Day We Met",
-      description:
-        "A simple introduction that quickly turned into hours of talking.",
-    },
-    {
-      date: "May 2022",
-      title: "First Adventure",
-      description:
-        "Our first road trip away from the city, singing along to custom playlists.",
-    },
-  ]);
-
-  // Trivia state
-  const [triviaQuestions, setTriviaQuestions] = useState<TriviaQuestion[]>([
-    { question: "", options: ["", "", "", ""], correctAnswerIndex: 0 },
-  ]);
+  const [scrollNotes, setScrollNotes] = useState<ScrollNote[]>([]);
+  const [scrollJarTitle, setScrollJarTitle] = useState("Jar of Little Scrolls");
+  const [timeCapsules, setTimeCapsules] = useState<TimeCapsule[]>([]);
+  const [timelineEvents, setTimelineEvents] = useState<TimelineEvent[]>([]);
 
   const [generatedUrl, setGeneratedUrl] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
-
-  // Accordion folder state
-  const [activeFolder, setActiveFolder] = useState<
-    | "basics"
-    | "ai-writer"
-    | "theme"
-    | "schedule"
-    | "doodle"
-    | "timeline"
-    | "trivia"
-    | "memories"
-  >("basics");
-  const [showExtras, setShowExtras] = useState(false);
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
-  const [doodleType, setDoodleType] = useState<
-    "heart" | "rose" | "hearts" | "coffee"
-  >("heart");
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>("partner");
   const [tuneUrl, setTuneUrl] = useState("");
+  const [cakeStyle, setCakeStyle] = useState<CakeStyle>("classic");
 
-  // Feature C — Scheduled delivery
+  // Scheduled delivery
   const [scheduleEnabled, setScheduleEnabled] = useState(false);
   const [deliveryDate, setDeliveryDate] = useState("");
 
-  // Feature D — AI letter writer
-  const [aiRelationship, setAiRelationship] =
-    useState<RelationType>("best friend");
+  // AI letter writer
+  const [aiWhatToSay, setAiWhatToSay] = useState("");
   const [aiKeywords, setAiKeywords] = useState("");
   const [aiDrafts, setAiDrafts] = useState<string[]>([]);
   const [aiLoading, setAiLoading] = useState(false);
-
-  // Letter tone slider (0 = playful → 100 = formal)
-  const [tone, setTone] = useState(50);
+  const [tone, setTone] = useState(75);
 
   const applyTemplate = (tmpl: WishTemplate) => {
     setSelectedTemplateId(tmpl.id);
     setTheme(tmpl.defaults.theme);
-    setAiRelationship(tmpl.defaults.relationship);
+    setAiWhatToSay(tmpl.defaults.convey);
     setTone(tmpl.defaults.tone);
     setAiKeywords(tmpl.defaults.keywords);
     setMessage(tmpl.defaults.messagePlaceholder);
-    toast.success(`Template applied`);
+    toast.success(`${tmpl.label} preset applied`);
   };
-
-  const addTimelineEvent = () =>
-    setTimelineEvents((p) => [...p, { date: "", title: "", description: "" }]);
-  const removeTimelineEvent = (i: number) =>
-    setTimelineEvents((p) => p.filter((_, idx) => idx !== i));
-  const updateTimelineEvent = (i: number, f: keyof TimelineEvent, v: string) =>
-    setTimelineEvents((p) => {
-      const n = [...p];
-      n[i] = { ...n[i], [f]: v };
-      return n;
-    });
 
   const handleGenerateDrafts = async () => {
     if (!name || !sender) {
-      toast.error("Add names first");
+      toast.error("Please fill in both names first");
+      setCurrentStep(1);
       return;
     }
     setAiLoading(true);
     setAiDrafts([]);
-    const loadingToast = toast.loading("Composing heartfelt drafts…");
+    const loadingToast = toast.loading("Composing heartfelt letters with AI…");
     try {
       const toneDesc =
-        tone <= 25
-          ? "very playful and funny"
-          : tone <= 50
-            ? "warm and friendly"
-            : tone <= 75
-              ? "heartfelt and emotional"
-              : "formal and poetic";
+        tone <= 30
+          ? "playful and funny"
+          : tone <= 60
+            ? "warm and sincere"
+            : "deeply romantic, poetic and emotional";
 
       const data = await generateMessage({
         name,
         sender,
-        relationship: aiRelationship,
+        whatToSay: aiWhatToSay,
         keywords: aiKeywords,
         toneDescription: toneDesc,
       });
       setAiDrafts(data.drafts);
-      toast.success("Select a draft below", { id: loadingToast });
+      toast.success("Letters composed! Select your favorite below", { id: loadingToast });
     } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : "Failed to generate drafts";
-      toast.error(message, {
-        id: loadingToast,
-      });
+      const msg = err instanceof Error ? err.message : "Failed to draft letter";
+      toast.error(msg, { id: loadingToast });
     } finally {
       setAiLoading(false);
     }
@@ -284,27 +195,39 @@ export default function CreateSurprise() {
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!name.trim()) {
+      toast.error("Please enter the recipient's name");
+      setCurrentStep(1);
+      return;
+    }
+    if (!message.trim()) {
+      toast.error("Please write a birthday letter");
+      setCurrentStep(2);
+      return;
+    }
+
     setIsGenerating(true);
-    const active = memories.filter((m) => m.url.trim());
+    const activeMemories = memories.filter((m) => m.url.trim());
     const payload: Record<string, unknown> = {
       name: name.trim() || "Someone Special",
       age: age ? parseInt(age) : undefined,
       sender: sender.trim() || "A Loved One",
-      message:
-        message.trim() || "Happy Birthday! Wishing you a magical year ahead.",
-      theme: theme,
-      memories: active,
+      message: message.trim(),
+      theme: "romance",
+      memories: activeMemories,
       timeline: timelineEvents.filter((ev) => ev.title.trim()),
-      trivia: triviaQuestions.filter(
-        (t) => t.question.trim() && t.options.some((o) => o.trim()),
-      ),
-      doodleType: doodleType,
-      voiceNoteUrl: voiceNoteUrl,
+      voiceNoteUrl: voiceNoteUrl || undefined,
       tuneUrl: tuneUrl || undefined,
+      cakeStyle,
+      scrollNotes: scrollNotes.filter((s) => s.text.trim()),
+      scrollJarTitle: scrollJarTitle.trim() || "Jar of Little Scrolls",
+      timeCapsules: timeCapsules.filter((c) => c.prompt.trim() && c.message.trim()),
     };
+
     if (scheduleEnabled && deliveryDate) {
       payload.deliveryLock = new Date(deliveryDate).getTime();
     }
+
     try {
       const data = await saveWish(payload);
       const url = `${window.location.origin}/wish/${data.id}`;
@@ -312,14 +235,14 @@ export default function CreateSurprise() {
 
       playChime();
       confetti({
-        particleCount: 80,
-        spread: 60,
+        particleCount: 100,
+        spread: 70,
         origin: { y: 0.6 },
-        colors: ["#C97B84", "#D8B88A", "#A6B39D", "#FFFFFF"],
+        colors: ["#8B2635", "#C5A059", "#FAF6F0", "#3B271E"],
       });
-      toast.success("Your surprise link is ready!");
+      toast.success("Your keepsake is sealed and ready!");
     } catch {
-      toast.error("Failed to save to database");
+      toast.error("Failed to save wish.");
     } finally {
       setIsGenerating(false);
     }
@@ -329,726 +252,507 @@ export default function CreateSurprise() {
     if (!generatedUrl) return;
     navigator.clipboard.writeText(generatedUrl);
     setCopied(true);
-    toast.success("Link copied");
+    toast.success("Keepsake link copied!");
     setTimeout(() => setCopied(false), 2000);
   };
 
   const handleShare = async () => {
     if (!generatedUrl) return;
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: `Happy Birthday ${name}! 🎂`,
-          text: `${sender} made you an interactive birthday surprise!`,
-          url: generatedUrl,
-        });
-      } catch (err: unknown) {
-        if (err instanceof Error && err.name !== "AbortError")
-          toast.error("Share failed");
-        else if (!(err instanceof Error)) toast.error("Share failed");
-      }
-    } else {
-      handleCopy();
-    }
+    await shareSurpriseLink({
+      title: `Happy Birthday ${name}! 🎂`,
+      text: `${sender} made you an intimate birthday keepsake!`,
+      url: generatedUrl,
+    });
   };
 
   return (
-    <div className="min-h-screen flex flex-col relative overflow-hidden bg-[#FFF8F2]">
-      {/* Nav */}
-      <header className="relative z-20 border-b border-[#ECE3DA] px-6 py-5 flex items-center justify-between w-full max-w-3xl mx-auto">
-        <Link href="/" className="flex items-center gap-2.5">
-          <div
-            className="w-7 h-7 rounded-lg bg-[#C97B84] flex items-center justify-center"
-            style={{ boxShadow: "0 2px 6px rgba(201,123,132,0.15)" }}
-          >
-            <Gift className="w-3.5 h-3.5 text-white" />
+    <div className="min-h-screen flex flex-col relative overflow-x-hidden bg-[#FAF6F0] text-[#2A231F] selection:bg-[#8B2635]/20">
+      {/* ── Studio Header ── */}
+      <header className="relative z-20 border-b border-[#E3D4B8] px-6 py-5 flex items-center justify-between w-full max-w-4xl mx-auto">
+        <Link href="/" className="flex items-center gap-2.5 group">
+          <div className="w-8 h-8 rounded-full bg-linear-to-br from-[#8B2635] to-[#721C28] flex items-center justify-center shadow-sm wax-seal-shadow">
+            <Heart className="w-4 h-4 text-white fill-current" />
           </div>
-          <span
-            className="font-serif text-lg text-[#2E2A27]"
-            style={{ fontWeight: 500 }}
-          >
-            WishMaker<span className="text-[#C97B84]">.</span>
+          <span className="font-serif text-xl text-[#2A231F] font-medium tracking-tight">
+            WishMaker<span className="text-[#8B2635]">.</span> Studio
           </span>
         </Link>
+
+        <a
+          href="/wishmaker.apk"
+          download="WishMaker.apk"
+          className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold text-[#8B2635] hover:underline"
+        >
+          <Smartphone className="w-3.5 h-3.5" />
+          Download Android APK
+        </a>
       </header>
 
-      {/* Centered Main Workspace */}
-      <main className="relative z-10 flex-1 w-full max-w-2xl mx-auto px-4 sm:px-6 py-10">
+      {/* ── Main Workshop ── */}
+      <main className="relative z-10 flex-1 w-full max-w-2xl mx-auto px-4 sm:px-6 py-8 pb-32">
         {!generatedUrl ? (
-          <>
-            <form onSubmit={handleGenerate} className="space-y-5 w-full">
-              <div className="animate-reveal-up mb-10">
-                <h1
-                  className="font-serif text-[2.25rem] sm:text-[2.75rem] text-[#2E2A27] mb-3 text-balance"
-                  style={{ fontWeight: 400, letterSpacing: "-0.02em" }}
-                >
-                  Craft your keepsake
-                </h1>
-                <p className="text-[1rem] text-[#6F655E] leading-[1.6] max-w-lg">
-                  Fill in the details below. Everything will be packed into a
-                  single shareable link.
-                </p>
-              </div>
+          <div>
+            {/* Step Navigation Pill Bar */}
+            <div className="flex items-center justify-between mb-8 overflow-x-auto pb-2 border-b border-[#E3D4B8]/60">
+              {STEPS.map((step) => {
+                const isActive = currentStep === step.id;
+                const isPassed = currentStep > step.id;
+                return (
+                  <button
+                    key={step.id}
+                    type="button"
+                    onClick={() => setCurrentStep(step.id)}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-full text-xs font-medium transition-all cursor-pointer whitespace-nowrap ${
+                      isActive
+                        ? "bg-[#8B2635] text-white shadow-xs"
+                        : isPassed
+                          ? "text-[#8B2635] bg-[#8B2635]/8"
+                          : "text-[#7A6F62] hover:bg-[#F4EFE6]"
+                    }`}
+                  >
+                    <span>{step.icon}</span>
+                    <span className="hidden sm:inline">{step.title}</span>
+                  </button>
+                );
+              })}
+            </div>
 
-              {/* Templates bar */}
-              <div className="surface p-5 animate-reveal-up">
-                <p className="text-xs font-semibold text-[#6F655E] mb-4">
-                  Start with a preset
-                </p>
-                <div className="grid grid-cols-4 gap-3">
-                  {WISH_TEMPLATES.map((tmpl) => (
-                    <button
-                      key={tmpl.id}
-                      type="button"
-                      onClick={() => applyTemplate(tmpl)}
-                      className={`rounded-2xl p-3 flex flex-col items-center justify-center text-center transition-all duration-200 group border ${
-                        selectedTemplateId === tmpl.id
-                          ? "border-[#C97B84] bg-[#C97B84]/4 scale-[1.02]"
-                          : "border-[#ECE3DA] bg-white hover:bg-[#F9F5F0]"
-                      }`}
-                    >
-                      <span
-                        className={`transition-colors mb-1.5 ${selectedTemplateId === tmpl.id ? "text-[#C97B84]" : "text-[#B5ADA5] group-hover:text-[#C97B84]"}`}
+            {/* Title & Introduction */}
+            <div className="mb-8">
+              <span className="text-[10px] font-mono uppercase tracking-[0.2em] font-semibold text-[#8B2635]">
+                Candlelight &amp; Linen • Step {currentStep} of 6
+              </span>
+              <h1 className="font-serif text-3xl sm:text-4xl text-[#2A231F] mt-1 font-normal tracking-tight">
+                {currentStep === 1 && "Who are you celebrating?"}
+                {currentStep === 2 && "The Handwritten Letter"}
+                {currentStep === 3 && "Artisan Cake & Melody"}
+                {currentStep === 4 && "Jar of Little Scrolls"}
+                {currentStep === 5 && "Memories & Time Capsules"}
+                {currentStep === 6 && "Delivery & Whispered Voice"}
+              </h1>
+              <p className="text-sm text-[#7A6F62] font-serif italic mt-1.5">
+                {currentStep === 1 && "Start by naming the honoree and choosing their relationship."}
+                {currentStep === 2 && "Write your heartfelt message with live cursive handwriting."}
+                {currentStep === 3 && "Pick an artisan cake and gentle melody for when candles are blown."}
+                {currentStep === 4 && "Fill an antique glass jar with inside jokes, memories, or appreciation."}
+                {currentStep === 5 && "Add polaroid snapshots and sealed 'Open When...' digital capsules."}
+                {currentStep === 6 && "Add a whispered voice note and seal the date."}
+              </p>
+            </div>
+
+            {/* ── STEP 1: The Honoree ── */}
+            {currentStep === 1 && (
+              <div className="space-y-6">
+                {/* Presets */}
+                <div className="paper-deckle p-5 rounded-lg border border-[#E3D4B8]" style={{ background: "#FBF8F2" }}>
+                  <p className="text-xs font-semibold text-[#8B2635] uppercase tracking-wider mb-3">
+                    Relationship Preset
+                  </p>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                    {WISH_TEMPLATES.map((tmpl) => (
+                      <button
+                        key={tmpl.id}
+                        type="button"
+                        onClick={() => applyTemplate(tmpl)}
+                        className={`p-3 rounded-lg border flex flex-col items-center justify-center text-center transition-all cursor-pointer ${
+                          selectedTemplateId === tmpl.id
+                            ? "border-[#8B2635] bg-[#8B2635]/8 shadow-xs"
+                            : "border-[#E3D4B8] bg-white hover:bg-[#F4EFE6]"
+                        }`}
                       >
-                        {tmpl.icon}
-                      </span>
-                      <span
-                        className={`text-[0.6875rem] font-semibold ${selectedTemplateId === tmpl.id ? "text-[#2E2A27]" : "text-[#6F655E]"}`}
-                      >
-                        {tmpl.label.split(" ").slice(-1)[0]}
-                      </span>
-                    </button>
-                  ))}
+                        <span className={`mb-1 ${selectedTemplateId === tmpl.id ? "text-[#8B2635]" : "text-[#7A6F62]"}`}>
+                          {tmpl.icon}
+                        </span>
+                        <span className="text-xs font-semibold text-[#2A231F]">{tmpl.label}</span>
+                        <span className="text-[10px] text-[#7A6F62]">{tmpl.description}</span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
 
-              {/* Accordion 1: Basics */}
-              <div className="surface rounded-[1.375rem] overflow-hidden animate-reveal-up">
-                <button
-                  type="button"
-                  onClick={() => setActiveFolder("basics")}
-                  className="w-full flex items-center justify-between p-5 hover:bg-[#F9F5F0] transition-colors border-b border-[#ECE3DA]"
-                >
-                  <SectionHeader icon={<Gift className="w-3.5 h-3.5" />}>
-                    Who is it for?
-                  </SectionHeader>
-                  <ChevronDown
-                    className={`w-4 h-4 text-[#B5ADA5] transition-transform ${activeFolder === "basics" ? "rotate-180" : ""}`}
-                  />
-                </button>
-                {activeFolder === "basics" && (
-                  <div className="p-5 space-y-4 bg-white">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-[0.75rem] text-[#6F655E] font-semibold mb-1.5">
-                          Recipient Name *
-                        </label>
-                        <input
-                          required
-                          value={name}
-                          onChange={(e) => setName(e.target.value)}
-                          placeholder="Alexa"
-                          className="input-saas"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[0.75rem] text-[#6F655E] font-semibold mb-1.5">
-                          Age (optional)
-                        </label>
-                        <input
-                          type="number"
-                          value={age}
-                          onChange={(e) => setAge(e.target.value)}
-                          placeholder="25"
-                          className="input-saas"
-                        />
-                      </div>
-                    </div>
+                {/* Form fields */}
+                <div className="paper-deckle p-6 rounded-lg space-y-4 border border-[#E3D4B8]" style={{ background: "#FBF8F2" }}>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-[0.75rem] text-[#6F655E] font-semibold mb-1.5">
-                        Your Name *
+                      <label className="block text-xs font-semibold text-[#554A44] mb-1.5">
+                        Recipient Name *
                       </label>
                       <input
                         required
-                        value={sender}
-                        onChange={(e) => setSender(e.target.value)}
-                        placeholder="Jason"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="Elena"
+                        className="input-saas"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-[#554A44] mb-1.5">
+                        Their Age (Optional)
+                      </label>
+                      <input
+                        type="number"
+                        value={age}
+                        onChange={(e) => setAge(e.target.value)}
+                        placeholder="25"
                         className="input-saas"
                       />
                     </div>
                   </div>
-                )}
-              </div>
-
-              {/* Accordion 2: AI Message Writer */}
-              <div className="surface rounded-[1.375rem] overflow-hidden animate-reveal-up">
-                <button
-                  type="button"
-                  onClick={() =>
-                    setActiveFolder(
-                      activeFolder === "ai-writer" ? "basics" : "ai-writer",
-                    )
-                  }
-                  className="w-full flex items-center justify-between p-5 hover:bg-[#F9F5F0] transition-colors border-b border-[#ECE3DA]"
-                >
-                  <SectionHeader icon={<Wand2 className="w-3.5 h-3.5" />}>
-                    Write the letter
-                  </SectionHeader>
-                  <ChevronDown
-                    className={`w-4 h-4 text-[#B5ADA5] transition-transform ${activeFolder === "ai-writer" ? "rotate-180" : ""}`}
-                  />
-                </button>
-                {activeFolder === "ai-writer" && (
-                  <div className="p-5 space-y-4 bg-white">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="relative">
-                        <label className="block text-[0.75rem] text-[#6F655E] font-semibold mb-1.5">
-                          Relationship
-                        </label>
-                        <button
-                          type="button"
-                          onClick={() => setDropdownOpen(!dropdownOpen)}
-                          className="input-saas text-left flex items-center justify-between"
-                        >
-                          <span className="capitalize">{aiRelationship}</span>
-                          <ChevronDown className="w-3.5 h-3.5 text-[#B5ADA5]" />
-                        </button>
-                        {dropdownOpen && (
-                          <div className="absolute top-[105%] left-0 w-full surface-float z-50 py-1 overflow-hidden">
-                            {RELATIONSHIP_OPTIONS.map((r) => (
-                              <button
-                                key={r}
-                                type="button"
-                                onClick={() => {
-                                  setAiRelationship(r);
-                                  setDropdownOpen(false);
-                                }}
-                                className="w-full text-left px-4 py-2.5 text-sm text-[#6F655E] hover:bg-[#F9F5F0] hover:text-[#2E2A27] capitalize transition-colors"
-                              >
-                                {r}
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                      <div>
-                        <label className="block text-[0.75rem] text-[#6F655E] font-semibold mb-1.5">
-                          Keywords
-                        </label>
-                        <input
-                          value={aiKeywords}
-                          onChange={(e) => setAiKeywords(e.target.value)}
-                          placeholder="coffee, travel"
-                          className="input-saas"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Tone Slider */}
-                    <div className="py-2">
-                      <div className="flex items-center justify-between mb-2">
-                        <label className="text-[0.75rem] text-[#6F655E] font-semibold">
-                          Letter Tone
-                        </label>
-                        <span className="text-sm font-semibold text-[#C97B84]">
-                          {toneLabel(tone)}
-                        </span>
-                      </div>
-                      <div className="relative flex items-center h-4">
-                        <input
-                          type="range"
-                          min={0}
-                          max={100}
-                          step={25}
-                          value={tone}
-                          onChange={(e) => setTone(Number(e.target.value))}
-                          className="w-full h-1 bg-[#ECE3DA] rounded-lg appearance-none cursor-pointer accent-[#C97B84]"
-                        />
-                      </div>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={handleGenerateDrafts}
-                      disabled={aiLoading}
-                      className="btn-primary w-full py-3 text-sm flex items-center justify-center gap-2"
-                    >
-                      {aiLoading ? (
-                        <>
-                          <Loader2 className="w-3.5 h-3.5 animate-spin" />{" "}
-                          Composing...
-                        </>
-                      ) : (
-                        <>
-                          <Wand2 className="w-3.5 h-3.5" /> Compose Letter
-                          Drafts
-                        </>
-                      )}
-                    </button>
-
-                    {aiDrafts.length > 0 && (
-                      <div className="space-y-2.5 pt-2">
-                        {aiDrafts.map((draft, i) => (
-                          <button
-                            key={i}
-                            type="button"
-                            onClick={() => {
-                              setMessage(draft);
-                              toast.success("Letter updated");
-                            }}
-                            className={`w-full text-left p-4 rounded-2xl border text-sm leading-relaxed transition-all ${
-                              message === draft
-                                ? "border-[#C97B84] bg-[#C97B84]/3 text-[#2E2A27] shadow-sm"
-                                : "border-[#ECE3DA] bg-white hover:bg-[#F9F5F0] text-[#6F655E]"
-                            }`}
-                          >
-                            <span className="block text-[0.625rem] text-[#B5ADA5] font-semibold uppercase tracking-wider mb-1.5">
-                              {
-                                [
-                                  "Draft 1 (Heartfelt)",
-                                  "Draft 2 (Nostalgic)",
-                                  "Draft 3 (Inspiring)",
-                                ][i]
-                              }
-                            </span>
-                            {draft}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-
-                    <div>
-                      <label className="block text-[0.75rem] text-[#6F655E] font-semibold mb-1.5">
-                        Letter Text *
-                      </label>
-                      <textarea
-                        required
-                        rows={4}
-                        value={message}
-                        onChange={(e) => setMessage(e.target.value)}
-                        placeholder="Write your heartfelt letter…"
-                        className="input-saas resize-none text-sm leading-relaxed mb-4"
-                      />
-
-                      <VoiceRecorder
-                        onRecordingComplete={(url) => setVoiceNoteUrl(url)}
-                        onClear={() => setVoiceNoteUrl("")}
-                      />
-                    </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-[#554A44] mb-1.5">
+                      Your Name *
+                    </label>
+                    <input
+                      required
+                      value={sender}
+                      onChange={(e) => setSender(e.target.value)}
+                      placeholder="Alexander"
+                      className="input-saas"
+                    />
                   </div>
-                )}
-              </div>
-
-              {/* Accordion 3: Theme & Tune */}
-              <div className="surface rounded-[1.375rem] overflow-hidden animate-reveal-up">
-                <button
-                  type="button"
-                  onClick={() =>
-                    setActiveFolder(
-                      activeFolder === "theme" ? "basics" : "theme",
-                    )
-                  }
-                  className="w-full flex items-center justify-between p-5 hover:bg-[#F9F5F0] transition-colors border-b border-[#ECE3DA]"
-                >
-                  <SectionHeader icon={<Sparkles className="w-3.5 h-3.5" />}>
-                    Choose the mood
-                  </SectionHeader>
-                  <ChevronDown
-                    className={`w-4 h-4 text-[#B5ADA5] transition-transform ${activeFolder === "theme" ? "rotate-180" : ""}`}
-                  />
-                </button>
-                {activeFolder === "theme" && (
-                  <div className="p-5 space-y-4 bg-white">
-                    <TunePicker value={tuneUrl} onSelect={setTuneUrl} />
-                  </div>
-                )}
-              </div>
-
-              {/* ── Add more magic expander ── */}
-              {!showExtras && (
-                <button
-                  type="button"
-                  onClick={() => setShowExtras(true)}
-                  className="w-full surface p-4 animate-reveal-up flex items-center justify-center gap-2 text-sm font-semibold text-[#C97B84] hover:bg-[#F9F5F0] transition-all cursor-pointer"
-                >
-                  <Sparkles className="w-4 h-4" /> Add more magic (schedule,
-                  doodle, timeline, trivia)
-                </button>
-              )}
-
-              {showExtras && (
-                <div className="space-y-5">
-                  <div className="flex items-center justify-between animate-reveal-up">
-                    <span className="text-xs font-semibold text-[#6F655E] uppercase tracking-widest">
-                      Extra touches
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowExtras(false);
-                        setActiveFolder("basics");
-                      }}
-                      className="text-xs text-[#B5ADA5] hover:text-[#6F655E] transition-colors"
-                    >
-                      Hide
-                    </button>
-                  </div>
-
-                  {/* Accordion 4: Scheduled Lock */}
-                  <div className="surface rounded-[1.375rem] overflow-hidden animate-reveal-up">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setActiveFolder(
-                          activeFolder === "schedule" ? "basics" : "schedule",
-                        )
-                      }
-                      className="w-full flex items-center justify-between p-5 hover:bg-[#F9F5F0] transition-colors border-b border-[#ECE3DA]"
-                    >
-                      <SectionHeader icon={<Clock className="w-3.5 h-3.5" />}>
-                        Schedule delivery
-                      </SectionHeader>
-                      <ChevronDown
-                        className={`w-4 h-4 text-[#B5ADA5] transition-transform ${activeFolder === "schedule" ? "rotate-180" : ""}`}
-                      />
-                    </button>
-                    {activeFolder === "schedule" && (
-                      <div className="p-5 space-y-4 bg-white">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm font-semibold text-[#2E2A27]">
-                              Scheduled Surprise
-                            </p>
-                            <p className="text-[0.8125rem] text-[#6F655E]">
-                              Lock the surprise until a chosen time.
-                            </p>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => setScheduleEnabled(!scheduleEnabled)}
-                            className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${scheduleEnabled ? "bg-[#C97B84]" : "bg-[#ECE3DA]"}`}
-                          >
-                            <span
-                              className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform duration-200 shadow-sm ${scheduleEnabled ? "translate-x-5" : "translate-x-0"}`}
-                            />
-                          </button>
-                        </div>
-                        {scheduleEnabled && (
-                          <div className="animate-reveal-up pt-1">
-                            <label className="block text-[0.75rem] text-[#6F655E] font-semibold mb-1.5">
-                              Unlock Time
-                            </label>
-                            <input
-                              type="datetime-local"
-                              value={deliveryDate}
-                              onChange={(e) => setDeliveryDate(e.target.value)}
-                              required={scheduleEnabled}
-                              className="input-saas"
-                            />
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Accordion 5: Choose Keepsake Doodle */}
-                  <div className="surface rounded-[1.375rem] overflow-hidden animate-reveal-up">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setActiveFolder(
-                          activeFolder === "doodle" ? "basics" : "doodle",
-                        )
-                      }
-                      className="w-full flex items-center justify-between p-5 hover:bg-[#F9F5F0] transition-colors border-b border-[#ECE3DA]"
-                    >
-                      <SectionHeader icon={<Heart className="w-3.5 h-3.5" />}>
-                        Pick a keepsake doodle
-                      </SectionHeader>
-                      <ChevronDown
-                        className={`w-4 h-4 text-[#B5ADA5] transition-transform ${activeFolder === "doodle" ? "rotate-180" : ""}`}
-                      />
-                    </button>
-                    {activeFolder === "doodle" && (
-                      <div className="p-5 space-y-4 bg-white">
-                        <span className="text-[0.75rem] text-[#6F655E] font-semibold block mb-1">
-                          Doodle Animation Style
-                        </span>
-                        <div className="grid grid-cols-2 gap-3">
-                          {[
-                            {
-                              id: "heart" as const,
-                              label: "Classic Heart",
-                              desc: "Heart & arrow sketch",
-                            },
-                            {
-                              id: "rose" as const,
-                              label: "Blooming Rose",
-                              desc: "A lovely single-line rose",
-                            },
-                            {
-                              id: "hearts" as const,
-                              label: "Linked Hearts",
-                              desc: "Interlocking line hearts",
-                            },
-                            {
-                              id: "coffee" as const,
-                              label: "Cozy Coffee",
-                              desc: "Steaming coffee cups sketch",
-                            },
-                          ].map((d) => (
-                            <button
-                              key={d.id}
-                              type="button"
-                              onClick={() => setDoodleType(d.id)}
-                              className={`p-4 rounded-2xl border text-left transition-all ${
-                                doodleType === d.id
-                                  ? "border-[#C97B84] bg-[#C97B84]/3 scale-[1.01]"
-                                  : "border-[#ECE3DA] bg-white hover:bg-[#F9F5F0]"
-                              }`}
-                            >
-                              <span className="block text-sm font-semibold text-[#2E2A27]">
-                                {d.label}
-                              </span>
-                              <span className="block text-[0.8125rem] text-[#6F655E] mt-0.5 leading-normal">
-                                {d.desc}
-                              </span>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Accordion 6: Relationship Timeline */}
-                  <div className="surface rounded-[1.375rem] overflow-hidden animate-reveal-up">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setActiveFolder(
-                          activeFolder === "timeline" ? "basics" : "timeline",
-                        )
-                      }
-                      className="w-full flex items-center justify-between p-5 hover:bg-[#F9F5F0] transition-colors border-b border-[#ECE3DA]"
-                    >
-                      <SectionHeader
-                        icon={<Calendar className="w-3.5 h-3.5" />}
-                      >
-                        Timeline milestones
-                      </SectionHeader>
-                      <ChevronDown
-                        className={`w-4 h-4 text-[#B5ADA5] transition-transform ${activeFolder === "timeline" ? "rotate-180" : ""}`}
-                      />
-                    </button>
-                    {activeFolder === "timeline" && (
-                      <div className="p-5 space-y-4 bg-white">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[0.75rem] text-[#6F655E] font-semibold">
-                            Milestones
-                          </span>
-                          <button
-                            type="button"
-                            onClick={addTimelineEvent}
-                            className="text-[0.75rem] text-[#C97B84] font-semibold flex items-center gap-1 hover:text-[#B5616B]"
-                          >
-                            <Plus className="w-3 h-3" /> Add Event
-                          </button>
-                        </div>
-                        <div className="space-y-3">
-                          {timelineEvents.map((ev, i) => (
-                            <div
-                              key={i}
-                              className="flex flex-col gap-2 p-4 rounded-2xl bg-[#F9F5F0] border border-[#ECE3DA]"
-                            >
-                              <div className="grid grid-cols-2 gap-2">
-                                <input
-                                  type="text"
-                                  placeholder="Title"
-                                  value={ev.title}
-                                  onChange={(e) =>
-                                    updateTimelineEvent(
-                                      i,
-                                      "title",
-                                      e.target.value,
-                                    )
-                                  }
-                                  className="input-saas text-sm py-2.5"
-                                />
-                                <input
-                                  type="text"
-                                  placeholder="Date/Period"
-                                  value={ev.date}
-                                  onChange={(e) =>
-                                    updateTimelineEvent(
-                                      i,
-                                      "date",
-                                      e.target.value,
-                                    )
-                                  }
-                                  className="input-saas text-sm py-2.5"
-                                />
-                              </div>
-                              <div className="flex gap-2">
-                                <input
-                                  type="text"
-                                  placeholder="Event details..."
-                                  value={ev.description}
-                                  onChange={(e) =>
-                                    updateTimelineEvent(
-                                      i,
-                                      "description",
-                                      e.target.value,
-                                    )
-                                  }
-                                  className="input-saas text-sm py-2.5 flex-1"
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() => removeTimelineEvent(i)}
-                                  className="text-[#B5ADA5] hover:text-[#C46D5E] transition-colors px-2"
-                                >
-                                  <Trash2 className="w-3.5 h-3.5" />
-                                </button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Accordion 7: Trivia */}
-                  <TriviaForm
-                    activeFolder={activeFolder}
-                    setActiveFolder={setActiveFolder}
-                    triviaQuestions={triviaQuestions}
-                    setTriviaQuestions={setTriviaQuestions}
-                    SectionHeader={SectionHeader}
-                  />
                 </div>
-              )}
 
-              {/* Memory Lane Grid */}
-              <MemoryLaneForm
-                activeFolder={activeFolder}
-                setActiveFolder={setActiveFolder}
-                memories={memories}
-                setMemories={setMemories}
-                SectionHeader={SectionHeader}
-              />
-
-              {/* Submit */}
-              <div className="pt-6 animate-reveal-up">
-                <div className="surface p-6 border-2 border-[#D8B88A]/20">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-8 h-8 rounded-lg bg-[#D8B88A]/15 flex items-center justify-center">
-                      <Gift className="w-4 h-4 text-[#D8B88A]" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-[#2E2A27]">
-                        Ready to share the joy?
-                      </p>
-                      <p className="text-xs text-[#6F655E]">
-                        Everything above gets packed into one link
-                      </p>
-                    </div>
-                  </div>
+                <div className="flex justify-end pt-4">
                   <button
-                    type="submit"
-                    disabled={isGenerating}
-                    className="w-full btn-gold py-4 text-sm font-semibold tracking-wide flex items-center justify-center gap-2"
-                    style={{ boxShadow: "0 8px 24px rgba(216,184,138,0.25)" }}
+                    type="button"
+                    onClick={() => {
+                      if (!name.trim()) return toast.error("Please enter the recipient's name");
+                      setCurrentStep(2);
+                    }}
+                    className="btn-primary"
                   >
-                    {isGenerating ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" /> Magically
-                        Packing Gift...
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="w-4 h-4" /> Wrap Surprise Gift &
-                        Generate Link
-                      </>
-                    )}
+                    Next: Write Letter <ChevronRight className="w-4 h-4" />
                   </button>
                 </div>
               </div>
-            </form>
-          </>
+            )}
+
+            {/* ── STEP 2: The Letter ── */}
+            {currentStep === 2 && (
+              <div className="space-y-6">
+                {/* AI Assistant Card */}
+                <div className="paper-deckle p-5 rounded-lg border border-[#E3D4B8]" style={{ background: "#FBF8F2" }}>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="flex items-center gap-2 text-xs font-semibold text-[#8B2635] uppercase tracking-wider">
+                      <Wand2 className="w-3.5 h-3.5" />
+                      Gemini AI Letter Writer
+                    </span>
+                    <span className="text-[10px] text-[#7A6F62] font-serif italic">
+                      Need help putting feelings into words?
+                    </span>
+                  </div>
+
+                  <div className="space-y-3">
+                    <input
+                      value={aiWhatToSay}
+                      onChange={(e) => setAiWhatToSay(e.target.value)}
+                      placeholder="What feeling do you want to convey? (e.g. how much ordinary days shine with you)"
+                      className="input-saas text-xs"
+                    />
+                    <input
+                      value={aiKeywords}
+                      onChange={(e) => setAiKeywords(e.target.value)}
+                      placeholder="Specific memories, inside jokes, or small habits to weave in"
+                      className="input-saas text-xs"
+                    />
+
+                    <div className="flex items-center justify-between pt-1">
+                      <span className="text-[11px] text-[#7A6F62]">
+                        Tone: {tone > 60 ? "Deeply Romantic & Poetic" : "Warm & Playful"}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={handleGenerateDrafts}
+                        disabled={aiLoading}
+                        className="btn-primary text-xs py-2 px-4 inline-flex items-center gap-1.5"
+                      >
+                        <Sparkles className="w-3.5 h-3.5" />
+                        {aiLoading ? "Composing..." : "Compose 3 Drafts"}
+                      </button>
+                    </div>
+
+                    {/* AI Draft Suggestions */}
+                    {aiDrafts.length > 0 && (
+                      <div className="space-y-2.5 pt-3 border-t border-[#E3D4B8]">
+                        <p className="text-[11px] font-semibold text-[#8B2635]">Tap a draft to use it:</p>
+                        {aiDrafts.map((draft, i) => (
+                          <div
+                            key={i}
+                            onClick={() => {
+                              setMessage(draft);
+                              toast.success("Draft applied to your letter!");
+                            }}
+                            className="p-3 rounded-lg border border-[#E3D4B8] bg-white text-xs leading-relaxed text-[#554A44] font-serif italic cursor-pointer hover:border-[#8B2635] hover:bg-[#FAF6F0] transition-colors"
+                          >
+                            &ldquo;{draft}&rdquo;
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* The Letter Parchment Canvas */}
+                <div className="paper-deckle p-6 sm:p-8 rounded-sm border border-[#E3D4B8]" style={{ background: "#F4EFE6" }}>
+                  <div className="flex items-center justify-between border-b border-[#E3D4B8] pb-3 mb-4">
+                    <span className="font-serif text-sm text-[#8B2635] font-semibold uppercase tracking-widest">
+                      Cotton Rag Letter
+                    </span>
+                    <span className="text-xs font-serif italic text-[#7A6F62]">
+                      Live Calligraphy Preview
+                    </span>
+                  </div>
+
+                  <p className="font-handwriting text-3xl text-[#2A231F] mb-3 ink-bleed">
+                    My Dearest {name || "Elena"},
+                  </p>
+
+                  <textarea
+                    rows={6}
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    placeholder="Write your heartfelt letter here... (It will render in flowing calligraphy for your recipient)"
+                    className="w-full bg-transparent border-0 outline-none resize-none font-handwriting text-2xl text-[#2A231F] leading-relaxed ink-bleed placeholder:text-stone-400 placeholder:font-sans placeholder:text-sm"
+                  />
+
+                  <div className="pt-4 text-right border-t border-[#E3D4B8]">
+                    <p className="text-xs font-serif italic text-[#7A6F62]">Forever yours,</p>
+                    <p className="font-handwriting text-2xl text-[#8B2635] ink-bleed mt-1">
+                      {sender || "Your Name"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between pt-4">
+                  <button type="button" onClick={() => setCurrentStep(1)} className="btn-ghost">
+                    <ChevronLeft className="w-4 h-4" /> Back
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!message.trim()) return toast.error("Please write a birthday message");
+                      setCurrentStep(3);
+                    }}
+                    className="btn-primary"
+                  >
+                    Next: Cake &amp; Melody <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* ── STEP 3: Cake & Melody ── */}
+            {currentStep === 3 && (
+              <div className="space-y-6">
+                <div className="paper-deckle p-6 rounded-lg border border-[#E3D4B8]" style={{ background: "#FBF8F2" }}>
+                  <CakeStylePicker value={cakeStyle} onSelect={setCakeStyle} />
+                </div>
+
+                <div className="paper-deckle p-6 rounded-lg border border-[#E3D4B8]" style={{ background: "#FBF8F2" }}>
+                  <TunePicker
+                    value={tuneUrl}
+                    onSelect={setTuneUrl}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between pt-4">
+                  <button type="button" onClick={() => setCurrentStep(2)} className="btn-ghost">
+                    <ChevronLeft className="w-4 h-4" /> Back
+                  </button>
+                  <button type="button" onClick={() => setCurrentStep(4)} className="btn-primary">
+                    Next: Jar of Scrolls <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* ── STEP 4: Jar of Little Scrolls ── */}
+            {currentStep === 4 && (
+              <div className="space-y-6">
+                <div className="paper-deckle p-6 rounded-lg border border-[#E3D4B8]" style={{ background: "#FBF8F2" }}>
+                  <ScrollJarForm
+                    scrollNotes={scrollNotes}
+                    onChange={setScrollNotes}
+                    scrollJarTitle={scrollJarTitle}
+                    onTitleChange={setScrollJarTitle}
+                    recipientName={name}
+                    senderName={sender}
+                    relationship={selectedTemplateId}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between pt-4">
+                  <button type="button" onClick={() => setCurrentStep(3)} className="btn-ghost">
+                    <ChevronLeft className="w-4 h-4" /> Back
+                  </button>
+                  <button type="button" onClick={() => setCurrentStep(5)} className="btn-primary">
+                    Next: Memories &amp; Capsules <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* ── STEP 5: Photo Memories & Time Capsules ── */}
+            {currentStep === 5 && (
+              <div className="space-y-6">
+                {/* Photo Scrapbook */}
+                <div className="paper-deckle p-6 rounded-lg border border-[#E3D4B8]" style={{ background: "#FBF8F2" }}>
+                  <MemoryLaneForm
+                    memories={memories}
+                    onChange={setMemories}
+                    recipientName={name}
+                  />
+                </div>
+
+                {/* Open When... Time Capsules */}
+                <div className="paper-deckle p-6 rounded-lg border border-[#E3D4B8]" style={{ background: "#FBF8F2" }}>
+                  <TimeCapsulesForm
+                    capsules={timeCapsules}
+                    onChange={setTimeCapsules}
+                    recipientName={name}
+                    relationship={selectedTemplateId}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between pt-4">
+                  <button type="button" onClick={() => setCurrentStep(4)} className="btn-ghost">
+                    <ChevronLeft className="w-4 h-4" /> Back
+                  </button>
+                  <button type="button" onClick={() => setCurrentStep(6)} className="btn-primary">
+                    Next: Delivery &amp; Voice <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* ── STEP 6: Delivery & Whispered Voice ── */}
+            {currentStep === 6 && (
+              <div className="space-y-6">
+                {/* Voice Note Recorder */}
+                <div className="paper-deckle p-6 rounded-lg border border-[#E3D4B8]" style={{ background: "#FBF8F2" }}>
+                  <div className="mb-3">
+                    <h3 className="font-serif text-lg text-[#2A231F] font-semibold">
+                      Whispered Voice Memo (Optional)
+                    </h3>
+                    <p className="text-xs text-[#7A6F62] font-serif italic mt-0.5">
+                      Record a 15–30 second audio message. They will hear your actual voice right after the memory scrapbook and before the grand finale.
+                    </p>
+                  </div>
+                  <VoiceRecorder
+                    onRecordingComplete={(url) => setVoiceNoteUrl(url)}
+                    onClear={() => setVoiceNoteUrl("")}
+                  />
+                </div>
+
+                {/* Delivery Lock */}
+                <div className="paper-deckle p-6 rounded-lg border border-[#E3D4B8]" style={{ background: "#FBF8F2" }}>
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <h3 className="font-serif text-lg text-[#2A231F] font-semibold">
+                        Scheduled Time-Lock (Optional)
+                      </h3>
+                      <p className="text-xs text-[#7A6F62] font-serif italic">
+                        Lock the surprise behind a countdown until their actual birthday.
+                      </p>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={scheduleEnabled}
+                      onChange={(e) => setScheduleEnabled(e.target.checked)}
+                      className="w-5 h-5 accent-[#8B2635] cursor-pointer"
+                    />
+                  </div>
+
+                  {scheduleEnabled && (
+                    <input
+                      type="datetime-local"
+                      value={deliveryDate}
+                      onChange={(e) => setDeliveryDate(e.target.value)}
+                      className="input-saas mt-2"
+                    />
+                  )}
+                </div>
+
+                {/* Final Submit Button */}
+                <div className="flex items-center justify-between pt-4">
+                  <button type="button" onClick={() => setCurrentStep(5)} className="btn-ghost">
+                    <ChevronLeft className="w-4 h-4" /> Back
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleGenerate}
+                    disabled={isGenerating}
+                    className="btn-primary py-4 px-8 text-base shadow-lg"
+                  >
+                    <Heart className="w-5 h-5 fill-current" />
+                    {isGenerating ? "Sealing Keepsake..." : "Seal & Generate Surprise Link"}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         ) : (
-          /* ── SUCCESS STATE ── */
-          <div className="animate-reveal-up text-center py-16 px-4 flex flex-col items-center max-w-xl mx-auto w-full">
-            <div
-              className="w-20 h-20 rounded-2xl bg-[#C97B84]/5 border border-[#C97B84]/15 flex items-center justify-center mb-8"
-              style={{ boxShadow: "0 2px 12px rgba(46,42,39,0.04)" }}
-            >
-              <Heart className="w-8 h-8 text-[#C97B84] fill-current" />
+          /* ── Generated Keepsake Reveal Screen ── */
+          <div className="paper-deckle p-8 sm:p-12 text-center rounded-sm max-w-md mx-auto border border-[#E3D4B8] animate-reveal-up" style={{ background: "#F8F5EE" }}>
+            <div className="w-16 h-16 rounded-full mx-auto mb-5 wax-seal-shadow flex items-center justify-center bg-linear-to-br from-[#A33B49] via-[#8B2635] to-[#5A121E]">
+              <Heart className="w-7 h-7 text-white fill-white/80" />
             </div>
-            <h2
-              className="font-serif text-[2.25rem] sm:text-[2.5rem] text-[#2E2A27] mb-3 text-balance"
-              style={{ fontWeight: 400 }}
-            >
-              Your surprise is ready
+
+            <span className="text-[10px] uppercase tracking-[0.25em] font-semibold text-[#8B2635]">
+              Sealed with a Promise
+            </span>
+
+            <h2 className="font-serif text-3xl text-[#2A231F] mt-1 mb-2">
+              Your keepsake is ready for {name}
             </h2>
-            <p className="text-[1rem] text-[#6F655E] max-w-md mb-10 leading-[1.6]">
-              Send the link below to {name}.
-              {scheduleEnabled && deliveryDate && (
-                <span className="block mt-2 text-[#D8B88A] font-medium items-center justify-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5" /> Locked until{" "}
-                  {new Date(deliveryDate).toLocaleString()}
-                </span>
-              )}
+
+            <p className="text-xs text-[#7A6F62] font-serif italic mb-8">
+              Send this single link. When opened, it will unfold into the candlelit celebration you just created.
             </p>
 
-            <div className="w-full space-y-4 mb-8">
-              <div className="w-full surface p-4 flex gap-3 items-center">
-                <input
-                  readOnly
-                  value={generatedUrl}
-                  className="flex-1 bg-transparent text-sm text-[#6F655E] font-mono outline-none min-w-0"
-                />
-                <button
-                  onClick={handleCopy}
-                  className={`shrink-0 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center gap-1.5 ${
-                    copied
-                      ? "bg-[#8FA27A]/10 text-[#8FA27A] border border-[#8FA27A]/20"
-                      : "btn-primary"
-                  }`}
-                >
-                  {copied ? (
-                    <>
-                      <Check className="w-3.5 h-3.5" /> Copied!
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-3.5 h-3.5" /> Copy
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-3 w-full">
+            {/* Share & Copy Buttons */}
+            <div className="space-y-3">
               <button
+                type="button"
                 onClick={handleShare}
-                className="flex-1 btn-gold py-4 text-sm flex items-center justify-center gap-2"
+                className="w-full btn-primary py-3.5 text-sm font-semibold flex items-center justify-center gap-2 shadow-md"
               >
-                <Share2 className="w-4 h-4" /> Share Surprise
+                <Share2 className="w-4 h-4" />
+                Send Surprise (WhatsApp / Native Share)
               </button>
-              <a
+
+              <button
+                type="button"
+                onClick={handleCopy}
+                className="w-full btn-ghost py-3 text-sm font-semibold flex items-center justify-center gap-2 bg-white"
+              >
+                {copied ? <Check className="w-4 h-4 text-[#7D8B75]" /> : <Copy className="w-4 h-4" />}
+                {copied ? "Link Copied!" : "Copy Keepsake Link"}
+              </button>
+
+              <Link
                 href={generatedUrl}
                 target="_blank"
-                rel="noopener noreferrer"
-                className="flex-1 py-4 text-sm text-[#6F655E] font-semibold rounded-xl border border-[#ECE3DA] bg-white hover:bg-[#F9F5F0] transition-all flex items-center justify-center gap-2"
+                className="inline-flex items-center justify-center gap-1.5 text-xs text-[#8B2635] hover:underline pt-2 font-medium"
               >
-                <ExternalLink className="w-4 h-4" /> Preview
+                <ExternalLink className="w-3.5 h-3.5" />
+                Preview how {name} will see it
+              </Link>
+            </div>
+
+            {/* Android APK Callout */}
+            <div className="mt-8 pt-6 border-t border-[#E3D4B8] text-center">
+              <p className="text-[11px] text-[#7A6F62] mb-2 font-serif italic">
+                Prefer creating offline from your Android phone?
+              </p>
+              <a
+                href="/wishmaker.apk"
+                download="WishMaker.apk"
+                className="btn-gold text-xs py-2.5 px-5 inline-flex items-center gap-2"
+              >
+                <Download className="w-3.5 h-3.5" />
+                Download Android APK
               </a>
-              <button
-                onClick={() => setGeneratedUrl("")}
-                className="flex-1 py-4 text-sm text-[#B5ADA5] font-semibold rounded-xl border border-[#ECE3DA] bg-white hover:bg-[#F9F5F0] transition-all"
-              >
-                Create another
-              </button>
             </div>
           </div>
         )}

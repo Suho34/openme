@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 960 660" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="wishmaker-arch-title wishmaker-arch-desc">
+  <title id="wishmaker-arch-title">WishMaker architecture</title>
+  <desc id="wishmaker-arch-desc">Architecture diagram of WishMaker, a Next.js 16 app. A browser client reaches a React frontend, which calls Server Actions and API Routes; those connect to the Gemini API for AI features and MongoDB for wishes.</desc>
+  <defs>
+    <style>@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500;600&amp;display=swap');</style>
+    <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#6F655E"/></marker>
+    <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#B05463"/></marker>
+    <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#5F7A4E"/></marker>
+  </defs>
+
+  <rect width="100%" height="100%" fill="#FFF8F2"/>
+
+  <path d="M 620 72 Q 500 100 344 132" fill="none" stroke="rgba(46,42,39,0.40)" stroke-width="1" stroke-dasharray="4,3"/>
+  <circle cx="344" cy="132" r="2" fill="#2E2A27"/>
+  <text x="900" y="56" fill="#B05463" font-size="14" font-style="italic"
+        font-family="'Instrument Serif', serif" text-anchor="end">The wish lives in the link — encrypted, nothing stored</text>
+
+  <rect x="220" y="100" width="420" height="300" rx="8"
+        fill="rgba(46,42,39,0.02)" stroke="rgba(46,42,39,0.10)" stroke-width="0.8"/>
+  <rect x="228" y="104" width="150" height="12" rx="2" fill="#FFF8F2"/>
+  <text x="303" y="113" fill="rgba(46,42,39,0.40)" font-size="7"
+        font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.14em">NEXT.JS 16 · TURBOPACK</text>
+
+  <rect x="680" y="100" width="240" height="300" rx="8"
+        fill="rgba(46,42,39,0.02)" stroke="rgba(46,42,39,0.10)" stroke-width="0.8"/>
+  <rect x="688" y="104" width="130" height="12" rx="2" fill="#FFF8F2"/>
+  <text x="753" y="113" fill="rgba(46,42,39,0.40)" font-size="7"
+        font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.14em">EXTERNAL SERVICES</text>
+
+  <line x1="160" y1="240" x2="240" y2="240" stroke="#5F7A4E" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+  <rect x="184" y="220" width="32" height="12" rx="2" fill="#FFF8F2"/>
+  <text x="200" y="229" fill="#5F7A4E" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">HTTPS</text>
+
+  <line x1="420" y1="184" x2="440" y2="184" stroke="#6F655E" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <line x1="420" y1="304" x2="440" y2="304" stroke="#6F655E" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+  <line x1="616" y1="184" x2="700" y2="184" stroke="#5F7A4E" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+  <rect x="622" y="164" width="72" height="12" rx="2" fill="#FFF8F2"/>
+  <text x="658" y="173" fill="#5F7A4E" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">READ · WRITE</text>
+
+  <line x1="616" y1="304" x2="700" y2="304" stroke="#5F7A4E" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+  <rect x="626" y="284" width="64" height="12" rx="2" fill="#FFF8F2"/>
+  <text x="658" y="293" fill="#5F7A4E" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">AI CALLS</text>
+
+  <rect x="40" y="208" width="120" height="64" rx="6" fill="#FFF8F2"/>
+  <rect x="40" y="208" width="120" height="64" rx="6" fill="rgba(111,101,94,0.10)" stroke="#8A7F73" stroke-width="1"/>
+  <rect x="48" y="214" width="44" height="12" rx="2" fill="transparent" stroke="rgba(138,127,115,0.40)" stroke-width="0.8"/>
+  <text x="70" y="223" fill="rgba(138,127,115,0.80)" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">CLIENT</text>
+  <text x="100" y="242" fill="#2E2A27" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Browser</text>
+  <text x="100" y="258" fill="#6F655E" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">phone-first</text>
+
+  <rect x="240" y="140" width="180" height="200" rx="6" fill="#FFF8F2"/>
+  <rect x="240" y="140" width="180" height="200" rx="6" fill="rgba(176,84,99,0.08)" stroke="#B05463" stroke-width="1.2"/>
+  <rect x="248" y="146" width="36" height="12" rx="2" fill="transparent" stroke="rgba(176,84,99,0.40)" stroke-width="0.8"/>
+  <text x="266" y="155" fill="rgba(176,84,99,0.80)" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">WEB</text>
+  <text x="330" y="242" fill="#2E2A27" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Frontend</text>
+  <text x="330" y="258" fill="#6F655E" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">React 19 · Three.js</text>
+  <text x="330" y="272" fill="#6F655E" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">Tailwind · Framer</text>
+
+  <rect x="440" y="152" width="176" height="64" rx="6" fill="#FFF8F2"/>
+  <rect x="440" y="152" width="176" height="64" rx="6" fill="#FFFFFF" stroke="#2E2A27" stroke-width="1"/>
+  <rect x="448" y="158" width="32" height="12" rx="2" fill="transparent" stroke="rgba(46,42,39,0.40)" stroke-width="0.8"/>
+  <text x="464" y="167" fill="rgba(46,42,39,0.80)" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">API</text>
+  <text x="528" y="186" fill="#2E2A27" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">API Routes</text>
+  <text x="528" y="202" fill="#6F655E" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">/api/wishes · /api/og</text>
+
+  <rect x="440" y="272" width="176" height="64" rx="6" fill="#FFF8F2"/>
+  <rect x="440" y="272" width="176" height="64" rx="6" fill="#FFFFFF" stroke="#2E2A27" stroke-width="1"/>
+  <rect x="448" y="278" width="36" height="12" rx="2" fill="transparent" stroke="rgba(46,42,39,0.40)" stroke-width="0.8"/>
+  <text x="466" y="287" fill="rgba(46,42,39,0.80)" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SRV</text>
+  <text x="528" y="306" fill="#2E2A27" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Server Actions</text>
+  <text x="528" y="322" fill="#6F655E" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">letters · captions · themes</text>
+
+  <rect x="700" y="152" width="180" height="64" rx="6" fill="#FFF8F2"/>
+  <rect x="700" y="152" width="180" height="64" rx="6" fill="rgba(46,42,39,0.05)" stroke="#6F655E" stroke-width="1"/>
+  <rect x="708" y="158" width="32" height="12" rx="2" fill="transparent" stroke="rgba(111,101,94,0.40)" stroke-width="0.8"/>
+  <text x="724" y="167" fill="rgba(111,101,94,0.80)" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">DB</text>
+  <text x="790" y="186" fill="#2E2A27" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">MongoDB</text>
+  <text x="790" y="202" fill="#6F655E" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">wishes · 7-day TTL</text>
+
+  <rect x="700" y="272" width="180" height="64" rx="6" fill="#FFF8F2"/>
+  <rect x="700" y="272" width="180" height="64" rx="6" fill="rgba(46,42,39,0.03)" stroke="rgba(46,42,39,0.30)" stroke-width="1"/>
+  <rect x="708" y="278" width="36" height="12" rx="2" fill="transparent" stroke="rgba(46,42,39,0.25)" stroke-width="0.8"/>
+  <text x="726" y="287" fill="rgba(46,42,39,0.60)" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">LLM</text>
+  <text x="790" y="306" fill="#2E2A27" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Gemini API</text>
+  <text x="790" y="322" fill="#6F655E" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">gemini-2.5-flash</text>
+
+  <line x1="40" y1="560" x2="920" y2="560" stroke="rgba(46,42,39,0.10)" stroke-width="0.8"/>
+  <text x="40" y="578" fill="#6F655E" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">LEGEND</text>
+
+  <rect x="100" y="584" width="20" height="14" rx="2" fill="rgba(176,84,99,0.08)" stroke="#B05463" stroke-width="0.8"/>
+  <text x="126" y="596" fill="#6F655E" font-size="8" font-family="'Geist Mono', monospace">Focal</text>
+
+  <rect x="220" y="584" width="20" height="14" rx="2" fill="#FFFFFF" stroke="#2E2A27" stroke-width="0.8"/>
+  <text x="246" y="596" fill="#6F655E" font-size="8" font-family="'Geist Mono', monospace">Service</text>
+
+  <rect x="340" y="584" width="20" height="14" rx="2" fill="rgba(46,42,39,0.05)" stroke="#6F655E" stroke-width="0.8"/>
+  <text x="366" y="596" fill="#6F655E" font-size="8" font-family="'Geist Mono', monospace">Data store</text>
+
+  <rect x="460" y="584" width="20" height="14" rx="2" fill="rgba(46,42,39,0.03)" stroke="rgba(46,42,39,0.30)" stroke-width="0.8"/>
+  <text x="486" y="596" fill="#6F655E" font-size="8" font-family="'Geist Mono', monospace">External</text>
+
+  <line x1="580" y1="591" x2="616" y2="591" stroke="#6F655E" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <text x="624" y="596" fill="#6F655E" font-size="8" font-family="'Geist Mono', monospace">Internal flow</text>
+
+  <line x1="720" y1="591" x2="756" y2="591" stroke="#5F7A4E" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+  <text x="764" y="596" fill="#6F655E" font-size="8" font-family="'Geist Mono', monospace">HTTPS / API</text>
+</svg>

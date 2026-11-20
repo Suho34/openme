@@ -1,70 +1,152 @@
-# WishMaker. 🕯️✨
+<div align="center">
 
-An intimate, cozy digital keepsake builder for creating bespoke birthday surprises. Build a beautiful, personalized, multi-stage storytelling page for someone special — packed entirely inside a sharing link with zero database logs.
+<img src="public/wm-logo.svg" width="96" alt="WishMaker logo">
 
----
+# WishMaker.
 
-## 📖 The Birthday Surprise Chapters
+*Turn a birthday wish into an unforgettable, interactive keepsake — in one link*
 
-WishMaker transforms digital birthday cards into a chronological storytelling wizard:
+[![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=nextdotjs)](https://nextjs.org)
+[![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=white)](https://react.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-38BDF8?style=flat-square&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
+[![Gemini](https://img.shields.io/badge/Gemini-2.5%20Flash-8E75B2?style=flat-square&logo=googlegemini&logoColor=white)](https://ai.google.dev)
+[![MongoDB](https://img.shields.io/badge/MongoDB-7A6F62?style=flat-square&logo=mongodb&logoColor=white)](https://www.mongodb.com)
+[![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
 
-1. **Chapter I: The Wax Seal Envelope**  
-   The recipient receives a premium dark linen envelope locked with a crimson wax seal. If scheduled, a ticking countdown keeps it locked until their birthday. Tapping the seal cracks it open.
-2. **Chapter II: The Heartfelt Letterpress Card**  
-   Slides out a parchment letter rendered in classical serif typography containing your personalized message.
-3. **Chapter III: Procedural Audio Melody**  
-   The iconic *Happy Birthday to You* song synthesizes procedurally in their browser. Musical timbres (from romantic sine waves to vintage square waves) morph to match the visual theme.
-4. **Chapter IV: The 3D Cake & Mic Blow**  
-   A gourmet multi-tiered cake on a gold pedestal stand. The recipient blows into their microphone to blow out the candles, accompanied by physics-based smoke particles.
-5. **Chapter V: The Constellation Sky**  
-   The recipient types a birthday wish which ascends into the cosmos. Hovering over coordinate star nodes reveals secret micro-memories.
-6. **Chapter VI: Our Timeline Milestones**  
-   A chronological vertical tracker detailing key dates, titles, and stories of your friendship.
-7. **Chapter VII: Shared Photos Scrapbook**  
-   A polaroid scrapbook masonry grid displaying uploaded pictures.
-8. **Chapter VIII: Grand Fireworks Finale**  
-   A continuous night sky fireworks show overlayed with glowing birthday wishes and custom share links.
+[Features](#features) • [Getting started](#getting-started) • [How it works](#how-it-works) • [Architecture](#architecture) • [Configuration](#configuration) • [Privacy](#privacy) • [Project structure](#project-structure)
 
----
+</div>
 
-## 🛠️ Tech Stack & Key Features
+WishMaker turns a birthday wish into a choreographed, multi-chapter experience: a wax-sealed envelope, a 3D cake you can blow out with your microphone, a heartfelt AI-assisted letter, shared photos, trivia, and a fireworks finale — all packed into a single URL. No accounts. No app to install. Nothing stored.
 
-* **Framework**: [Next.js 16](https://nextjs.org/) (built using Turbopack compiler)
-* **Styling**: Tailwind CSS & Glassmorphism design tokens
-* **AI Assistance**: Gemini API integration powering:
-  * **AI Letter Writer**: Composes Poetic, Sincere, or Funny drafts.
-  * **Tone Slider**: Smoothly adjust tone from Playful to Formal.
-  * **Smart Theme Recommendation**: Automatically reads letter content to recommend a matching color palette.
-* **Pure Client-Side Photo Uploads**: Resizes selected pictures to a maximum of 220px on a HTML5 canvas and compresses them as lightweight `image/jpeg` data URLs.
-* **Serverless URL Shortener**: Integrated `/api/shorten` API route calling TinyURL to compress extremely long base64 link hashes for easy copy-pasting.
+The recipient just opens the link; the gift-maker just sends it.
 
----
+## Features
 
-## 🚀 Getting Started
+- 🕯️ **Wax-sealed envelope** — A dark linen envelope locked with a crimson wax seal. Set a delivery date and it stays sealed behind a countdown until the big day.
+- 🎂 **3D cake with mic candle-blowing** — A gourmet Three.js cake. Tap a candle or blow into your microphone to blow them out, with physics-based smoke.
+- ✉️ **AI letter writer** — Tell the AI what you feel and drop in real memories; it drafts three personal, un-cheesy letters with a Playful → Formal tone slider.
+- 🎨 **Smart theme recommendation** — Gemini reads the letter and recommends a matching color palette (starry, neon, romance, pastel, retro) and ambience.
+- 📸 **Auto-captioned photos** — Upload a memory photo and Gemini vision writes a warm caption for the polaroid.
+- 🎵 **Birthday tune** — Four built-in Happy Birthday melodies, or upload your own; the first ~15s plays at the finale.
+- 🕰️ **Chronological journey** — A sequenced reveal: letter → cake → camera moment → wishes → doodle → timeline → photo scrapbook → trivia → balloons → fireworks finale.
+- 🎁 **Scheduled delivery** — Lock the surprise until a chosen date, with an early-preview mode for the creator.
 
-### 1. Prerequisites
-Create a `.env.local` file in the root directory and add your Gemini API Key:
+## Getting started
+
+### Prerequisites
+
+You need a [Gemini API key](https://ai.google.dev/) and, for wish persistence, a MongoDB connection string.
+
+Create a `.env.local` file at the project root:
+
 ```env
 GEMINI_API_KEY=your_gemini_api_key_here
+MONGODB_URI=mongodb+srv://your_atlas_connection_string
 ```
 
-### 2. Install Dependencies
+> [!TIP]
+> The core "link in a URL" experience works with just `GEMINI_API_KEY`. MongoDB is only used for the optional persisted-wish flow (`/api/wishes`).
+
+### Install and run
+
 ```bash
 npm install
-```
-
-### 3. Run Development Server
-```bash
 npm run dev
 ```
-Open [http://localhost:3000](http://localhost:3000) to see the refined cozy romantic landing page.
 
-### 4. Build for Production
+Open [http://localhost:3000](http://localhost:3000) to start creating.
+
+### Production build
+
 ```bash
 npm run build
+npm run start
 ```
 
----
+## How it works
 
-## 🔒 Zero Database Privacy
-WishMaker collects **zero cookies** and requires **no database storage**. The entire surprise configuration is serialized, gzip-compressed, and encrypted inside the Base64 URL parameter. Private keepsakes remain yours.
+There are two surfaces, split by audience:
+
+**The gift-maker** (`/create`) — a multi-step wizard to gather photos, write a message (optionally AI-assisted), pick a cake style and theme, add timeline/trivia, and produce a shareable link. Everything is serialized, gzip-compressed, encrypted, and embedded in the URL itself — so there is nothing to sign up for and no configuration stored server-side.
+
+**The recipient** (`/wish`) — a phone-first, choreographed reveal. Each stage must be completed before the next unlocks, building toward the finale. `?preview=1` lets creators walk through the whole experience early.
+
+### The recipient's journey
+
+Opening the link begins a sequenced, chronological reveal — each stage unlocks the next:
+
+1. **Wax-seal envelope** — A dark linen envelope locked with a crimson wax seal. With a delivery date set, a countdown keeps it sealed until the big day.
+2. **Letterpress letter** — A parchment letter in classical serif typography carries the personalized message.
+3. **3D cake & blow** — A gourmet Three.js cake. The recipient taps a candle or blows into their microphone to blow them out, with physics-based smoke.
+4. **Camera moment** — The camera opens for a selfie snapshot (saved only on the recipient's device).
+5. **Birthday wish** — Typed wishes ascend to the sky with confetti.
+6. **Doodle** — A scratch-off / drawing surprise.
+7. **Timeline milestones** — A chronological tracker of key dates and stories.
+8. **Shared photo scrapbook** — Polaroid-style memories with handwritten captions.
+9. **Trivia** — A playful quiz about the recipient.
+10. **Balloons** — Pop metallic balloons to release poetic wishes.
+11. **Grand finale** — Fireworks, a shareable recap card, and a nudge to create one for someone they love.
+
+## Architecture
+
+WishMaker is a single Next.js app: the frontend and backend live in one process, split by route convention. Client-side config is encrypted and carried in the share URL; only optional persisted wishes touch a database.
+
+<img src="public/architecture.svg" alt="WishMaker architecture: browser client → Next.js frontend (focal), which calls Server Actions and API Routes; those reach the Gemini API for AI features and MongoDB for wishes" width="720">
+
+- **Client** — the phone-first browser, no signup or install required.
+- **Frontend** — React 19, Three.js, Tailwind, and Framer Motion rendering the landing, creator wizard, and recipient experience.
+- **Server Actions** (`src/lib/actions.ts`) — Gemini-backed letter drafting, theme recommendation, and photo captioning.
+- **API Routes** (`src/app/api/`) — `/api/wishes` for optional persisted wishes, `/api/og` for dynamic Open Graph images.
+- **Gemini API** — `gemini-2.5-flash` powers all AI features.
+- **MongoDB** — optional wish store, with a TTL index auto-deleting wishes 7 days after delivery.
+
+> [!NOTE]
+> The interactive diagram is also available as a self-contained HTML file: [`architecture.html`](architecture.html).
+
+## Configuration
+
+| Variable | Required | Description |
+| --- | --- | --- |
+| `GEMINI_API_KEY` | Yes (for AI features) | Google AI key used for letter drafts, theme recommendations, and photo captions. |
+| `MONGODB_URI` | Optional | MongoDB connection string for the persisted-wish flow. |
+
+## Privacy
+
+WishMaker sets **no cookies** and tracks **no analytics**. The surprise configuration is encrypted and travels inside the share URL; camera photos never leave the recipient's device. The only server-side persistence is the optional `/api/wishes` path, where wishes are automatically deleted **7 days** after their delivery date via a TTL index.
+
+## Tech stack
+
+- **Next.js 16** (Turbopack) + React 19, Server Actions & route handlers
+- **TypeScript** throughout
+- **Tailwind CSS v4** with a warm, cozy design system (shadcn / Base UI primitives)
+- **Three.js** for the 3D cake, candles, and fireworks
+- **Framer Motion** for stage transitions
+- **Mongoose / MongoDB** for the optional wish store
+- **Gemini API** (`gemini-2.5-flash`) for letters, themes, and photo captions
+
+## Project structure
+
+```
+src/
+├── app/
+│   ├── page.tsx            # Landing page
+│   ├── create/             # Gift-maker wizard
+│   ├── wish/               # Recipient experience (WishViewer)
+│   └── api/
+│       ├── wishes/         # Optional persisted wishes (MongoDB)
+│       └── og/             # Dynamic Open Graph images
+├── components/
+│   ├── birthday/           # Cake, candles, fireworks, memory lane, trivia, balloons…
+│   ├── create/             # Wizard forms (cake style, tunes, memories, trivia)
+│   └── ui/                 # Buttons, step bar, ambient canvas, voice recorder
+├── lib/                    # AI actions, audio/jingle, MongoDB, styles, utils
+├── models/                 # Mongoose schemas
+└── types/                  # Shared types
+```
+
+## Acknowledgements
+
+- Birthday melodies from Pixabay contributors
+- Hero photography from [Unsplash](https://unsplash.com)

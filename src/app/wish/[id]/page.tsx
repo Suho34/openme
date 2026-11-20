@@ -1,13 +1,15 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import WishViewer, { ErrorView, LoadingView } from "@/components/birthday/WishViewer";
 import type { WishData } from "@/lib/types";
 
 function WishContent() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const id = params?.id as string;
+  const preview = searchParams?.get("preview") === "1";
 
   const [wishData, setWishData] = useState<WishData | null>(null);
   const [error, setError] = useState(false);
@@ -25,7 +27,7 @@ function WishContent() {
 
   if (error) return <ErrorView />;
   if (!wishData) return <LoadingView />;
-  return <WishViewer wishData={wishData} />;
+  return <WishViewer wishData={wishData} preview={preview} />;
 }
 
 export default function WishPage() {
