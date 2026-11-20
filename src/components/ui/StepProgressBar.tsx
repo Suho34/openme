@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React from "react";
 import type { StepProgressBarProps } from "@/lib/types";
@@ -22,7 +22,7 @@ export default function StepProgressBar({
           className="absolute left-0 top-0 h-full rounded-full transition-all duration-700"
           style={{
             width: `${pct}%`,
-            background: "linear-gradient(90deg, #C97B84, #D8B88A)",
+            background: "linear-gradient(90deg, #B05463, #D8B88A)",
           }}
         />
 
@@ -39,9 +39,9 @@ export default function StepProgressBar({
               <div
                 className={`w-2.5 h-2.5 rounded-full border-2 transition-all duration-500 ${
                   isCompleted
-                    ? "bg-[#C97B84] border-[#C97B84] scale-100"
+                    ? "bg-[#B05463] border-[#B05463] scale-100"
                     : isActive
-                      ? "bg-white border-[#C97B84] scale-125"
+                      ? "bg-white border-[#B05463] scale-125"
                       : "bg-white border-[#ECE3DA] scale-100"
                 }`}
                 style={
@@ -62,10 +62,10 @@ export default function StepProgressBar({
             key={i}
             className={`text-[0.625rem] font-semibold uppercase tracking-wider transition-colors duration-300 ${
               i === current
-                ? "text-[#C97B84]"
+                ? "text-[#B05463]"
                 : i < current
                   ? "text-[#6F655E]"
-                  : "text-[#DDD4CB]"
+                  : "text-[#7A6F62]"
             }`}
           >
             {label}

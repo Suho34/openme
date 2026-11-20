@@ -21,6 +21,7 @@ export default function Cake3D({
   numCandles,
   candlesLit,
   onCandleClick,
+  cakeStyle,
 }: Cake3DProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const flamesRef = useRef<THREE.Group[]>([]);
@@ -33,11 +34,11 @@ export default function Cake3D({
 
     const { scene, camera, renderer, rootGroup } = createScene(container);
     addLighting(rootGroup);
-    const materials = createMaterials();
+    const materials = createMaterials(cakeStyle);
     materialsRef.current = materials;
 
     buildTable(rootGroup, materials.wood);
-    buildPlate(rootGroup, materials.plate);
+    buildPlate(rootGroup, materials.plate, materials.goldRim);
     buildBottomTier(rootGroup, materials);
     const topTierGroup = buildTopTier(rootGroup, materials);
 
@@ -53,7 +54,7 @@ export default function Cake3D({
     flames.forEach((f, i) => (f.visible = candlesLit[i] ?? true));
     lights.forEach((l, i) => (l.visible = candlesLit[i] ?? true));
 
-    buildSprinkles(rootGroup);
+    buildSprinkles(rootGroup, materials);
     const particleData = buildParticles(rootGroup);
 
     const interaction = setupInteraction(
@@ -92,7 +93,7 @@ export default function Cake3D({
         } catch (_) {}
       }
     };
-  }, [numCandles]);
+  }, [numCandles, cakeStyle]);
 
   useEffect(() => {
     candlesLit.forEach((lit, index) => {

@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { Materials, sprinkleColors } from "./materials";
+import { Materials } from "./materials";
 
 export interface CandleData {
   group: THREE.Group;
@@ -35,7 +35,7 @@ export function buildTable(rootGroup: THREE.Group, wood: THREE.MeshStandardMater
   tableGroup.add(tableBase);
 }
 
-export function buildPlate(rootGroup: THREE.Group, plate: THREE.MeshStandardMaterial) {
+export function buildPlate(rootGroup: THREE.Group, plate: THREE.Material, goldRim?: THREE.Material) {
   const plateGroup = new THREE.Group();
   plateGroup.position.y = 0.04;
   rootGroup.add(plateGroup);
@@ -45,13 +45,14 @@ export function buildPlate(rootGroup: THREE.Group, plate: THREE.MeshStandardMate
   surface.castShadow = surface.receiveShadow = true;
   plateGroup.add(surface);
 
-  const rim = new THREE.Mesh(new THREE.TorusGeometry(1.62, 0.06, 16, 72), plate);
+  const rimMat = goldRim || plate;
+  const rim = new THREE.Mesh(new THREE.TorusGeometry(1.64, 0.05, 16, 72), rimMat);
   rim.position.y = 0.1;
   rim.rotation.x = Math.PI / 2;
   rim.castShadow = rim.receiveShadow = true;
   plateGroup.add(rim);
 
-  const foot = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.6, 0.3, 48), plate);
+  const foot = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.6, 0.3, 48), rimMat);
   foot.position.y = -0.18;
   foot.castShadow = foot.receiveShadow = true;
   plateGroup.add(foot);
@@ -236,6 +237,14 @@ export function buildCandles(
     flameGroup.name = "flameGroup";
     candleGroup.add(flameGroup);
 
+    // Enlarged touch hit area for mobile finger tapping on the flame
+    const touchGeo = new THREE.SphereGeometry(0.2, 8, 8);
+    const touchMat = new THREE.MeshBasicMaterial({ visible: false });
+    const touchTarget = new THREE.Mesh(touchGeo, touchMat);
+    touchTarget.position.y = 0.58;
+    touchTarget.name = `flameTouch-${i}`;
+    candleGroup.add(touchTarget);
+
     const flameCone = new THREE.Mesh(cFlameConeGeo, mat.flame);
     flameCone.position.y = 0.1;
     flameCone.name = "flameCone";
@@ -268,16 +277,16 @@ export function buildCandles(
   return { candlesGroup, candleData, flames, lights };
 }
 
-export function buildSprinkles(rootGroup: THREE.Group) {
+export function buildSprinkles(rootGroup: THREE.Group, mat: Materials) {
   const group = new THREE.Group();
   rootGroup.add(group);
   const geo = new THREE.CylinderGeometry(0.016, 0.016, 0.09, 6);
 
   const place = (count: number, fn: (i: number) => { x: number; y: number; z: number }) => {
     for (let i = 0; i < count; i++) {
-      const color = sprinkleColors[Math.floor(Math.random() * sprinkleColors.length)];
-      const mat = new THREE.MeshStandardMaterial({ color, roughness: 0.35, metalness: 0.05 });
-      const mesh = new THREE.Mesh(geo, mat);
+      const color = mat.palette.sprinkles[Math.floor(Math.random() * mat.palette.sprinkles.length)];
+      const sMat = new THREE.MeshStandardMaterial({ color, roughness: 0.35, metalness: 0.05 });
+      const mesh = new THREE.Mesh(geo, sMat);
       const p = fn(i);
       mesh.position.set(p.x, p.y, p.z);
       mesh.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);

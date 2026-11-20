@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useRef, useEffect, useState } from "react";
 import { Image as ImageIcon, Heart } from "lucide-react";
@@ -135,7 +135,7 @@ export default function DevelopingPolaroid({
         )}
 
         {/* Love tape on top of polaroid */}
-        <div className="absolute -top-3 left-[35%] right-[35%] h-6 bg-[#C97B84]/20 backdrop-blur-[1px] border border-white/40 rotate-2 shadow-sm flex items-center justify-center text-[10px] text-[#C97B84] font-bold">
+        <div className="absolute -top-3 left-[35%] right-[35%] h-6 bg-[#B05463]/20 backdrop-blur-[1px] border border-white/40 rotate-2 shadow-sm flex items-center justify-center text-[10px] text-[#B05463] font-bold">
           <Heart className="w-2.5 h-2.5 fill-current" />
         </div>
       </div>

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -16,7 +16,7 @@ const METALLIC_BALLOONS = [
     glow: "rgba(216,184,138,0.22)",
   }, // Champagne Gold
   {
-    color: "linear-gradient(135deg, #D88F97 0%, #C97B84 100%)",
+    color: "linear-gradient(135deg, #D88F97 0%, #B05463 100%)",
     border: "rgba(201,123,132,0.45)",
     glow: "rgba(201,123,132,0.22)",
   }, // Soft Rose Gold
@@ -50,7 +50,7 @@ const POETIC_QUOTES = [
   "Let your life lightly dance on the edges of Time like dew on the tip of a leaf.",
 ];
 
-export default function BalloonGame() {
+export default function BalloonGame({ onPopped }: { onPopped?: (count: number) => void }) {
   const [balloons, setBalloons] = useState<Balloon[]>([]);
   const [poppedCount, setPoppedCount] = useState(0);
   const [revealedWish, setRevealedWish] = useState<string | null>(null);
@@ -82,7 +82,9 @@ export default function BalloonGame() {
     setBalloons((prev) =>
       prev.map((b) => (b.id === id ? { ...b, popped: true } : b)),
     );
-    setPoppedCount((c) => c + 1);
+    const next = poppedCount + 1;
+    setPoppedCount(next);
+    onPopped?.(next);
     setRevealedWish(wish);
     playConfettiPop();
   };
@@ -97,11 +99,11 @@ export default function BalloonGame() {
     >
       {/* Elevated dark glass status top bar */}
       <div className="relative z-20 flex items-center justify-between bg-white px-4 py-3 rounded-2xl shadow-sm border border-[#ECE3DA] max-w-xs mx-auto w-full">
-        <span className="text-[0.625rem] font-semibold text-[#C97B84] uppercase tracking-widest">
+        <span className="text-[0.625rem] font-semibold text-[#B05463] uppercase tracking-widest">
           Release Wishes
         </span>
         <span className="text-sm font-semibold text-[#2E2A27] flex items-center gap-1.5 font-mono">
-          <Sparkles className="w-3.5 h-3.5 text-[#C97B84] fill-current animate-pulse" />
+          <Sparkles className="w-3.5 h-3.5 text-[#B05463] fill-current animate-pulse" />
           {poppedCount} / 10
         </span>
       </div>
@@ -154,7 +156,7 @@ export default function BalloonGame() {
                 />
 
                 {/* Long swaying string */}
-                <div className="absolute -bottom-12 left-1/2 -translate-x-1/2 w-[1px] h-12 bg-[#C97B84]/15" />
+                <div className="absolute -bottom-12 left-1/2 -translate-x-1/2 w-[1px] h-12 bg-[#B05463]/15" />
               </motion.div>
             )}
           </AnimatePresence>
@@ -173,7 +175,7 @@ export default function BalloonGame() {
               transition={{ duration: 0.35, ease: EASE }}
               className="surface rounded-2xl px-6 py-5 border border-[#ECE3DA] text-center max-w-xs flex flex-col items-center gap-1.5"
             >
-              <span className="text-[0.625rem] text-[#C97B84] font-semibold uppercase tracking-widest">
+              <span className="text-[0.625rem] text-[#B05463] font-semibold uppercase tracking-widest">
                 WISH COMMITTED
               </span>
               <span className="text-[#2E2A27] text-[0.9375rem] leading-relaxed font-serif italic">
@@ -188,7 +190,7 @@ export default function BalloonGame() {
       {poppedCount === 10 && (
         <div className="absolute inset-0 z-30 bg-[#FFF8F2]/95 backdrop-blur-md rounded-2xl flex flex-col items-center justify-center p-6 text-center animate-reveal-up">
           <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mb-4 border border-[#ECE3DA] shadow-md">
-            <Trophy className="w-5 h-5 text-[#C97B84]" />
+            <Trophy className="w-5 h-5 text-[#B05463]" />
           </div>
           <h3 className="text-xl font-serif italic text-[#2E2A27]">
             Wishes Released
@@ -207,7 +209,7 @@ export default function BalloonGame() {
       )}
 
       {/* Background Hint */}
-      <div className="text-center relative z-20 text-[0.625rem] text-[#B5ADA5] font-semibold tracking-wider uppercase">
+      <div className="text-center relative z-20 text-[0.625rem] text-[#7A6F62] font-semibold tracking-wider uppercase">
         {poppedCount < 10
           ? "Tap floating balloons to commit wishes"
           : "All wishes released"}

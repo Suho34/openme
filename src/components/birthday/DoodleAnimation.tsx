@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React from "react";
 import { motion as motionComponent } from "framer-motion";
@@ -59,7 +59,7 @@ export default function DoodleAnimation({
     <div className="flex flex-col items-center justify-center flex-1 max-w-lg mx-auto w-full my-auto animate-reveal-up text-center space-y-6">
       <div className="surface rounded-3xl p-6 sm:p-8 w-full relative overflow-hidden flex flex-col items-center">
         {/* Soft backlighting */}
-        <div className="absolute -top-12 -right-12 w-32 h-32 rounded-full pointer-events-none opacity-25 bg-[#C97B84] blur-2xl" />
+        <div className="absolute -top-12 -right-12 w-32 h-32 rounded-full pointer-events-none opacity-25 bg-[#B05463] blur-2xl" />
         <div className="absolute -bottom-12 -left-12 w-32 h-32 rounded-full pointer-events-none opacity-25 bg-[#D8B88A] blur-2xl" />
 
         {/* Doodle Drawing Canvas */}
@@ -86,7 +86,7 @@ export default function DoodleAnimation({
               {/* Romantic Heart */}
               <motionComponent.path
                 d="M 200,85 C 170,40 120,75 200,165 C 280,75 230,40 200,85"
-                stroke="#C97B84" // Primary Rose Red
+                stroke="#B05463" // Primary Rose Red
                 strokeWidth="3.5"
                 initial={{ pathLength: 0 }}
                 animate={{ pathLength: 1 }}
@@ -143,7 +143,7 @@ export default function DoodleAnimation({
               {/* Rose Petals - Left Side */}
               <motionComponent.path
                 d="M 200,75 C 170,45 130,100 200,140"
-                stroke="#C97B84"
+                stroke="#B05463"
                 strokeWidth="3.5"
                 initial={{ pathLength: 0 }}
                 animate={{ pathLength: 1 }}
@@ -152,7 +152,7 @@ export default function DoodleAnimation({
               {/* Rose Petals - Right Side */}
               <motionComponent.path
                 d="M 200,75 C 230,45 270,100 200,140"
-                stroke="#C97B84"
+                stroke="#B05463"
                 strokeWidth="3.5"
                 initial={{ pathLength: 0 }}
                 animate={{ pathLength: 1 }}
@@ -170,7 +170,7 @@ export default function DoodleAnimation({
               {/* Lower wrap petal */}
               <motionComponent.path
                 d="M 175,95 C 150,120 250,120 225,95"
-                stroke="#C97B84"
+                stroke="#B05463"
                 strokeWidth="2"
                 initial={{ pathLength: 0 }}
                 animate={{ pathLength: 1 }}
@@ -184,7 +184,7 @@ export default function DoodleAnimation({
               {/* Heart 1 */}
               <motionComponent.path
                 d="M 170,95 C 145,55 100,85 170,165 C 240,85 195,55 170,95"
-                stroke="#C97B84"
+                stroke="#B05463"
                 strokeWidth="3.5"
                 initial={{ pathLength: 0 }}
                 animate={{ pathLength: 1 }}
@@ -207,7 +207,7 @@ export default function DoodleAnimation({
               {/* Cup 1 */}
               <motionComponent.path
                 d="M 150,110 L 150,160 C 150,175 180,175 180,160 L 180,110 Z"
-                stroke="#C97B84"
+                stroke="#B05463"
                 strokeWidth="3"
                 initial={{ pathLength: 0 }}
                 animate={{ pathLength: 1 }}
@@ -215,7 +215,7 @@ export default function DoodleAnimation({
               />
               <motionComponent.path
                 d="M 150,120 C 135,120 135,145 150,145"
-                stroke="#C97B84"
+                stroke="#B05463"
                 strokeWidth="2"
                 initial={{ pathLength: 0 }}
                 animate={{ pathLength: 1 }}
@@ -285,7 +285,7 @@ export default function DoodleAnimation({
             initial={{ opacity: 0, y: 5 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5, duration: 0.8 }}
-            className="text-[11px] text-[#B5ADA5] uppercase tracking-widest font-semibold"
+            className="text-[11px] text-[#7A6F62] uppercase tracking-widest font-semibold"
           >
             <motionComponent.span
               initial={{ opacity: 1 }}
@@ -303,17 +303,17 @@ export default function DoodleAnimation({
         <motionComponent.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 3.8, duration: 0.8, type: "spring" }}
+          transition={{ delay: 3.8, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
           className="w-full pt-4 border-t border-[#ECE3DA] mt-2 flex flex-col items-center"
         >
-          <span className="text-[10px] text-[#C97B84] font-bold uppercase tracking-widest flex items-center gap-1.5 mb-1.5">
-            <Heart className="w-3 h-3 text-[#C97B84] fill-current" />{" "}
+          <span className="text-[10px] text-[#B05463] font-bold uppercase tracking-widest flex items-center gap-1.5 mb-1.5">
+            <Heart className="w-3 h-3 text-[#B05463] fill-current" />{" "}
             {labels.title}
           </span>
           <h4 className="text-xl sm:text-2xl font-bold text-[#2E2A27] tracking-tight font-serif italic">
             Happy Birthday, {name}!
           </h4>
-          <p className="text-[9px] text-[#B5ADA5] uppercase tracking-widest mt-1">
+          <p className="text-[9px] text-[#7A6F62] uppercase tracking-widest mt-1">
             {labels.subtitle}
           </p>
         </motionComponent.div>

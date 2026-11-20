@@ -14,13 +14,14 @@ export function runAnimationLoop(
   materials: Materials,
   interactionState: InteractionState
 ): () => void {
-  const clock = new THREE.Clock();
+  const timer = new THREE.Timer();
   let animationId: number;
 
   function animate() {
     animationId = requestAnimationFrame(animate);
-    const time = clock.getElapsedTime();
-    const dt = Math.min(clock.getDelta(), 0.1);
+    timer.update();
+    const time = timer.getElapsed();
+    const dt = Math.min(timer.getDelta(), 0.1);
 
     if (!interactionState.isDragging) {
       rootGroup.rotation.y += 0.002;

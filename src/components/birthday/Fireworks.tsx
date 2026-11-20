@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useRef, useEffect } from "react";
 import type { FireworksProps, Particle, Rocket } from "@/lib/types";
@@ -6,10 +6,10 @@ import type { FireworksProps, Particle, Rocket } from "@/lib/types";
 // Warm editorial fireworks palette: champagne gold, dusty rose, sage, ivory — no blue/neon
 const PALETTES = [
   ["#D8B88A", "#E5CDA5", "#EDD9B8"], // champagne gold
-  ["#C97B84", "#D89BA3", "#E8BCC2"], // dusty rose
+  ["#B05463", "#D89BA3", "#E8BCC2"], // dusty rose
   ["#F5EDE3", "#FFF8F2", "#FFFFFF"], // warm ivory
   ["#A6B39D", "#BCC9B5", "#D3DDCE"], // muted sage
-  ["#D8B88A", "#C97B84", "#FFFFFF"], // gold + rose mix
+  ["#D8B88A", "#B05463", "#FFFFFF"], // gold + rose mix
 ];
 
 function createParticle(x: number, y: number, color: string): Particle {

@@ -29,7 +29,7 @@ export default function Timeline({ events = DEFAULT_EVENTS }: TimelineProps) {
   return (
     <div className="relative w-full max-w-xl mx-auto py-5 select-none">
       {/* Central Line Track */}
-      <div className="absolute left-4 sm:left-1/2 top-0 bottom-0 w-0.5 bg-linear-to-b from-[#C97B84]/30 via-[#C97B84]/10 to-transparent -translate-x-1/2" />
+      <div className="absolute left-4 sm:left-1/2 top-0 bottom-0 w-0.5 bg-linear-to-b from-[#B05463]/30 via-[#B05463]/10 to-transparent -translate-x-1/2" />
 
       {/* Events List */}
       <div className="space-y-8">
@@ -47,18 +47,18 @@ export default function Timeline({ events = DEFAULT_EVENTS }: TimelineProps) {
 
               {/* Dot indicator */}
               <div className="absolute left-4 sm:left-1/2 -translate-x-1/2 z-20 flex items-center justify-center">
-                <div className="w-5 h-5 rounded-full glass border border-[#C97B84]/40 flex items-center justify-center bg-[#FFF8F2]">
-                  <Circle className="w-2 h-2 text-[#C97B84] fill-current animate-pulse" />
+                <div className="w-5 h-5 rounded-full glass border border-[#B05463]/40 flex items-center justify-center bg-[#FFF8F2]">
+                  <Circle className="w-2 h-2 text-[#B05463] fill-current animate-pulse" />
                 </div>
               </div>
 
               {/* Card content */}
               <div
-                className={`ml-10 sm:ml-0 w-[85%] sm:w-[45%] glass rounded-xl p-5 border border-[#ECE3DA] bg-white/40 hover:border-[#C97B84]/40 transition-all duration-200`}
+                className={`ml-10 sm:ml-0 w-[85%] sm:w-[45%] glass rounded-xl p-5 border border-[#ECE3DA] bg-white/40 hover:border-[#B05463]/40 transition-all duration-200`}
                 style={{ boxShadow: "0 4px 20px rgba(62,45,47,0.03)" }}
               >
                 {/* Date header */}
-                <div className="flex items-center gap-1.5 text-[#C97B84] mb-2">
+                <div className="flex items-center gap-1.5 text-[#B05463] mb-2">
                   <Calendar className="w-3.5 h-3.5" />
                   <span className="text-[10px] font-bold uppercase tracking-wider font-mono">
                     {event.date}

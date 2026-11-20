@@ -16,13 +16,21 @@ export function createScene(container: HTMLElement): SceneResources {
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.1;
+  renderer.toneMappingExposure = 1.15;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   container.appendChild(renderer.domElement);
 
-  const camera = new THREE.PerspectiveCamera(42, container.clientWidth / container.clientHeight, 0.3, 25);
-  camera.position.set(3.8, 1.9, 5.2);
-  camera.lookAt(0, 0.7, 0);
+  const aspect = container.clientWidth / container.clientHeight;
+  const isPortrait = aspect < 1.0;
+  const fov = isPortrait ? 52 : 40;
+
+  const camera = new THREE.PerspectiveCamera(fov, aspect, 0.3, 25);
+  if (isPortrait) {
+    camera.position.set(3.0, 2.3, 5.6);
+  } else {
+    camera.position.set(3.8, 1.9, 5.2);
+  }
+  camera.lookAt(0, 0.65, 0);
 
   const rootGroup = new THREE.Group();
   scene.add(rootGroup);
@@ -31,34 +39,38 @@ export function createScene(container: HTMLElement): SceneResources {
 }
 
 export function addLighting(rootGroup: THREE.Group) {
-  const ambientLight = new THREE.AmbientLight("#fdf5ec", 0.6);
+  // Soft, warm candlelit ambient light
+  const ambientLight = new THREE.AmbientLight("#FAF0E6", 0.7);
   rootGroup.add(ambientLight);
 
-  const hemisphereLight = new THREE.HemisphereLight("#ffe8d6", "#3a1f1f", 0.5);
+  const hemisphereLight = new THREE.HemisphereLight("#FFE8D6", "#2C1B18", 0.6);
   rootGroup.add(hemisphereLight);
 
-  const keyLight = new THREE.DirectionalLight("#ffffff", 2.8);
-  keyLight.position.set(6, 8, 2);
+  const keyLight = new THREE.DirectionalLight("#FFF8EE", 2.2);
+  keyLight.position.set(5, 7, 3);
   keyLight.castShadow = true;
-  keyLight.shadow.mapSize.width = 2048;
-  keyLight.shadow.mapSize.height = 2048;
+  keyLight.shadow.mapSize.width = 1024;
+  keyLight.shadow.mapSize.height = 1024;
   keyLight.shadow.camera.near = 0.5;
-  keyLight.shadow.camera.far = 30;
-  keyLight.shadow.camera.left = -6;
-  keyLight.shadow.camera.right = 6;
-  keyLight.shadow.camera.top = 6;
-  keyLight.shadow.camera.bottom = -2;
+  keyLight.shadow.camera.far = 25;
   keyLight.shadow.bias = -0.0003;
   keyLight.shadow.normalBias = 0.02;
   rootGroup.add(keyLight);
 
-  const rimLight = new THREE.DirectionalLight("#ffd5c2", 1.4);
-  rimLight.position.set(-3, 2, -4);
+  // Warm golden rim light mimicking nearby candlelight glow
+  const rimLight = new THREE.DirectionalLight("#FFAA66", 1.2);
+  rimLight.position.set(-4, 2.5, -3);
   rootGroup.add(rimLight);
 }
 
-export function handleResize(container: HTMLElement, camera: THREE.PerspectiveCamera, renderer: THREE.WebGLRenderer) {
-  camera.aspect = container.clientWidth / container.clientHeight;
+export function handleResize(
+  container: HTMLElement,
+  camera: THREE.PerspectiveCamera,
+  renderer: THREE.WebGLRenderer,
+) {
+  const aspect = container.clientWidth / container.clientHeight;
+  camera.aspect = aspect;
+  camera.fov = aspect < 1.0 ? 52 : 40;
   camera.updateProjectionMatrix();
   renderer.setSize(container.clientWidth, container.clientHeight);
 }

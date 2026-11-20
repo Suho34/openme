@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+﻿import React, { useState, useRef, useEffect } from "react";
 import { Mic, Square, Play, Trash2 } from "lucide-react";
 import type { VoiceRecorderProps } from "@/lib/types";
 
@@ -96,7 +96,7 @@ export default function VoiceRecorder({
 
   const handleClear = () => {
     setAudioUrl(null);
-    onClear();
+    onClear?.();
   };
 
   const formatTime = (seconds: number) => {
@@ -108,7 +108,7 @@ export default function VoiceRecorder({
   return (
     <div className="surface rounded-2xl p-4 flex flex-col items-start gap-3">
       <div className="flex items-center gap-2 mb-1">
-        <Mic className="w-4 h-4 text-[#C97B84]" />
+        <Mic className="w-4 h-4 text-[#B05463]" />
         <p className="text-sm font-semibold text-[#2E2A27]">Voice Note</p>
       </div>
 

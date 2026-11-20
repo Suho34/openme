@@ -17,6 +17,22 @@ export interface ITrivia {
   correctAnswerIndex: number;
 }
 
+export interface IScrollNote {
+  id: string;
+  text: string;
+  tag?: string;
+}
+
+export interface ITimeCapsule {
+  id: string;
+  prompt: string;
+  message: string;
+  voiceNoteUrl?: string;
+  photoUrl?: string;
+  voucher?: string;
+  unlockedAt?: string;
+}
+
 export interface IWish extends Document {
   name: string;
   age?: number;
@@ -29,9 +45,13 @@ export interface IWish extends Document {
   trivia?: ITrivia[];
   doodleType?: string;
   ambience?: string;
+  cakeStyle?: string;
   voiceNoteUrl?: string; // Base64 audio string or URL
   tuneUrl?: string;
   tuneDurationSeconds?: number | null;
+  scrollNotes?: IScrollNote[];
+  scrollJarTitle?: string;
+  timeCapsules?: ITimeCapsule[];
   createdAt: Date;
   deleteAt: Date; // Used for TTL index
 }
@@ -53,6 +73,22 @@ const TriviaSchema = new Schema<ITrivia>({
   correctAnswerIndex: { type: Number, required: true },
 });
 
+const ScrollNoteSchema = new Schema<IScrollNote>({
+  id: { type: String, required: true },
+  text: { type: String, required: true },
+  tag: { type: String },
+});
+
+const TimeCapsuleSchema = new Schema<ITimeCapsule>({
+  id: { type: String, required: true },
+  prompt: { type: String, required: true },
+  message: { type: String, required: true },
+  voiceNoteUrl: { type: String },
+  photoUrl: { type: String },
+  voucher: { type: String },
+  unlockedAt: { type: String },
+});
+
 const WishSchema = new Schema<IWish>({
   name: { type: String, required: true },
   age: { type: Number },
@@ -65,9 +101,13 @@ const WishSchema = new Schema<IWish>({
   trivia: [TriviaSchema],
   doodleType: { type: String },
   ambience: { type: String },
+  cakeStyle: { type: String },
   voiceNoteUrl: { type: String },
   tuneUrl: { type: String },
   tuneDurationSeconds: { type: Number, default: null },
+  scrollNotes: [ScrollNoteSchema],
+  scrollJarTitle: { type: String },
+  timeCapsules: [TimeCapsuleSchema],
   createdAt: { type: Date, default: Date.now },
   deleteAt: { type: Date, required: true },
 });

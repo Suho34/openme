@@ -17,16 +17,26 @@ export interface TriviaQuestion {
   correctAnswerIndex: number;
 }
 
+export interface ScrollNote {
+  id: string;
+  text: string;
+  tag?: string;
+}
+
+export interface TimeCapsule {
+  id: string;
+  prompt: string;
+  message: string;
+  voiceNoteUrl?: string;
+  photoUrl?: string;
+  voucher?: string;
+  unlockedAt?: string | null;
+}
+
 export type ThemeId = "starry" | "neon" | "romance" | "pastel" | "retro";
-export type RelationType =
-  | "best friend"
-  | "partner"
-  | "sibling"
-  | "family"
-  | "colleague"
-  | "mentor";
 export type DoodleType = "heart" | "rose" | "hearts" | "coffee";
 export type AmbienceType = "fire" | "rain" | "ocean" | "none";
+export type CakeStyle = "classic" | "berry" | "matcha" | "chocolate";
 
 export interface WishData {
   name: string;
@@ -40,9 +50,13 @@ export interface WishData {
   trivia?: TriviaQuestion[];
   doodleType?: DoodleType;
   ambience?: AmbienceType;
+  cakeStyle?: CakeStyle;
   voiceNoteUrl?: string;
   tuneUrl?: string;
   tuneDurationSeconds?: number | null;
+  scrollNotes?: ScrollNote[];
+  scrollJarTitle?: string;
+  timeCapsules?: TimeCapsule[];
   demo?: boolean;
 }
 
@@ -63,7 +77,7 @@ export interface WishTemplate {
   description: string;
   defaults: {
     theme: ThemeId;
-    relationship: RelationType;
+    convey: string;
     tone: number;
     keywords: string;
     prompt: string;
@@ -85,6 +99,8 @@ export interface BirthdayCakeProps {
   name: string;
   age?: number;
   tuneUrl?: string;
+  cakeStyle?: CakeStyle;
+  onStat?: (stats: { candlesTries: number; usedMicrophone: boolean }) => void;
   onCelebrationStart: () => void;
 }
 
@@ -92,6 +108,7 @@ export interface Cake3DProps {
   numCandles: number;
   candlesLit: boolean[];
   onCandleClick: (index: number) => void;
+  cakeStyle?: CakeStyle;
 }
 
 export interface DevelopingPolaroidProps {
@@ -155,6 +172,7 @@ export interface TimelineProps {
 export interface TriviaGameProps {
   trivia: TriviaQuestion[];
   onComplete: () => void;
+  onScore?: (correct: number) => void;
 }
 
 export interface TriviaFormProps {
@@ -166,11 +184,13 @@ export interface TriviaFormProps {
 }
 
 export interface MemoryLaneFormProps {
-  activeFolder: AccordionFolder;
-  setActiveFolder: Dispatch<SetStateAction<AccordionFolder>>;
   memories: Memory[];
-  setMemories: (m: Memory[]) => void;
-  SectionHeader: FC<{ icon: ReactNode; children: ReactNode }>;
+  setMemories?: (m: Memory[]) => void;
+  onChange?: (m: Memory[]) => void;
+  recipientName?: string;
+  activeFolder?: AccordionFolder;
+  setActiveFolder?: Dispatch<SetStateAction<AccordionFolder>>;
+  SectionHeader?: FC<{ icon: ReactNode; children: ReactNode }>;
 }
 
 export interface TunePickerProps {
@@ -180,7 +200,7 @@ export interface TunePickerProps {
 
 export interface VoiceRecorderProps {
   onRecordingComplete: (base64Audio: string) => void;
-  onClear: () => void;
+  onClear?: () => void;
 }
 
 export interface StepProgressBarProps {
@@ -191,6 +211,7 @@ export interface StepProgressBarProps {
 
 export interface WishViewerProps {
   wishData: WishData;
+  preview?: boolean;
 }
 
 export interface StageOption {

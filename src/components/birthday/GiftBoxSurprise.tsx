@@ -2,9 +2,10 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mail, Sparkles, Compass } from "lucide-react";
+import { Mail, Heart } from "lucide-react";
 import { playChime } from "@/lib/audio";
 import toast from "react-hot-toast";
+import HandwrittenLetter from "./HandwrittenLetter";
 import type { GiftBoxSurpriseProps } from "@/lib/types";
 
 const EASE = [0.25, 0.1, 0.25, 1] as const;
@@ -22,12 +23,15 @@ export default function GiftBoxSurprise({
     if (state !== "idle") return;
     setState("breaking");
     playChime();
-    toast("Unsealing your invitation…");
+    if (typeof window !== "undefined" && navigator.vibrate) {
+      navigator.vibrate([30, 25, 45]);
+    }
+    toast("Breaking the wax seal…");
 
     setTimeout(() => {
       setState("opened");
-      setTimeout(() => setShowCard(true), 600);
-    }, 1100);
+      setTimeout(() => setShowCard(true), 400);
+    }, 1000);
   };
 
   return (
@@ -129,18 +133,15 @@ export default function GiftBoxSurprise({
                       ? { duration: 0.9, ease: "easeInOut" }
                       : { repeat: Infinity, duration: 4, ease: "easeInOut" }
                   }
-                  className="w-14 h-14 rounded-full relative flex items-center justify-center border border-[#C97B84]/30"
+                  className="w-16 h-16 rounded-full relative flex items-center justify-center cursor-pointer wax-seal-shadow"
                   style={{
                     background:
-                      "radial-gradient(circle, #C97B84 0%, #A9545E 70%, #7A3B45 100%)",
-                    boxShadow:
-                      "0 4px 16px rgba(201,123,132,0.28), inset 0 2px 4px rgba(255,255,255,0.4), inset 0 -2px 4px rgba(0,0,0,0.4)",
+                      "radial-gradient(circle at 35% 35%, #A33B49 0%, #8B2635 60%, #5A121E 100%)",
+                    border: "1.5px solid rgba(255, 255, 255, 0.25)",
                   }}
                 >
-                  {/* Embossed Star */}
-                  <span className="text-white/80 font-bold text-lg text-glow-gold">
-                    ✦
-                  </span>
+                  {/* Embossed Heart Monogram */}
+                  <Heart className="w-7 h-7 text-white/90 fill-white/85 drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]" />
 
                   {/* Cracked lines overlay during break */}
                   {state === "breaking" && (
@@ -163,7 +164,7 @@ export default function GiftBoxSurprise({
               className="text-lg sm:text-xl font-bold text-[#2E2A27] text-center mt-8 tracking-tight font-serif italic"
             >
               Surprise invitation for{" "}
-              <span className="text-[#C97B84]">{name}</span>
+              <span className="text-[#B05463]">{name}</span>
             </motion.h3>
             <motion.p
               initial={{ opacity: 0 }}
@@ -171,96 +172,18 @@ export default function GiftBoxSurprise({
               transition={{ delay: 0.4 }}
               className="text-xs text-[#6F655E] mt-2 flex items-center gap-1.5 font-medium"
             >
-              <Mail className="w-3.5 h-3.5 text-[#C97B84]" /> Tap wax seal to
+              <Mail className="w-3.5 h-3.5 text-[#B05463]" /> Tap wax seal to
               open surprise
             </motion.p>
           </motion.div>
         ) : (
-          /* High-Fidelity Paper Card Slide-Out */
-          <motion.div
-            key="card"
-            initial={{ opacity: 0, scale: 0.96 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.45, ease: EASE }}
-            className="w-full max-w-lg flex flex-col items-center"
-          >
-            <AnimatePresence>
-              {showCard && (
-                <motion.div
-                  initial={{ y: 80, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ type: "spring", stiffness: 60, damping: 15 }}
-                  className="w-full surface-raised rounded-2xl p-8 sm:p-11 shadow-3xl mb-8 relative overflow-hidden"
-                  style={{
-                    borderColor: "rgba(201,123,132,0.15)",
-                    background:
-                      "linear-gradient(160deg, #FFF8F2 0%, #FFF5EE 100%)",
-                  }}
-                >
-                  {/* Delicate corner ornaments (gold line corners) */}
-                  <div className="absolute top-4 left-4 w-4 h-4 border-t border-l border-[#C97B84]/20" />
-                  <div className="absolute top-4 right-4 w-4 h-4 border-t border-r border-[#C97B84]/20" />
-                  <div className="absolute bottom-4 left-4 w-4 h-4 border-b border-l border-[#C97B84]/20" />
-                  <div className="absolute bottom-4 right-4 w-4 h-4 border-b border-r border-[#C97B84]/20" />
-
-                  {/* Soft gold glow */}
-                  <div
-                    className="absolute -top-12 -right-12 w-44 h-44 rounded-full pointer-events-none opacity-20"
-                    style={{
-                      background:
-                        "radial-gradient(circle, rgba(201,123,132,0.15) 0%, transparent 70%)",
-                      filter: "blur(30px)",
-                    }}
-                  />
-
-                  {/* Header */}
-                  <div className="flex items-center gap-2 border-b border-[#ECE3DA] pb-5 mb-7">
-                    <Compass className="w-4 h-4 text-[#C97B84]/80" />
-                    <span className="text-[10px] font-bold text-[#C97B84]/90 uppercase tracking-widest">
-                      A LETTER FOR YOU
-                    </span>
-                  </div>
-
-                  {/* Letter content */}
-                  <div className="space-y-5 text-[#2E2A27]">
-                    <p className="font-semibold text-base text-[#2E2A27]">
-                      Dear {name},
-                    </p>
-                    <p
-                      className="text-[#554A44] whitespace-pre-line leading-relaxed tracking-wide italic font-serif"
-                      style={{
-                        fontSize: "1.12rem",
-                      }}
-                    >
-                      {message}
-                    </p>
-                    <div className="text-right pt-4 border-t border-[#ECE3DA]">
-                      <span className="text-xs text-[#B5ADA5]">
-                        Sent with warmth by
-                      </span>
-                      <p className="text-sm font-bold text-[#C97B84] mt-1">
-                        {sender}
-                      </p>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={showCard ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
-              transition={{ delay: 0.6, ease: EASE }}
-            >
-              <button
-                onClick={onOpenComplete}
-                className="btn-primary px-8 py-3.5 flex items-center gap-2 text-sm font-semibold"
-              >
-                <Sparkles className="w-4 h-4" />
-                Time to make a wish
-              </button>
-            </motion.div>
-          </motion.div>
+          /* High-Fidelity Photorealistic Deckle-Edge Letter */
+          <HandwrittenLetter
+            name={name}
+            sender={sender}
+            message={message}
+            onProceed={onOpenComplete}
+          />
         )}
       </AnimatePresence>
     </div>

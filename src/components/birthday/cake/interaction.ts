@@ -23,12 +23,21 @@ export function setupInteraction(
     raycaster.setFromCamera(mouse, camera);
     const intersects = raycaster.intersectObjects(candlesGroup.children, true);
     if (intersects.length > 0) {
+      for (const hit of intersects) {
+        if (hit.object.name.startsWith("flameTouch-")) {
+          const index = parseInt(hit.object.name.split("-")[1], 10);
+          if (!isNaN(index)) {
+            onCandleClick(index);
+            return;
+          }
+        }
+      }
       let obj: THREE.Object3D | null = intersects[0].object;
       while (obj && obj.parent !== candlesGroup && !obj.name.startsWith("candle-")) {
         obj = obj.parent;
       }
       if (obj && obj.name.startsWith("candle-")) {
-        const index = parseInt(obj.name.split("-")[1]);
+        const index = parseInt(obj.name.split("-")[1], 10);
         onCandleClick(index);
       }
     }

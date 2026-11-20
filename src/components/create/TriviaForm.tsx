@@ -1,8 +1,8 @@
-"use client";
+﻿"use client";
 
 import React from "react";
 import { Lightbulb, ChevronDown, Plus, Trash2 } from "lucide-react";
-import type { TriviaQuestion, TriviaFormProps } from "@/lib/types";
+import type { TriviaFormProps } from "@/lib/types";
 
 export default function TriviaForm({
   activeFolder,
@@ -49,18 +49,20 @@ export default function TriviaForm({
       <button
         type="button"
         onClick={() => setActiveFolder(isOpen ? "basics" : "trivia")}
+        aria-expanded={isOpen}
+        aria-controls="panel-trivia"
         className="w-full flex items-center justify-between p-5 hover:bg-[#F9F5F0] transition-colors border-b border-[#ECE3DA]"
       >
         <SectionHeader icon={<Lightbulb className="w-3.5 h-3.5" />}>
           Relationship Trivia
         </SectionHeader>
         <ChevronDown
-          className={`w-4 h-4 text-[#B5ADA5] transition-transform ${isOpen ? "rotate-180" : ""}`}
+          className={`w-4 h-4 text-[#7A6F62] transition-transform ${isOpen ? "rotate-180" : ""}`}
         />
       </button>
 
       {isOpen && (
-        <div className="p-5 space-y-6 bg-white">
+        <div id="panel-trivia" className="p-5 space-y-6 bg-white">
           <p className="text-xs text-[#6F655E]">
             Add fun trivia questions they must answer before unlocking the final
             wish!
@@ -74,7 +76,7 @@ export default function TriviaForm({
               <button
                 type="button"
                 onClick={() => removeQuestion(tIdx)}
-                className="absolute top-3 right-3 text-[#B5ADA5] hover:text-[#C46D5E] transition-colors"
+                className="absolute top-3 right-3 text-[#7A6F62] hover:text-[#C46D5E] transition-colors"
               >
                 <Trash2 className="w-4 h-4" />
               </button>
@@ -94,7 +96,7 @@ export default function TriviaForm({
                       type="radio"
                       checked={trivia.correctAnswerIndex === oIdx}
                       onChange={() => updateCorrectAnswer(tIdx, oIdx)}
-                      className="accent-[#C97B84]"
+                      className="accent-[#B05463]"
                     />
                     <input
                       type="text"
@@ -112,7 +114,7 @@ export default function TriviaForm({
           <button
             type="button"
             onClick={addQuestion}
-            className="text-xs text-[#C97B84] font-semibold flex items-center gap-1 hover:text-[#B5616B] transition-colors"
+            className="text-xs text-[#B05463] font-semibold flex items-center gap-1 hover:text-[#AD4E58] transition-colors"
           >
             <Plus className="w-3 h-3" /> Add another question
           </button>

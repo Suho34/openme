@@ -1,9 +1,19 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { Lock } from "lucide-react";
 
-export default function CountdownLock({ unlockAt, onUnlock }: { unlockAt: number; onUnlock: () => void }) {
+export default function CountdownLock({
+  unlockAt,
+  onUnlock,
+  sender,
+  name,
+}: {
+  unlockAt: number;
+  onUnlock: () => void;
+  sender?: string;
+  name?: string;
+}) {
   const [remaining, setRemaining] = useState<{ d: number; h: number; m: number; s: number } | null>(null);
 
   useEffect(() => {
@@ -32,8 +42,13 @@ export default function CountdownLock({ unlockAt, onUnlock }: { unlockAt: number
           style={{ boxShadow: "0 2px 12px rgba(46,42,39,0.04)" }}>
           <Lock className="w-7 h-7 text-[#D8B88A]" />
         </div>
-        <p className="text-[0.6875rem] font-semibold text-[#C97B84] uppercase tracking-[0.15em] mb-3">Surprise Locked</p>
-        <h1 className="font-serif text-[2.5rem] sm:text-[3rem] text-[#2E2A27] mb-10" style={{ fontWeight: 400 }}>Unlocking in</h1>
+        <p className="text-[0.6875rem] font-semibold text-[#B05463] uppercase tracking-[0.15em] mb-3">Surprise Locked</p>
+        <h1 className="font-serif text-[2.5rem] sm:text-[3rem] text-[#2E2A27] mb-3" style={{ fontWeight: 400 }}>Unlocking in</h1>
+        {name && sender && (
+          <p className="text-[0.875rem] text-[#6F655E] mb-8">
+            {sender} has something special for {name} &mdash; come back to unwrap it.
+          </p>
+        )}
         <div className="flex items-center gap-3 sm:gap-4 mb-10">
           {[{ v: remaining.d, l: "Days" }, { v: remaining.h, l: "Hours" }, { v: remaining.m, l: "Mins" }, { v: remaining.s, l: "Secs" }].map(({ v, l }) => (
             <div key={l} className="flex flex-col items-center">
@@ -41,7 +56,7 @@ export default function CountdownLock({ unlockAt, onUnlock }: { unlockAt: number
                 style={{ boxShadow: "0 2px 12px rgba(46,42,39,0.04)" }}>
                 <span className="text-2xl sm:text-3xl font-serif text-[#2E2A27]" style={{ fontWeight: 500 }}>{pad(v)}</span>
               </div>
-              <span className="text-[0.625rem] text-[#B5ADA5] font-semibold uppercase tracking-wider mt-2.5">{l}</span>
+              <span className="text-[0.625rem] text-[#7A6F62] font-semibold uppercase tracking-wider mt-2.5">{l}</span>
             </div>
           ))}
         </div>

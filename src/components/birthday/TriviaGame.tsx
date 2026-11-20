@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -6,11 +6,12 @@ import { Check, X, Lightbulb } from "lucide-react";
 import confetti from "canvas-confetti";
 import type { TriviaGameProps } from "@/lib/types";
 
-export default function TriviaGame({ trivia, onComplete }: TriviaGameProps) {
+export default function TriviaGame({ trivia, onComplete, onScore }: TriviaGameProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const [completed, setCompleted] = useState(false);
+  const [correctCount, setCorrectCount] = useState(0);
 
   const handleOptionClick = (idx: number) => {
     if (selected !== null) return; // Prevent multiple clicks
@@ -20,11 +21,16 @@ export default function TriviaGame({ trivia, onComplete }: TriviaGameProps) {
     setIsCorrect(correct);
 
     if (correct) {
+      setCorrectCount((c) => {
+        const next = c + 1;
+        onScore?.(next);
+        return next;
+      });
       confetti({
         particleCount: 50,
         spread: 60,
         origin: { y: 0.7 },
-        colors: ["#8FA27A", "#FFFFFF"],
+        colors: ["#557C4E", "#FFFFFF"],
       });
       setTimeout(() => {
         if (currentIndex < trivia.length - 1) {
@@ -51,7 +57,7 @@ export default function TriviaGame({ trivia, onComplete }: TriviaGameProps) {
         animate={{ opacity: 1, y: 0 }}
         className="text-center py-10"
       >
-        <div className="w-16 h-16 rounded-full bg-[#8FA27A]/10 text-[#8FA27A] flex items-center justify-center mx-auto mb-4 border border-[#8FA27A]/20">
+        <div className="w-16 h-16 rounded-full bg-[#557C4E]/10 text-[#557C4E] flex items-center justify-center mx-auto mb-4 border border-[#557C4E]/20">
           <Check className="w-8 h-8" />
         </div>
         <h3 className="font-serif text-2xl text-[#2E2A27] mb-2">
@@ -102,9 +108,9 @@ export default function TriviaGame({ trivia, onComplete }: TriviaGameProps) {
 
               if (isSelected) {
                 if (isCorrect) {
-                  bgClass = "bg-[#8FA27A]/10 border-[#8FA27A]/30";
-                  textClass = "text-[#8FA27A] font-medium";
-                  icon = <Check className="w-4 h-4 text-[#8FA27A]" />;
+                  bgClass = "bg-[#557C4E]/10 border-[#557C4E]/30";
+                  textClass = "text-[#557C4E] font-medium";
+                  icon = <Check className="w-4 h-4 text-[#557C4E]" />;
                 } else {
                   bgClass = "bg-[#C46D5E]/10 border-[#C46D5E]/30";
                   textClass = "text-[#C46D5E] font-medium";
