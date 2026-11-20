@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">WishMaker</string>
+    <string name="title_activity_main">WishMaker</string>
+    <string name="package_name">com.wishmaker.app</string>
+    <string name="custom_url_scheme">com.wishmaker.app</string>
+</resources>
