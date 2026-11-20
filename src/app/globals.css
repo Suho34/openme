@@ -8,9 +8,19 @@
    DESIGN TOKENS — Emotionally Rich Editorial Palette
 ───────────────────────────────────────────────────────────── */
 @theme inline {
-  --font-sans:    var(--font-inter), "Inter", system-ui, sans-serif;
-  --font-cursive: var(--font-pacifico), Georgia, serif;
-  --font-mono:    var(--font-geist-mono), monospace;
+  --font-sans:        var(--font-inter), "Inter", system-ui, sans-serif;
+  --font-cursive:     var(--font-pacifico), Georgia, serif;
+  --font-handwriting: var(--font-alex-brush), "Alex Brush", cursive;
+  --font-serif:       var(--font-cormorant), "Cormorant Garamond", Georgia, serif;
+  --font-mono:        var(--font-geist-mono), monospace;
+
+  /* Candlelight & Linen palette tokens */
+  --color-linen-base:   #FAF6F0;
+  --color-parchment:    #F4EFE6;
+  --color-crimson-wax:  #8B2635;
+  --color-brass-gold:   #C5A059;
+  --color-walnut-wood:  #3B271E;
+  --color-sepia-ink:    #2A231F;
 
   --color-background:           var(--background);
   --color-foreground:           var(--foreground);
@@ -38,30 +48,30 @@
 }
 
 :root {
-  /* Warm editorial palette */
-  --bg-primary:   #FFF8F2;
-  --bg-secondary: #F9F5F0;
-  --bg-card:      #FFFFFF;
+  /* Candlelight & Linen core palette */
+  --bg-primary:   #FAF6F0;
+  --bg-secondary: #F4EFE6;
+  --bg-card:      #FAF6F0;
 
-  /* Shadcn tokens */
-  --background:           #FFF8F2;
-  --foreground:           #2E2A27;
-  --card:                 #FFFFFF;
-  --card-foreground:      #2E2A27;
-  --popover:              #FFFFFF;
-  --popover-foreground:   #2E2A27;
-  --primary:              #C97B84;
+  /* Global theme tokens */
+  --background:           #FAF6F0;
+  --foreground:           #2A231F;
+  --card:                 #F4EFE6;
+  --card-foreground:      #2A231F;
+  --popover:              #FAF6F0;
+  --popover-foreground:   #2A231F;
+  --primary:              #8B2635;
   --primary-foreground:   #ffffff;
-  --secondary:            #F9F5F0;
-  --secondary-foreground: #2E2A27;
-  --muted:                #F9F5F0;
-  --muted-foreground:     #6F655E;
-  --accent:               #D8B88A;
-  --accent-foreground:    #2E2A27;
-  --destructive:          #C46D5E;
-  --border:               #ECE3DA;
-  --input:                #FFFFFF;
-  --ring:                 rgba(201,123,132,0.25);
+  --secondary:            #F4EFE6;
+  --secondary-foreground: #2A231F;
+  --muted:                #EADDC9;
+  --muted-foreground:     #7A6F62;
+  --accent:               #C5A059;
+  --accent-foreground:    #2A231F;
+  --destructive:          #8B2635;
+  --border:               #E3D4B8;
+  --input:                #FDFBF7;
+  --ring:                 rgba(139, 38, 53, 0.25);
   --radius:               1.375rem;
 }
 
@@ -100,71 +110,74 @@
   font-family: var(--font-cormorant), "Cormorant Garamond", Georgia, serif;
 }
 
+.font-handwriting {
+  font-family: var(--font-alex-brush), "Alex Brush", cursive;
+}
+
+.ink-bleed {
+  text-shadow: 0 0 0.4px rgba(42,35,31,0.4);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   CANDLELIGHT & LINEN TEXTURE SYSTEM
+───────────────────────────────────────────────────────────── */
+.paper-deckle {
+  background-color: #F4EFE6;
+  background-image: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="120" height="120" opacity="0.035"%3E%3Cfilter id="n"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.75" numOctaves="3" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23n)"/%3E%3C/svg%3E');
+  box-shadow: 
+    0 2px 4px rgba(59, 39, 30, 0.04),
+    0 12px 28px -4px rgba(59, 39, 30, 0.12),
+    0 0 0 1px rgba(227, 212, 184, 0.6);
+  border-radius: 4px;
+}
+
+.wax-seal-shadow {
+  box-shadow: 
+    0 4px 14px rgba(139, 38, 53, 0.35),
+    0 1px 3px rgba(42, 35, 31, 0.25),
+    inset 0 1px 2px rgba(255, 255, 255, 0.3),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.3);
+}
+
 /* ─────────────────────────────────────────────────────────────
    SURFACE SYSTEM — Layered paper cards
 ───────────────────────────────────────────────────────────── */
 
 /* Level 0 — Cards that sit flat on the page */
 .surface {
-  background: #FFFFFF;
-  border: 1px solid #ECE3DA;
-  border-radius: 1.375rem;
-  box-shadow: 0 2px 16px rgba(46,42,39,0.04);
+  background: #F4EFE6;
+  border: 1px solid #E3D4B8;
+  border-radius: 1.25rem;
+  box-shadow: 0 4px 20px rgba(59, 39, 30, 0.05);
 }
 
 .surface-raised {
-  background: #FFFFFF;
-  border: 1px solid #ECE3DA;
-  border-radius: 1.375rem;
+  background: #F8F5EE;
+  border: 1px solid #E3D4B8;
+  border-radius: 1.25rem;
   box-shadow:
-    0 1px 0 rgba(255,255,255,0.8) inset,
-    0 4px 20px rgba(46,42,39,0.05);
+    0 1px 0 rgba(255, 255, 255, 0.8) inset,
+    0 10px 30px -5px rgba(59, 39, 30, 0.08);
 }
 
 /* Level 2 — Floating modals, popovers */
 .surface-float {
-  background: #FFFFFF;
-  border: 1px solid #ECE3DA;
-  border-radius: 1.375rem;
+  background: #FDFBF7;
+  border: 1px solid #E3D4B8;
+  border-radius: 1.25rem;
   box-shadow:
-    0 1px 0 rgba(255,255,255,0.9) inset,
-    0 12px 36px rgba(46,42,39,0.08),
-    0 2px 8px rgba(46,42,39,0.03);
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 16px 40px rgba(59, 39, 30, 0.12),
+    0 2px 8px rgba(59, 39, 30, 0.04);
 }
 
 /* Legacy aliases — warm paper variants */
 .glass {
-  background: #FFFFFF;
-  border: 1px solid #ECE3DA;
-  border-radius: 1.375rem;
-  box-shadow: 0 2px 16px rgba(46,42,39,0.04);
+  background: #F4EFE6;
+  border: 1px solid #E3D4B8;
+  border-radius: 1.25rem;
+  box-shadow: 0 4px 20px rgba(59, 39, 30, 0.05);
 }
-.glass-blue {
-  background: rgba(166,179,157,0.06);
-  border: 1px solid rgba(166,179,157,0.15);
-  border-radius: 1.375rem;
-}
-.glass-gold {
-  background: rgba(216,184,138,0.08);
-  border: 1px solid rgba(216,184,138,0.18);
-  border-radius: 1.375rem;
-}
-
-/* ─────────────────────────────────────────────────────────────
-   SOFT ACCENTS (replacing neon glows)
-───────────────────────────────────────────────────────────── */
-.glow-blue {
-  box-shadow:
-    0 0 0 1px rgba(166,179,157,0.15),
-    0 4px 16px rgba(166,179,157,0.08);
-}
-.glow-gold {
-  box-shadow:
-    0 0 0 1px rgba(216,184,138,0.2),
-    0 4px 16px rgba(216,184,138,0.1);
-}
-.text-glow-blue { text-shadow: none; }
-.text-glow-gold { text-shadow: none; }
 
 /* ─────────────────────────────────────────────────────────────
    TYPOGRAPHY UTILITIES
@@ -172,20 +185,13 @@
 .label-overline {
   font-size: 0.6875rem;
   font-weight: 600;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: #6F655E;
-}
-
-.label-feature {
-  font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  color: #8B2635;
 }
 
 /* ─────────────────────────────────────────────────────────────
-   BUTTONS — Warm, tactile, no neon
+   BUTTONS — Candlelight & Linen tactile buttons
 ───────────────────────────────────────────────────────────── */
 .btn-primary {
   display: inline-flex;
@@ -196,20 +202,20 @@
   font-size: 0.9375rem;
   font-weight: 600;
   color: #fff;
-  border-radius: 1.375rem;
-  border: 1px solid rgba(201,123,132,0.2);
-  background: linear-gradient(180deg, #D08B93 0%, #C97B84 100%);
+  border-radius: 9999px;
+  border: 1px solid rgba(139, 38, 53, 0.3);
+  background: linear-gradient(135deg, #8B2635 0%, #721C28 100%);
   box-shadow:
-    0 1px 0 rgba(255,255,255,0.15) inset,
-    0 2px 8px rgba(201,123,132,0.15);
+    0 1px 0 rgba(255, 255, 255, 0.2) inset,
+    0 4px 14px rgba(139, 38, 53, 0.25);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 .btn-primary:hover {
-  background: linear-gradient(180deg, #D89BA3 0%, #D08B93 100%);
+  background: linear-gradient(135deg, #A33B49 0%, #8B2635 100%);
   box-shadow:
-    0 1px 0 rgba(255,255,255,0.2) inset,
-    0 4px 16px rgba(201,123,132,0.2);
+    0 1px 0 rgba(255, 255, 255, 0.25) inset,
+    0 6px 20px rgba(139, 38, 53, 0.35);
   transform: translateY(-1px);
 }
 .btn-primary:active { transform: translateY(0); }
@@ -222,17 +228,17 @@
   padding: 0.65rem 1.25rem;
   font-size: 0.875rem;
   font-weight: 500;
-  color: #6F655E;
-  border-radius: 1.375rem;
-  border: 1px solid #ECE3DA;
+  color: #554A44;
+  border-radius: 9999px;
+  border: 1px solid #E3D4B8;
   background: transparent;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 .btn-ghost:hover {
-  background: #F9F5F0;
-  color: #2E2A27;
-  border-color: #DDD4CB;
+  background: #F4EFE6;
+  color: #2A231F;
+  border-color: #C5A059;
 }
 
 .btn-gold {
@@ -243,21 +249,21 @@
   padding: 0.75rem 1.75rem;
   font-size: 0.9375rem;
   font-weight: 600;
-  color: #2E2A27;
-  border-radius: 1.375rem;
-  border: 1px solid rgba(216,184,138,0.35);
-  background: linear-gradient(180deg, #E5CDA5 0%, #D8B88A 100%);
+  color: #2A231F;
+  border-radius: 9999px;
+  border: 1px solid rgba(197, 160, 89, 0.4);
+  background: linear-gradient(180deg, #D4AF37 0%, #C5A059 100%);
   box-shadow:
-    0 1px 0 rgba(255,255,255,0.25) inset,
-    0 2px 8px rgba(216,184,138,0.15);
+    0 1px 0 rgba(255, 255, 255, 0.3) inset,
+    0 4px 12px rgba(197, 160, 89, 0.2);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 .btn-gold:hover {
-  background: linear-gradient(180deg, #EDD9B8 0%, #E5CDA5 100%);
+  background: linear-gradient(180deg, #E5C458 0%, #D4AF37 100%);
   box-shadow:
-    0 1px 0 rgba(255,255,255,0.3) inset,
-    0 4px 16px rgba(216,184,138,0.2);
+    0 1px 0 rgba(255, 255, 255, 0.35) inset,
+    0 6px 18px rgba(197, 160, 89, 0.28);
   transform: translateY(-1px);
 }
 
@@ -266,7 +272,7 @@
 ───────────────────────────────────────────────────────────── */
 .divider {
   height: 1px;
-  background: linear-gradient(90deg, transparent 0%, #ECE3DA 30%, #ECE3DA 70%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, #E3D4B8 30%, #E3D4B8 70%, transparent 100%);
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -275,18 +281,18 @@
 .input-saas {
   width: 100%;
   padding: 0.75rem 1rem;
-  background: #FFFFFF;
-  border: 1px solid #ECE3DA;
+  background: #FDFBF7;
+  border: 1px solid #E3D4B8;
   border-radius: 0.875rem;
-  color: #2E2A27;
+  color: #2A231F;
   font-size: 0.9375rem;
   outline: none;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
-.input-saas::placeholder { color: #B5ADA5; }
+.input-saas::placeholder { color: #8F8176; }
 .input-saas:focus {
-  border-color: #C97B84;
-  box-shadow: 0 0 0 3px rgba(201,123,132,0.08);
+  border-color: #8B2635;
+  box-shadow: 0 0 0 3px rgba(139, 38, 53, 0.1);
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -328,30 +334,12 @@
   70%  { transform: scaleX(0.92) scaleY(1.08) rotate(1.5deg); }
   100% { transform: scaleX(1)    scaleY(1)    rotate(-1deg); }
 }
-@keyframes marquee {
-  from { transform: translateX(0); }
-  to   { transform: translateX(-50%); }
-}
-@keyframes ticker-slide {
-  from { transform: translateX(0); }
-  to   { transform: translateX(-50%); }
-}
 
 .animate-reveal-up    { animation: reveal-up    0.5s cubic-bezier(0.22,1,0.36,1) both; }
 .animate-reveal-scale { animation: reveal-scale 0.4s cubic-bezier(0.22,1,0.36,1) both; }
 .animate-orb-drift    { animation: orb-drift 24s ease-in-out infinite; }
 .animate-flame        { animation: flame-flicker 0.13s linear infinite; transform-origin: 50% 100%; }
 .animate-countdown-pulse { animation: countdown-pulse 2s ease-in-out infinite; }
-.animate-shimmer {
-  background: linear-gradient(90deg,
-    rgba(255,248,242,0.02) 0%,
-    rgba(216,184,138,0.08)  50%,
-    rgba(255,248,242,0.02) 100%);
-  background-size: 200% auto;
-  animation: shimmer 1.8s linear infinite;
-}
-.animate-marquee { animation: marquee 28s linear infinite; }
-.animate-ticker  { animation: ticker-slide 22s linear infinite; }
 
 /* Stagger helpers */
 .delay-75  { animation-delay: 75ms; }
@@ -395,4 +383,32 @@
 .envelope-flap-open {
   transform-origin: top center;
   animation: envelope-flap 1.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* ── Reduced Motion ──
+   Honor the system preference: instant state changes, no ambient loops,
+   no entrance choreography, no smooth scrolling. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  /* Floating loops must not linger at a mid-pose */
+  .animate-flame,
+  .animate-orb-drift,
+  .animate-float-heart,
+  .animate-countdown-pulse {
+    animation: none !important;
+  }
+
+  /* The hero hearts are decorative — they simply do not appear */
+  .animate-float-heart {
+    display: none !important;
+  }
 }

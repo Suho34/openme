@@ -4,6 +4,7 @@ import {
   Geist_Mono,
   Pacifico,
   Cormorant_Garamond,
+  Alex_Brush,
 } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 import "./globals.css";
@@ -31,6 +32,12 @@ const cormorant = Cormorant_Garamond({
   style: ["normal", "italic"],
 });
 
+const alexBrush = Alex_Brush({
+  variable: "--font-alex-brush",
+  subsets: ["latin"],
+  weight: ["400"],
+});
+
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
 export const metadata: Metadata = {
@@ -39,9 +46,13 @@ export const metadata: Metadata = {
   description:
     "Create immersive, heartfelt birthday surprises that feel like opening a beautifully wrapped gift. No account needed.",
   icons: {
-    icon: "/wm-logo.svg",
+    icon: [
+      { url: "/wm-logo.svg", type: "image/svg+xml" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
     shortcut: "/wm-logo.svg",
-    apple: "/wm-logo.svg",
+    apple: "/apple-touch-icon.png",
   },
   openGraph: {
     title: "WishMaker — Unforgettable Birthday Experiences",
@@ -67,7 +78,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${geistMono.variable} ${pacifico.variable} ${cormorant.variable} h-full antialiased`}
+      className={`${inter.variable} ${geistMono.variable} ${pacifico.variable} ${cormorant.variable} ${alexBrush.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col font-sans">
         {children}
@@ -89,7 +100,7 @@ export default function RootLayout({
               maxWidth: "340px",
             },
             success: {
-              iconTheme: { primary: "#8FA27A", secondary: "#ffffff" },
+              iconTheme: { primary: "#557C4E", secondary: "#ffffff" },
             },
             error: {
               iconTheme: { primary: "#C46D5E", secondary: "#ffffff" },

@@ -1,130 +1,35 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="100%" height="100%">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
   <defs>
-    <!-- Background Glow (Deep Crimson) -->
-    <radialGradient id="bgGlow" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#5c1a1a" />
-      <stop offset="100%" stop-color="#120505" />
-    </radialGradient>
-    
-    <!-- Candle Body Gradient (Warm Amber/Gold) -->
-    <linearGradient id="candleBody" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#ffd699" />
-      <stop offset="30%" stop-color="#ffb84d" />
-      <stop offset="70%" stop-color="#f59100" />
-      <stop offset="100%" stop-color="#cc6e00" />
-    </linearGradient>
-    
-    <!-- Ribbon Gradient (Deep Burgundy) -->
-    <linearGradient id="ribbonGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#e60039" />
-      <stop offset="100%" stop-color="#800022" />
-    </linearGradient>
-    
-    <!-- Flame Glow -->
-    <radialGradient id="flameGlow" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#ffdd99" stop-opacity="0.9" />
-      <stop offset="50%" stop-color="#ffb366" stop-opacity="0.5" />
-      <stop offset="100%" stop-color="#ffb366" stop-opacity="0" />
-    </radialGradient>
-    
-    <!-- Outer Flame Gradient -->
-    <linearGradient id="flameOuter" x1="0%" y1="100%" x2="0%" y2="0%">
-      <stop offset="0%" stop-color="#ff7b00" />
-      <stop offset="50%" stop-color="#ffcc00" />
-      <stop offset="100%" stop-color="#fff5e6" />
-    </linearGradient>
-    
-    <!-- Drop Shadows -->
-    <filter id="shadow" x="-10%" y="-10%" width="130%" height="130%">
-      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000000" flood-opacity="0.6" />
-    </filter>
-    
-    <!-- Soft Glow Filter -->
-    <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="4" result="blur" />
-      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    <!-- Soft diffuse drop shadow beneath the wax seal -->
+    <filter id="sealShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="2" dy="14" stdDeviation="16" flood-color="#3A0D15" flood-opacity="0.45" />
     </filter>
 
-    <!-- Strong Glow Filter for Aura -->
-    <filter id="strongGlow" x="-50%" y="-50%" width="200%" height="200%">
-      <feGaussianBlur stdDeviation="20" result="blur" />
-      <feComposite in="SourceGraphic" in2="blur" operator="over" />
-    </filter>
+    <!-- 3D wax seal spherical radial gradient matching reference -->
+    <radialGradient id="waxDome" cx="36%" cy="32%" r="68%">
+      <stop offset="0%" stop-color="#A23545" />
+      <stop offset="35%" stop-color="#8C2634" />
+      <stop offset="75%" stop-color="#691826" />
+      <stop offset="100%" stop-color="#4E101C" />
+    </radialGradient>
   </defs>
 
-  <!-- Circular Dark Romantic Background -->
-  <circle cx="250" cy="250" r="250" fill="#120505" />
+  <!-- 3D Circular Wax Seal Button -->
+  <circle cx="256" cy="256" r="180" fill="url(#waxDome)" filter="url(#sealShadow)" />
 
-  <!-- Decorative Golden Borders -->
-  <circle cx="250" cy="250" r="230" fill="none" stroke="#5c1a1a" stroke-width="4" />
-  <circle cx="250" cy="250" r="235" fill="none" stroke="#b38600" stroke-width="1.5" opacity="0.6" />
-  <circle cx="250" cy="250" r="245" fill="none" stroke="#2a0a0a" stroke-width="2" />
-  <circle cx="250" cy="250" r="248" fill="none" stroke="#b38600" stroke-width="1" opacity="0.3" />
-
-  <!-- Warm Glowing Halo Behind Candle -->
-  <circle cx="250" cy="250" r="150" fill="url(#bgGlow)" filter="url(#shadow)" />
-
-
-
-  <!-- Centered Artwork Group -->
-  <g transform="translate(-50, 40)">
-    
-    <!-- Candle Base Shadow -->
-    <ellipse cx="300" cy="270" rx="45" ry="10" fill="#0a0000" />
-
-    <!-- Elegant Pillar Candle Body -->
-    <rect x="265" y="150" width="70" height="120" rx="35" fill="url(#candleBody)" filter="url(#shadow)" />
-    
-    <!-- Subtle Vertical Texture for Luxury -->
-    <rect x="275" y="150" width="4" height="120" fill="#ffffff" opacity="0.15" />
-    <rect x="289" y="150" width="4" height="120" fill="#ffffff" opacity="0.15" />
-    <rect x="303" y="150" width="4" height="120" fill="#ffffff" opacity="0.15" />
-    <rect x="317" y="150" width="4" height="120" fill="#ffffff" opacity="0.15" />
-
-    <!-- Organic Melted Wax Detail at the Top -->
-    <path d="M 265 170 Q 275 185 285 165 Q 295 180 305 165 Q 315 180 335 170 L 335 150 L 265 150 Z" fill="url(#candleBody)" />
-    <path d="M 270 160 Q 280 155 290 160 Q 300 155 310 160 Q 320 155 330 160" fill="none" stroke="#ffd699" stroke-width="3" />
-
-    <!-- Wick -->
-    <path d="M 300 150 L 300 135" stroke="#333" stroke-width="2" />
-
-    <!-- Glowing Aura Behind Flame -->
-    <circle cx="300" cy="120" r="60" fill="url(#flameGlow)" filter="url(#strongGlow)" />
-    
-    <!-- The Flame -->
-    <path d="M 300 85 Q 285 120 300 130 Q 315 120 300 85 Z" fill="url(#flameOuter)" filter="url(#softGlow)" />
-    
-    <!-- Inner Core of the Flame -->
-    <path d="M 300 100 Q 292 120 300 126 Q 308 120 300 100 Z" fill="#fffbe6" />
-
-    <!-- Sparkles / Magic Dust -->
-    <path d="M 330 90 Q 335 90 335 85 Q 335 90 340 90 Q 335 90 335 95 Q 335 90 330 90 Z" fill="#ffd700" filter="url(#softGlow)" />
-    <path d="M 270 110 Q 273 110 273 107 Q 273 110 276 110 Q 273 110 273 113 Q 273 110 270 110 Z" fill="#ffd700" filter="url(#softGlow)" />
-
-    <!-- Decorative Ribbon Wrapped Around the Candle -->
-    <rect x="260" y="210" width="80" height="18" rx="2" fill="url(#ribbonGrad)" />
-    <rect x="290" y="210" width="20" height="60" fill="url(#ribbonGrad)" opacity="0.6" /> 
-
-    <!-- Elegant Ribbon Bow -->
-    <!-- Left Loop -->
-    <path d="M 280 218 C 230 180, 230 260, 280 235" fill="url(#ribbonGrad)" filter="url(#shadow)" />
-    <!-- Right Loop -->
-    <path d="M 320 218 C 370 180, 370 260, 320 235" fill="url(#ribbonGrad)" filter="url(#shadow)" />
-    
-    <!-- Flowing Bow Tails -->
-    <path d="M 280 235 Q 260 280 230 295" fill="none" stroke="url(#ribbonGrad)" stroke-width="14" stroke-linecap="round" filter="url(#shadow)" />
-    <path d="M 320 235 Q 340 280 370 295" fill="none" stroke="url(#ribbonGrad)" stroke-width="14" stroke-linecap="round" filter="url(#shadow)" />
-
-    <!-- Center Knot of the Bow (Luxurious Gold) -->
-    <circle cx="300" cy="226" r="14" fill="#b38600" filter="url(#shadow)" />
-    <circle cx="300" cy="226" r="8" fill="#ffcc00" />
-
-    <!-- Hanging Heart Charm (Dark Romance) -->
-    <line x1="300" y1="240" x2="300" y2="260" stroke="#664d4d" stroke-width="2" />
-    <path d="M 290 270 A 10 10 0 0 1 300 260 A 10 10 0 0 1 310 270 Q 300 285 290 270 Z" fill="#cc0033" filter="url(#shadow)" />
-    
-    <!-- Heart Highlight -->
-    <path d="M 295 268 A 5 5 0 0 1 300 263 A 5 5 0 0 1 305 268 Q 300 275 295 268 Z" fill="#ff6688" /> 
-
-  </g>
+  <!-- Centered Heart with White Outline & Pale Blush Fill -->
+  <path
+    d="M 256, 320
+       C 214, 284 184, 258 184, 234
+       C 184, 204 208, 192 232, 192
+       C 244, 192 252, 198 256, 206
+       C 260, 198 268, 192 280, 192
+       C 304, 192 328, 204 328, 234
+       C 328, 258 298, 284 256, 320 Z"
+    fill="#E8D4D7"
+    stroke="#FFFFFF"
+    stroke-width="11"
+    stroke-linejoin="round"
+    stroke-linecap="round"
+  />
 </svg>
