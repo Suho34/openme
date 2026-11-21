@@ -1,5 +1,5 @@
 // WishMaker Service Worker — Stale-While-Revalidate Cache
-const CACHE_NAME = 'wishmaker-v1';
+const CACHE_NAME = 'wishmaker-v2';
 
 const STATIC_ASSETS = [
   '/',

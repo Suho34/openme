@@ -32,6 +32,16 @@ export function usePWAInstall() {
 
     checkStandalone();
 
+    const mediaQuery = window.matchMedia("(display-mode: standalone)");
+    const handleMediaChange = (e: MediaQueryListEvent) => {
+      setIsInstalled(e.matches);
+    };
+    try {
+      mediaQuery.addEventListener("change", handleMediaChange);
+    } catch {
+      // Older browsers
+    }
+
     // Detect iOS
     const userAgent = window.navigator.userAgent.toLowerCase();
     const isAppleDevice = /iphone|ipad|ipod/.test(userAgent);
@@ -58,6 +68,11 @@ export function usePWAInstall() {
     return () => {
       window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
       window.removeEventListener("appinstalled", handleAppInstalled);
+      try {
+        mediaQuery.removeEventListener("change", handleMediaChange);
+      } catch {
+        // Older browsers
+      }
     };
   }, []);
 
