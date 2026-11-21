@@ -69,18 +69,27 @@ export const metadata: Metadata = {
     apple: "/apple-touch-icon.png",
   },
   openGraph: {
-    title: "WishMaker — Unforgettable Birthday Experiences",
+    title: "WishMaker — Candlelight & Linen Birthday Keepsakes",
     description:
-      "Create heartfelt birthday surprises that feel like opening a gift.",
+      "Craft an intimate, candlelit birthday keepsake — a deckle-edge letter, 3D bakery cake, and heirloom photo album.",
     siteName: "WishMaker",
     type: "website",
+    images: [
+      {
+        url: "/api/og",
+        width: 1200,
+        height: 630,
+        type: "image/png",
+        alt: "WishMaker — Birthday Surprise Keepsakes",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "WishMaker — Unforgettable Birthday Experiences",
+    title: "WishMaker — Candlelight & Linen Birthday Keepsakes",
     description:
-      "Create heartfelt birthday surprises that feel like opening a gift.",
-    images: ["/wm-logo.svg"],
+      "Craft an intimate, candlelit birthday keepsake — a deckle-edge letter, 3D bakery cake, and heirloom photo album.",
+    images: ["/api/og"],
   },
 };
 
