@@ -11,6 +11,8 @@
   --font-sans:        var(--font-inter), "Inter", system-ui, sans-serif;
   --font-cursive:     var(--font-pacifico), Georgia, serif;
   --font-handwriting: var(--font-alex-brush), "Alex Brush", cursive;
+  --font-caveat:      var(--font-caveat), "Caveat", cursive;
+  --font-homemade:    var(--font-homemade), "Homemade Apple", cursive;
   --font-serif:       var(--font-cormorant), "Cormorant Garamond", Georgia, serif;
   --font-mono:        var(--font-geist-mono), monospace;
 
@@ -126,6 +128,16 @@
 
 .font-handwriting {
   font-family: var(--font-alex-brush), "Alex Brush", cursive;
+}
+
+.font-caveat {
+  font-family: var(--font-caveat), "Caveat", cursive;
+  letter-spacing: 0.01em;
+}
+
+.font-homemade {
+  font-family: var(--font-homemade), "Homemade Apple", cursive;
+  letter-spacing: -0.01em;
 }
 
 .ink-bleed {
@@ -363,6 +375,28 @@
 .animate-orb-drift    { animation: orb-drift 24s ease-in-out infinite; }
 .animate-flame        { animation: flame-flicker 0.13s linear infinite; transform-origin: 50% 100%; }
 .animate-countdown-pulse { animation: countdown-pulse 2s ease-in-out infinite; }
+
+/* ── Page turn between chapters ── */
+@keyframes page-turn {
+  0%   { opacity: 0.9; transform: perspective(1400px) rotateX(0deg); }
+  45%  { opacity: 1;   transform: perspective(1400px) rotateX(-9deg) translateY(-1.5%); }
+  100% { opacity: 0;   transform: perspective(1400px) rotateX(-18deg) translateY(-3%); }
+}
+
+.page-turn-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+  transform-origin: top center;
+  background: #FFF8F2;
+  box-shadow: 0 -30px 60px rgba(59, 39, 30, 0.12);
+  animation: page-turn 0.42s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-turn-overlay { display: none; }
+}
 
 /* Stagger helpers */
 .delay-75  { animation-delay: 75ms; }

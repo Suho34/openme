@@ -3,20 +3,31 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Heart, ArrowRight } from "lucide-react";
+import type { LetterFont } from "@/lib/types";
 
 interface HandwrittenLetterProps {
   name: string;
   sender: string;
   message: string;
+  letterFont?: LetterFont;
   onProceed: () => void;
 }
+
+const FONT_CLASS: Record<LetterFont, string> = {
+  brush: "font-handwriting",
+  caveat: "font-caveat",
+  homemade: "font-homemade",
+};
 
 export default function HandwrittenLetter({
   name,
   sender,
   message,
+  letterFont = "brush",
   onProceed,
 }: HandwrittenLetterProps) {
+  const fontClass = FONT_CLASS[letterFont] ?? FONT_CLASS.brush;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 30, scale: 0.97 }}
@@ -94,22 +105,22 @@ export default function HandwrittenLetter({
         <div className="space-y-4 max-h-[50vh] overflow-y-auto pr-1 select-text">
           {/* Salutation */}
           <h3
-            className="font-handwriting text-3xl sm:text-4xl text-[#2A231F] leading-tight ink-bleed"
+            className={`${fontClass} text-3xl sm:text-4xl text-[#2A231F] leading-tight ink-bleed`}
             style={{ fontWeight: 400 }}
           >
             My Dearest {name},
           </h3>
 
-          {/* Body in authentic cursive calligraphy */}
+          {/* Body in the sender's chosen hand */}
           <div
-            className="font-handwriting text-2xl sm:text-[1.75rem] text-[#2A231F] leading-[1.8] whitespace-pre-line ink-bleed tracking-wide"
+            className={`${fontClass} text-2xl sm:text-[1.75rem] text-[#2A231F] leading-[1.8] whitespace-pre-line ink-bleed tracking-wide`}
             style={{ fontWeight: 400 }}
           >
             {message}
           </div>
 
           {/* Valediction */}
-          <div className="pt-6 text-right font-handwriting text-2xl sm:text-3xl text-[#2A231F] ink-bleed">
+          <div className={`pt-6 text-right ${fontClass} text-2xl sm:text-3xl text-[#2A231F] ink-bleed`}>
             <p className="text-sm font-serif italic text-[#7A6F62] not-italic">
               Forever yours,
             </p>

@@ -7,7 +7,6 @@ import {
   Copy,
   ExternalLink,
   Gift,
-  Wand2,
   Calendar,
   Check,
   Share2,
@@ -18,10 +17,7 @@ import {
   ChevronRight,
   ChevronLeft,
   Flame,
-  Music,
   Camera,
-  Download,
-  Smartphone,
 } from "lucide-react";
 import confetti from "canvas-confetti";
 import MemoryLaneForm from "@/components/create/MemoryLaneForm";
@@ -30,19 +26,33 @@ import TimeCapsulesForm from "@/components/create/TimeCapsulesForm";
 import VoiceRecorder from "@/components/ui/VoiceRecorder";
 import TunePicker from "@/components/create/TunePicker";
 import CakeStylePicker from "@/components/create/CakeStylePicker";
+import InterviewPanel from "@/components/create/InterviewPanel";
+import { answeredPairs, questionsFor } from "@/lib/interviewQuestions";
 import type { CakeStyle } from "@/lib/cakeStyles";
 import { playChime } from "@/lib/audio";
 import { generateMessage, saveWish } from "@/lib/actions";
 import Link from "next/link";
 import PWAInstallButton from "@/components/pwa/PWAInstallButton";
 import type {
+  LetterFont,
   Memory,
   ThemeId,
-  TimelineEvent,
   WishTemplate,
   ScrollNote,
   TimeCapsule,
 } from "@/lib/types";
+
+const LETTER_FONT_CLASS: Record<LetterFont, string> = {
+  brush: "font-handwriting",
+  caveat: "font-caveat",
+  homemade: "font-homemade",
+};
+
+const LETTER_FONTS: { id: LetterFont; label: string }[] = [
+  { id: "brush", label: "Flowing" },
+  { id: "caveat", label: "Casual" },
+  { id: "homemade", label: "Soft" },
+];
 
 const WISH_TEMPLATES: WishTemplate[] = [
   {
@@ -120,18 +130,13 @@ export default function CreateSurprise() {
   const [message, setMessage] = useState("");
   const [theme, setTheme] = useState<ThemeId>("romance");
   const [voiceNoteUrl, setVoiceNoteUrl] = useState("");
-  const [memories, setMemories] = useState<Memory[]>([
-    {
-      url: "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=600&auto=format&fit=crop&q=80",
-      caption: "A favorite memory we share",
-    },
-  ]);
+  const [memories, setMemories] = useState<Memory[]>([]);
   const [scrollNotes, setScrollNotes] = useState<ScrollNote[]>([]);
   const [scrollJarTitle, setScrollJarTitle] = useState("Jar of Little Scrolls");
   const [timeCapsules, setTimeCapsules] = useState<TimeCapsule[]>([]);
-  const [timelineEvents, setTimelineEvents] = useState<TimelineEvent[]>([]);
 
   const [generatedUrl, setGeneratedUrl] = useState("");
+  const [previewUrl, setPreviewUrl] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>("partner");
@@ -148,6 +153,10 @@ export default function CreateSurprise() {
   const [aiDrafts, setAiDrafts] = useState<string[]>([]);
   const [aiLoading, setAiLoading] = useState(false);
   const [tone, setTone] = useState(75);
+  const [aiAnswers, setAiAnswers] = useState<Record<string, string>>({});
+  const [letterFont, setLetterFont] = useState<LetterFont>("brush");
+  const [manageUrl, setManageUrl] = useState("");
+  const [trackCopied, setTrackCopied] = useState(false);
 
   const applyTemplate = (tmpl: WishTemplate) => {
     setSelectedTemplateId(tmpl.id);
@@ -156,10 +165,11 @@ export default function CreateSurprise() {
     setTone(tmpl.defaults.tone);
     setAiKeywords(tmpl.defaults.keywords);
     setMessage(tmpl.defaults.messagePlaceholder);
+    setAiAnswers({});
     toast.success(`${tmpl.label} preset applied`);
   };
 
-  const handleGenerateDrafts = async () => {
+  const handleGenerateDrafts = async (mode: "interview" | "quick" = "quick") => {
     if (!name || !sender) {
       toast.error("Please fill in both names first");
       setCurrentStep(1);
@@ -167,7 +177,9 @@ export default function CreateSurprise() {
     }
     setAiLoading(true);
     setAiDrafts([]);
-    const loadingToast = toast.loading("Composing heartfelt letters with AI…");
+    const loadingToast = toast.loading(
+      mode === "interview" ? "Turning your answers into letters…" : "Composing heartfelt letters with AI…",
+    );
     try {
       const toneDesc =
         tone <= 30
@@ -176,12 +188,18 @@ export default function CreateSurprise() {
             ? "warm and sincere"
             : "deeply romantic, poetic and emotional";
 
+      const interview =
+        mode === "interview"
+          ? answeredPairs(questionsFor(selectedTemplateId), aiAnswers)
+          : undefined;
+
       const data = await generateMessage({
         name,
         sender,
-        whatToSay: aiWhatToSay,
-        keywords: aiKeywords,
+        whatToSay: mode === "interview" ? "" : aiWhatToSay,
+        keywords: mode === "interview" ? "" : aiKeywords,
         toneDescription: toneDesc,
+        interview,
       });
       setAiDrafts(data.drafts);
       toast.success("Letters composed! Select your favorite below", { id: loadingToast });
@@ -213,12 +231,12 @@ export default function CreateSurprise() {
       age: age ? parseInt(age) : undefined,
       sender: sender.trim() || "A Loved One",
       message: message.trim(),
-      theme: "romance",
+      theme,
       memories: activeMemories,
-      timeline: timelineEvents.filter((ev) => ev.title.trim()),
       voiceNoteUrl: voiceNoteUrl || undefined,
       tuneUrl: tuneUrl || undefined,
       cakeStyle,
+      letterFont,
       scrollNotes: scrollNotes.filter((s) => s.text.trim()),
       scrollJarTitle: scrollJarTitle.trim() || "Jar of Little Scrolls",
       timeCapsules: timeCapsules.filter((c) => c.prompt.trim() && c.message.trim()),
@@ -232,6 +250,11 @@ export default function CreateSurprise() {
       const data = await saveWish(payload);
       const url = `${window.location.origin}/wish/${data.id}`;
       setGeneratedUrl(url);
+      const tracker = `${window.location.origin}${data.manageUrl}`;
+      setManageUrl(tracker);
+      // The sender's key marks their own preview so it never books an open.
+      const key = new URL(tracker).searchParams.get("k");
+      setPreviewUrl(key ? `${url}?k=${encodeURIComponent(key)}` : url);
 
       playChime();
       confetti({
@@ -254,6 +277,14 @@ export default function CreateSurprise() {
     setCopied(true);
     toast.success("Keepsake link copied!");
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleCopyTrack = () => {
+    if (!manageUrl) return;
+    navigator.clipboard.writeText(manageUrl);
+    setTrackCopied(true);
+    toast.success("Tracker link copied — keep it private.");
+    setTimeout(() => setTrackCopied(false), 2000);
   };
 
   const handleShare = async () => {
@@ -434,67 +465,27 @@ export default function CreateSurprise() {
             {/* ── STEP 2: The Letter ── */}
             {currentStep === 2 && (
               <div className="space-y-6">
-                {/* AI Assistant Card */}
-                <div className="paper-deckle p-5 rounded-lg border border-[#E3D4B8]" style={{ background: "#FBF8F2" }}>
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="flex items-center gap-2 text-xs font-semibold text-[#8B2635] uppercase tracking-wider">
-                      <Wand2 className="w-3.5 h-3.5" />
-                      Gemini AI Letter Writer
-                    </span>
-                    <span className="text-[10px] text-[#7A6F62] font-serif italic">
-                      Need help putting feelings into words?
-                    </span>
-                  </div>
-
-                  <div className="space-y-3">
-                    <input
-                      value={aiWhatToSay}
-                      onChange={(e) => setAiWhatToSay(e.target.value)}
-                      placeholder="What feeling do you want to convey? (e.g. how much ordinary days shine with you)"
-                      className="input-saas text-xs"
-                    />
-                    <input
-                      value={aiKeywords}
-                      onChange={(e) => setAiKeywords(e.target.value)}
-                      placeholder="Specific memories, inside jokes, or small habits to weave in"
-                      className="input-saas text-xs"
-                    />
-
-                    <div className="flex items-center justify-between pt-1">
-                      <span className="text-[11px] text-[#7A6F62]">
-                        Tone: {tone > 60 ? "Deeply Romantic & Poetic" : "Warm & Playful"}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={handleGenerateDrafts}
-                        disabled={aiLoading}
-                        className="btn-primary text-xs py-2 px-4 inline-flex items-center gap-1.5"
-                      >
-                        <Sparkles className="w-3.5 h-3.5" />
-                        {aiLoading ? "Composing..." : "Compose 3 Drafts"}
-                      </button>
-                    </div>
-
-                    {/* AI Draft Suggestions */}
-                    {aiDrafts.length > 0 && (
-                      <div className="space-y-2.5 pt-3 border-t border-[#E3D4B8]">
-                        <p className="text-[11px] font-semibold text-[#8B2635]">Tap a draft to use it:</p>
-                        {aiDrafts.map((draft, i) => (
-                          <div
-                            key={i}
-                            onClick={() => {
-                              setMessage(draft);
-                              toast.success("Draft applied to your letter!");
-                            }}
-                            className="p-3 rounded-lg border border-[#E3D4B8] bg-white text-xs leading-relaxed text-[#554A44] font-serif italic cursor-pointer hover:border-[#8B2635] hover:bg-[#FAF6F0] transition-colors"
-                          >
-                            &ldquo;{draft}&rdquo;
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
+                {/* Letter writer: interview or quick prompts */}
+                <InterviewPanel
+                  name={name}
+                  sender={sender}
+                  relationship={selectedTemplateId}
+                  answers={aiAnswers}
+                  onAnswersChange={setAiAnswers}
+                  onCompose={(mode) => void handleGenerateDrafts(mode)}
+                  whatToSay={aiWhatToSay}
+                  keywords={aiKeywords}
+                  onWhatToSayChange={setAiWhatToSay}
+                  onKeywordsChange={setAiKeywords}
+                  tone={tone}
+                  onToneChange={setTone}
+                  loading={aiLoading}
+                  drafts={aiDrafts}
+                  onSelectDraft={(draft) => {
+                    setMessage(draft);
+                    toast.success("Draft applied to your letter!");
+                  }}
+                />
 
                 {/* The Letter Parchment Canvas */}
                 <div className="paper-deckle p-6 sm:p-8 rounded-sm border border-[#E3D4B8]" style={{ background: "#F4EFE6" }}>
@@ -507,7 +498,7 @@ export default function CreateSurprise() {
                     </span>
                   </div>
 
-                  <p className="font-handwriting text-3xl text-[#2A231F] mb-3 ink-bleed">
+                  <p className={`${LETTER_FONT_CLASS[letterFont]} text-3xl text-[#2A231F] mb-3 ink-bleed`}>
                     My Dearest {name || "Elena"},
                   </p>
 
@@ -515,15 +506,41 @@ export default function CreateSurprise() {
                     rows={6}
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
-                    placeholder="Write your heartfelt letter here... (It will render in flowing calligraphy for your recipient)"
-                    className="w-full bg-transparent border-0 outline-none resize-none font-handwriting text-2xl text-[#2A231F] leading-relaxed ink-bleed placeholder:text-stone-400 placeholder:font-sans placeholder:text-sm"
+                    placeholder="Write your heartfelt letter here... (It will render in your chosen hand for the recipient)"
+                    className={`w-full bg-transparent border-0 outline-none resize-none ${LETTER_FONT_CLASS[letterFont]} text-2xl text-[#2A231F] leading-relaxed ink-bleed placeholder:text-stone-400 placeholder:font-sans placeholder:text-sm`}
                   />
 
                   <div className="pt-4 text-right border-t border-[#E3D4B8]">
                     <p className="text-xs font-serif italic text-[#7A6F62]">Forever yours,</p>
-                    <p className="font-handwriting text-2xl text-[#8B2635] ink-bleed mt-1">
+                    <p className={`${LETTER_FONT_CLASS[letterFont]} text-2xl text-[#8B2635] ink-bleed mt-1`}>
                       {sender || "Your Name"}
                     </p>
+                  </div>
+                </div>
+
+                {/* Handwriting choice */}
+                <div className="paper-deckle p-4 rounded-lg border border-[#E3D4B8] flex items-center justify-between gap-3" style={{ background: "#FBF8F2" }}>
+                  <div>
+                    <p className="text-[11px] font-semibold text-[#8B2635] uppercase tracking-wider">
+                      Handwriting
+                    </p>
+                    <p className="text-[11px] text-[#7A6F62]">The hand they&apos;ll read it in.</p>
+                  </div>
+                  <div className="flex gap-1.5">
+                    {LETTER_FONTS.map((font) => (
+                      <button
+                        key={font.id}
+                        type="button"
+                        onClick={() => setLetterFont(font.id)}
+                        className={`px-3 py-1.5 rounded-full border text-[11px] font-semibold transition-colors cursor-pointer ${
+                          letterFont === font.id
+                            ? "border-[#8B2635] bg-[#8B2635]/8 text-[#8B2635]"
+                            : "border-[#E3D4B8] bg-white text-[#7A6F62] hover:text-[#8B2635]"
+                        }`}
+                      >
+                        {font.label}
+                      </button>
+                    ))}
                   </div>
                 </div>
 
@@ -735,14 +752,35 @@ export default function CreateSurprise() {
               </button>
 
               <Link
-                href={generatedUrl}
+                href={previewUrl || generatedUrl}
                 target="_blank"
                 className="inline-flex items-center justify-center gap-1.5 text-xs text-[#8B2635] hover:underline pt-2 font-medium"
               >
                 <ExternalLink className="w-3.5 h-3.5" />
-                Preview how {name} will see it
+                Preview how {name} will see it (won&apos;t count as an open)
               </Link>
             </div>
+
+            {/* Read receipt */}
+            {manageUrl ? (
+              <div className="mt-7 pt-5 border-t border-[#E3D4B8] text-left space-y-2">
+                <p className="text-[11px] font-semibold text-[#8B2635] uppercase tracking-wider">
+                  Your read receipt
+                </p>
+                <p className="text-[11px] text-[#7A6F62] leading-relaxed">
+                  This private link shows you when {name || "they"} opens it, and any reply they
+                  send back. Keep it — the receipt link is the only way back in.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleCopyTrack}
+                  className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-[#E3D4B8] bg-white text-[11px] font-semibold text-[#3B271E] cursor-pointer"
+                >
+                  {trackCopied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                  {trackCopied ? "Tracker link copied" : "Copy my tracker link"}
+                </button>
+              </div>
+            ) : null}
 
             {/* PWA Install Callout */}
             <div className="mt-8 pt-6 border-t border-[#E3D4B8] text-center">

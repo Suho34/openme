@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
-import { Plus, Trash2, Heart, Gift, Camera, Mic } from "lucide-react";
+import React, { useRef } from "react";
+import { Plus, Trash2, Heart, Gift, Camera } from "lucide-react";
 import type { TimeCapsule } from "@/lib/types";
+import { compressImage } from "@/lib/images";
 
 interface TimeCapsulesFormProps {
   capsules: TimeCapsule[];
@@ -42,6 +43,7 @@ export default function TimeCapsulesForm({
   recipientName,
   relationship,
 }: TimeCapsulesFormProps) {
+  const nextId = useRef(0);
   const relKey = relationship?.toLowerCase() || "friend";
   const suggestions =
     PROMPT_SUGGESTIONS[relKey] || PROMPT_SUGGESTIONS.friend;
@@ -50,7 +52,7 @@ export default function TimeCapsulesForm({
     onChange([
       ...capsules,
       {
-        id: `capsule-${Date.now()}-${capsules.length}`,
+        id: `capsule-${nextId.current++}-${capsules.length}`,
         prompt: promptText || "Open when you need a smile",
         message: "",
         voucher: "",
@@ -68,32 +70,17 @@ export default function TimeCapsulesForm({
     onChange(capsules.filter((_, idx) => idx !== index));
   };
 
-  const handlePhotoUpload = (
+  const handlePhotoUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
     index: number,
   ) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        const MAX = 640;
-        const scale = MAX / Math.max(img.width, img.height);
-        canvas.width = Math.round(img.width * scale);
-        canvas.height = Math.round(img.height * scale);
-        const ctx = canvas.getContext("2d");
-        ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
-        const dataUrl = canvas.toDataURL("image/jpeg", 0.6);
-        updateCapsule(index, "photoUrl", dataUrl);
-      };
-      if (typeof event.target?.result === "string") {
-        img.src = event.target.result;
-      }
-    };
-    reader.readAsDataURL(file);
+    try {
+      updateCapsule(index, "photoUrl", await compressImage(file));
+    } catch {
+      // Leave the previous photo in place if compression fails.
+    }
   };
 
   return (

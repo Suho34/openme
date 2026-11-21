@@ -11,12 +11,6 @@ export interface TimelineEvent {
   description: string;
 }
 
-export interface TriviaQuestion {
-  question: string;
-  options: string[];
-  correctAnswerIndex: number;
-}
-
 export interface ScrollNote {
   id: string;
   text: string;
@@ -34,9 +28,12 @@ export interface TimeCapsule {
 }
 
 export type ThemeId = "starry" | "neon" | "romance" | "pastel" | "retro";
-export type DoodleType = "heart" | "rose" | "hearts" | "coffee";
 export type AmbienceType = "fire" | "rain" | "ocean" | "none";
 export type CakeStyle = "classic" | "berry" | "matcha" | "chocolate";
+export type LetterFont = "brush" | "caveat" | "homemade";
+
+/** One-tap replies. The value is what gets stored on the reply document. */
+export type ReactionKind = "cried" | "loved" | "laughed" | "grateful" | "hug";
 
 export interface WishData {
   name: string;
@@ -44,19 +41,25 @@ export interface WishData {
   sender: string;
   message: string;
   theme: string;
+  replyTo?: string;
+  /** Set when this keepsake is itself an answer to someone else's. */
+  reaction?: string;
   memories?: Memory[];
   deliveryLock?: number | Date | string;
+  /** True when the server withheld the content because the delivery lock is still closed. */
+  locked?: boolean;
   timeline?: TimelineEvent[];
-  trivia?: TriviaQuestion[];
-  doodleType?: DoodleType;
   ambience?: AmbienceType;
   cakeStyle?: CakeStyle;
+  letterFont?: LetterFont;
   voiceNoteUrl?: string;
   tuneUrl?: string;
   tuneDurationSeconds?: number | null;
   scrollNotes?: ScrollNote[];
   scrollJarTitle?: string;
   timeCapsules?: TimeCapsule[];
+  /** When this link (and its row) disappears. */
+  expiresAt?: string | number | Date;
   demo?: boolean;
 }
 
@@ -65,9 +68,7 @@ export type AccordionFolder =
   | "ai-writer"
   | "theme"
   | "schedule"
-  | "doodle"
   | "timeline"
-  | "trivia"
   | "memories";
 
 export interface WishTemplate {
@@ -118,11 +119,6 @@ export interface DevelopingPolaroidProps {
   onClick: () => void;
 }
 
-export interface DoodleAnimationProps {
-  name: string;
-  type?: DoodleType;
-}
-
 export interface FireworksProps {
   name?: string;
 }
@@ -158,6 +154,7 @@ export interface GiftBoxSurpriseProps {
   message: string;
   name: string;
   theme: string;
+  letterFont?: LetterFont;
   onOpenComplete: () => void;
 }
 
@@ -167,20 +164,6 @@ export interface MemoryLaneProps {
 
 export interface TimelineProps {
   events?: TimelineEvent[];
-}
-
-export interface TriviaGameProps {
-  trivia: TriviaQuestion[];
-  onComplete: () => void;
-  onScore?: (correct: number) => void;
-}
-
-export interface TriviaFormProps {
-  activeFolder: AccordionFolder;
-  setActiveFolder: Dispatch<SetStateAction<AccordionFolder>>;
-  triviaQuestions: TriviaQuestion[];
-  setTriviaQuestions: (t: TriviaQuestion[]) => void;
-  SectionHeader: FC<{ icon: ReactNode; children: ReactNode }>;
 }
 
 export interface MemoryLaneFormProps {
@@ -201,6 +184,10 @@ export interface TunePickerProps {
 export interface VoiceRecorderProps {
   onRecordingComplete: (base64Audio: string) => void;
   onClear?: () => void;
+  /** Recording length in seconds. Defaults to 60. */
+  maxDuration?: number;
+  /** Hide the card wrapper and label for use inside a compact composer. */
+  compact?: boolean;
 }
 
 export interface StepProgressBarProps {
@@ -211,7 +198,8 @@ export interface StepProgressBarProps {
 
 export interface WishViewerProps {
   wishData: WishData;
-  preview?: boolean;
+  wishId?: string;
+  onUnlockRequest?: () => void;
 }
 
 export interface StageOption {

@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Mail, Heart } from "lucide-react";
-import { playChime } from "@/lib/audio";
+import { playPaper, playSealCrack } from "@/lib/sfx";
 import { triggerHaptic } from "@/lib/haptics";
 import toast from "react-hot-toast";
 import HandwrittenLetter from "./HandwrittenLetter";
@@ -15,22 +15,20 @@ export default function GiftBoxSurprise({
   sender,
   message,
   name,
+  letterFont,
   onOpenComplete,
 }: GiftBoxSurpriseProps) {
   const [state, setState] = useState<"idle" | "breaking" | "opened">("idle");
-  const [showCard, setShowCard] = useState(false);
 
   const handleOpen = () => {
     if (state !== "idle") return;
     setState("breaking");
-    playChime();
+    playSealCrack();
+    window.setTimeout(playPaper, 520);
     triggerHaptic("wax");
     toast("Breaking the wax seal…");
 
-    setTimeout(() => {
-      setState("opened");
-      setTimeout(() => setShowCard(true), 400);
-    }, 1000);
+    setTimeout(() => setState("opened"), 1000);
   };
 
   return (
@@ -181,6 +179,7 @@ export default function GiftBoxSurprise({
             name={name}
             sender={sender}
             message={message}
+            letterFont={letterFont}
             onProceed={onOpenComplete}
           />
         )}

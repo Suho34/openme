@@ -4,6 +4,7 @@ import React from "react";
 import { Camera, Plus, Sparkles, Trash2, Image as ImageIcon } from "lucide-react";
 import type { Memory, MemoryLaneFormProps } from "@/lib/types";
 import { captionPhoto } from "@/lib/actions";
+import { compressImage } from "@/lib/images";
 
 export default function MemoryLaneForm({
   activeFolder,
@@ -40,37 +41,17 @@ export default function MemoryLaneForm({
     }
   };
 
-  const handleImageUpload = (
+  const handleImageUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
     index: number,
   ) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        const MAX = 640;
-        const scale = MAX / Math.max(img.width, img.height);
-        canvas.width = Math.round(img.width * scale);
-        canvas.height = Math.round(img.height * scale);
-        const ctx = canvas.getContext("2d");
-        ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
-        let quality = 0.5;
-        let dataUrl = canvas.toDataURL("image/jpeg", quality);
-        while (dataUrl.length > 500000 && quality > 0.1) {
-          quality -= 0.1;
-          dataUrl = canvas.toDataURL("image/jpeg", quality);
-        }
-        updateMemory(index, "url", dataUrl);
-      };
-      if (typeof event.target?.result === "string") {
-        img.src = event.target.result;
-      }
-    };
-    reader.readAsDataURL(file);
+    try {
+      updateMemory(index, "url", await compressImage(file));
+    } catch {
+      // The error is surfaced by the caller's toast; keep the form usable.
+    }
   };
 
   const content = (

@@ -7,8 +7,6 @@ export type Stage =
   | "memories"
   | "time-capsules"
   | "timeline"
-  | "trivia"
-  | "doodle"
   | "balloons"
   | "letter"
   | "finale";

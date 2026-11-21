@@ -5,6 +5,8 @@ import {
   Pacifico,
   Cormorant_Garamond,
   Alex_Brush,
+  Caveat,
+  Homemade_Apple,
 } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 import ServiceWorkerRegister from "@/components/pwa/ServiceWorkerRegister";
@@ -39,13 +41,24 @@ const alexBrush = Alex_Brush({
   weight: ["400"],
 });
 
+const caveat = Caveat({
+  variable: "--font-caveat",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+});
+
+const homemadeApple = Homemade_Apple({
+  variable: "--font-homemade",
+  subsets: ["latin"],
+  weight: ["400"],
+});
+
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
 export const viewport: Viewport = {
   themeColor: "#8B2635",
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
   viewportFit: "cover",
 };
 
@@ -100,7 +113,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${geistMono.variable} ${pacifico.variable} ${cormorant.variable} ${alexBrush.variable} h-full antialiased`}
+      className={`${inter.variable} ${geistMono.variable} ${pacifico.variable} ${cormorant.variable} ${alexBrush.variable} ${caveat.variable} ${homemadeApple.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col font-sans">
         <ServiceWorkerRegister />
