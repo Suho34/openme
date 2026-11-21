@@ -8,6 +8,7 @@ import {
   HappyBirthdayPlayer,
   MicBlowDetector,
 } from "@/lib/audio";
+import { triggerHaptic } from "@/lib/haptics";
 import { Mp3Player } from "@/lib/mp3Player";
 import confetti from "canvas-confetti";
 import toast from "react-hot-toast";
@@ -77,9 +78,7 @@ export default function BirthdayCake({
   const handleCandleClick = (index: number) => {
     if (candlesLit[index]) {
       blowsRef.current += 1;
-      if (typeof window !== "undefined" && navigator.vibrate) {
-        navigator.vibrate(35);
-      }
+      triggerHaptic("candle");
       setCandlesLit((prev) => {
         const next = [...prev];
         next[index] = false;
@@ -141,6 +140,7 @@ export default function BirthdayCake({
       const firstLitIdx = prev.findIndex((lit) => lit);
       if (firstLitIdx !== -1) {
         blowsRef.current += 1;
+        triggerHaptic("candle");
         playCandleBlow();
         const next = [...prev];
         next[firstLitIdx] = false;
@@ -152,6 +152,7 @@ export default function BirthdayCake({
 
   // Celebration trigger
   const triggerCelebration = () => {
+    triggerHaptic("celebrate");
     if (micDetectorRef.current) {
       micDetectorRef.current.stop();
       micDetectorRef.current = null;

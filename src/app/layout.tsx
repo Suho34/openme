@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import {
   Inter,
   Geist_Mono,
@@ -7,6 +7,7 @@ import {
   Alex_Brush,
 } from "next/font/google";
 import { Toaster } from "react-hot-toast";
+import ServiceWorkerRegister from "@/components/pwa/ServiceWorkerRegister";
 import "./globals.css";
 
 const inter = Inter({
@@ -40,11 +41,24 @@ const alexBrush = Alex_Brush({
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
+export const viewport: Viewport = {
+  themeColor: "#8B2635",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  viewportFit: "cover",
+};
+
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: "WishMaker — Unforgettable Birthday Experiences",
   description:
     "Create immersive, heartfelt birthday surprises that feel like opening a beautifully wrapped gift. No account needed.",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "WishMaker",
+  },
   icons: {
     icon: [
       { url: "/wm-logo.svg", type: "image/svg+xml" },
@@ -81,6 +95,7 @@ export default function RootLayout({
       className={`${inter.variable} ${geistMono.variable} ${pacifico.variable} ${cormorant.variable} ${alexBrush.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col font-sans">
+        <ServiceWorkerRegister />
         {children}
         <Toaster
           position="bottom-right"

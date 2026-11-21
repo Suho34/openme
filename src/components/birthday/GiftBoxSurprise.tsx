@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Mail, Heart } from "lucide-react";
 import { playChime } from "@/lib/audio";
+import { triggerHaptic } from "@/lib/haptics";
 import toast from "react-hot-toast";
 import HandwrittenLetter from "./HandwrittenLetter";
 import type { GiftBoxSurpriseProps } from "@/lib/types";
@@ -23,9 +24,7 @@ export default function GiftBoxSurprise({
     if (state !== "idle") return;
     setState("breaking");
     playChime();
-    if (typeof window !== "undefined" && navigator.vibrate) {
-      navigator.vibrate([30, 25, 45]);
-    }
+    triggerHaptic("wax");
     toast("Breaking the wax seal…");
 
     setTimeout(() => {

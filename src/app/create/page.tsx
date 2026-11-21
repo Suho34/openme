@@ -34,6 +34,7 @@ import type { CakeStyle } from "@/lib/cakeStyles";
 import { playChime } from "@/lib/audio";
 import { generateMessage, saveWish } from "@/lib/actions";
 import Link from "next/link";
+import PWAInstallButton from "@/components/pwa/PWAInstallButton";
 import type {
   Memory,
   ThemeId,
@@ -288,14 +289,7 @@ export default function CreateSurprise() {
           </span>
         </Link>
 
-        <a
-          href="/wishmaker.apk"
-          download="WishMaker.apk"
-          className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold text-[#8B2635] hover:underline"
-        >
-          <Smartphone className="w-3.5 h-3.5" />
-          Download Android APK
-        </a>
+        <PWAInstallButton variant="nav" />
       </header>
 
       {/* ── Main Workshop ── */}
@@ -750,19 +744,12 @@ export default function CreateSurprise() {
               </Link>
             </div>
 
-            {/* Android APK Callout */}
+            {/* PWA Install Callout */}
             <div className="mt-8 pt-6 border-t border-[#E3D4B8] text-center">
-              <p className="text-[11px] text-[#7A6F62] mb-2 font-serif italic">
-                Prefer creating offline from your Android phone?
+              <p className="text-[11px] text-[#7A6F62] mb-3 font-serif italic">
+                Love WishMaker? Keep it on your home screen with one tap:
               </p>
-              <a
-                href="/wishmaker.apk"
-                download="WishMaker.apk"
-                className="btn-gold text-xs py-2.5 px-5 inline-flex items-center gap-2"
-              >
-                <Download className="w-3.5 h-3.5" />
-                Download Android APK
-              </a>
+              <PWAInstallButton variant="card" alwaysShow={true} />
             </div>
           </div>
         )}
