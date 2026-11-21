@@ -18,7 +18,7 @@
 
 </div>
 
-WishMaker turns a birthday wish into a choreographed, multi-chapter experience: a wax-sealed envelope, a 3D cake you can blow out with your microphone, a heartfelt AI-assisted letter, shared photos, trivia, and a fireworks finale — all packed into a single URL. No accounts. No app to install. Nothing stored.
+WishMaker turns a birthday wish into a choreographed, multi-chapter experience: a wax-sealed envelope, a 3D cake you can blow out with your microphone, a letter written from your own answers, shared photos, a voice note, and a fireworks finale — all packed into a single URL. No accounts, no app to install. The link stays open for a week, and the recipient can save the whole keepsake to their device forever.
 
 The recipient just opens the link; the gift-maker just sends it.
 
@@ -26,12 +26,15 @@ The recipient just opens the link; the gift-maker just sends it.
 
 - 🕯️ **Wax-sealed envelope** — A dark linen envelope locked with a crimson wax seal. Set a delivery date and it stays sealed behind a countdown until the big day.
 - 🎂 **3D cake with mic candle-blowing** — A gourmet Three.js cake. Tap a candle or blow into your microphone to blow them out, with physics-based smoke.
-- ✉️ **AI letter writer** — Tell the AI what you feel and drop in real memories; it drafts three personal, un-cheesy letters with a Playful → Formal tone slider.
+- ✉️ **Interview letter writer** — Answer six small questions (by typing, or out loud with voice transcription) and Gemini drafts three letters built only from your real memories — 90–140 words, never greeting-card filler. A Quick mode keeps the older what-to-say / keywords path.
 - 🎨 **Smart theme recommendation** — Gemini reads the letter and recommends a matching color palette (starry, neon, romance, pastel, retro) and ambience.
 - 📸 **Auto-captioned photos** — Upload a memory photo and Gemini vision writes a warm caption for the polaroid.
 - 🎵 **Birthday tune** — Four built-in Happy Birthday melodies, or upload your own; the first ~15s plays at the finale.
-- 🕰️ **Chronological journey** — A sequenced reveal: letter → cake → camera moment → wishes → doodle → timeline → photo scrapbook → trivia → balloons → fireworks finale.
-- 🎁 **Scheduled delivery** — Lock the surprise until a chosen date, with an early-preview mode for the creator.
+- 🕰️ **Chronological journey** — A sequenced reveal: letter → cake → birthday wish → jar of scrolls → photo scrapbook → Open When capsules → timeline → voice note → fireworks finale.
+- 🎁 **Scheduled delivery** — Lock the surprise behind a countdown until the chosen date; only the countdown data ever reaches the browser early.
+- 💬 **Reply chapter** — The recipient answers with one tap (🥹 ❤️ 😂 🙏 🫂), a written note, or a voice message, which opens back to the sender as a keepsake.
+- 👀 **Read receipt** — A private tracker link tells the sender when the keepsake was opened and what came back.
+- 💾 **Keepsake export** — One tap saves the entire experience as a single offline HTML file, so it outlives the seven-day link.
 
 ## Getting started
 
@@ -69,25 +72,24 @@ npm run start
 
 There are two surfaces, split by audience:
 
-**The gift-maker** (`/create`) — a multi-step wizard to gather photos, write a message (optionally AI-assisted), pick a cake style and theme, add timeline/trivia, and produce a shareable link. Everything is serialized, gzip-compressed, encrypted, and embedded in the URL itself — so there is nothing to sign up for and no configuration stored server-side.
+**The gift-maker** (`/create`) — a six-step wizard: name the honoree, answer the interview (or write the letter directly), pick a cake, a tune and a handwriting style, fill the jar of scrolls, add photos and Open When capsules, then record a voice note and seal. It returns the keepsake link plus a private tracker link.
 
-**The recipient** (`/wish`) — a phone-first, choreographed reveal. Each stage must be completed before the next unlocks, building toward the finale. `?preview=1` lets creators walk through the whole experience early.
+**The recipient** (`/wish/[id]`) — a phone-first, choreographed reveal. Each stage must be completed before the next unlocks, building toward the finale, where they can save the keepsake and send something back.
 
 ### The recipient's journey
 
 Opening the link begins a sequenced, chronological reveal — each stage unlocks the next:
 
-1. **Wax-seal envelope** — A dark linen envelope locked with a crimson wax seal. With a delivery date set, a countdown keeps it sealed until the big day.
-2. **Letterpress letter** — A parchment letter in classical serif typography carries the personalized message.
+1. **Wax-seal envelope** — A linen envelope sealed in crimson wax; breaking it plays a paper-and-seal sound. With a delivery date set, a countdown keeps it sealed until the big day.
+2. **Handwritten letter** — The message renders in the sender's chosen hand (flowing, casual or soft).
 3. **3D cake & blow** — A gourmet Three.js cake. The recipient taps a candle or blows into their microphone to blow them out, with physics-based smoke.
-4. **Camera moment** — The camera opens for a selfie snapshot (saved only on the recipient's device).
-5. **Birthday wish** — Typed wishes ascend to the sky with confetti.
-6. **Doodle** — A scratch-off / drawing surprise.
-7. **Timeline milestones** — A chronological tracker of key dates and stories.
-8. **Shared photo scrapbook** — Polaroid-style memories with handwritten captions.
-9. **Trivia** — A playful quiz about the recipient.
-10. **Balloons** — Pop metallic balloons to release poetic wishes.
-11. **Grand finale** — Fireworks, a shareable recap card, and a nudge to create one for someone they love.
+4. **Birthday wish** — Typed wishes ascend to the sky with confetti.
+5. **Jar of little scrolls** — Rolled parchment notes unroll one by one.
+6. **Photo scrapbook** — Polaroid-style memories with handwritten captions.
+7. **Open When capsules** — Sealed notes for hard days, quiet mornings, and future moments.
+8. **Timeline** — Milestones, when the sender added them.
+9. **Whispered voice note** — The sender's actual voice, played before the finale.
+10. **Grand finale** — Fireworks, the keepsake download, one-tap/text/voice reply, and a nudge to create one for someone they love.
 
 ## Architecture
 
@@ -97,10 +99,11 @@ WishMaker is a single Next.js app: the frontend and backend live in one process,
 
 - **Client** — the phone-first browser, no signup or install required.
 - **Frontend** — React 19, Three.js, Tailwind, and Framer Motion rendering the landing, creator wizard, and recipient experience.
-- **Server Actions** (`src/lib/actions.ts`) — Gemini-backed letter drafting, theme recommendation, and photo captioning.
-- **API Routes** (`src/app/api/`) — `/api/wishes` for optional persisted wishes, `/api/og` for dynamic Open Graph images.
+- **Server Actions** (`src/lib/actions.ts`) — Gemini-backed interview letter drafting, voice transcription, photo captioning and scroll notes.
+- **API Routes** (`src/app/api/`) — `/api/wishes/[id]` for the keepsake, `/api/replies` for reactions, notes and voice replies, `/api/wishes/[id]/open` for the read-receipt beacon, and `/api/og` for dynamic Open Graph images.
 - **Gemini API** — `gemini-2.5-flash` powers all AI features.
-- **MongoDB** — optional wish store, with a TTL index auto-deleting wishes 7 days after delivery.
+- **MongoDB** — wish store with a TTL index deleting rows 7 days after delivery; the saved HTML export is what outlives it.
+- **Read receipts** — `/sent/[id]?k=…`, guarded by a private per-keepsake key that never appears in the public payload.
 
 > [!NOTE]
 > The interactive diagram is also available as a self-contained HTML file: [`architecture.html`](architecture.html).
@@ -114,7 +117,7 @@ WishMaker is a single Next.js app: the frontend and backend live in one process,
 
 ## Privacy
 
-WishMaker sets **no cookies** and tracks **no analytics**. The surprise configuration is encrypted and travels inside the share URL; camera photos never leave the recipient's device. The only server-side persistence is the optional `/api/wishes` path, where wishes are automatically deleted **7 days** after their delivery date via a TTL index.
+WishMaker sets **no cookies** and tracks **no analytics**. Camera photos never leave the recipient's device. A keepsake lives in MongoDB for **7 days** after its delivery date (TTL index) — after that the row is gone, which is why the finale offers a self-contained offline export. Opening counts are anonymous and stored on the wish itself; the tracker link is the only way to read them.
 
 ## Tech stack
 

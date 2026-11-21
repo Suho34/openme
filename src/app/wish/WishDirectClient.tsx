@@ -71,7 +71,6 @@ function parseLegacyWishData(raw: Record<string, unknown>): WishData {
     memories: raw.mm as WishData["memories"],
     deliveryLock: raw.dl as number | undefined,
     timeline: raw.tl as WishData["timeline"],
-    doodleType: raw.dt as WishData["doodleType"],
     ambience: raw.am as WishData["ambience"],
     cakeStyle: raw.cs as WishData["cakeStyle"],
     voiceNoteUrl: raw.vn as string | undefined,
@@ -92,33 +91,34 @@ function WishContent() {
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    if (isDemo) {
-      setWishData(DEMO_WISH_DATA);
-      return;
-    }
-
-    if (!dataParam) {
-      // Default to demo wish data if no params provided
-      setWishData(DEMO_WISH_DATA);
-      return;
-    }
-
-    try {
-      const decoded = decodeURIComponent(
-        atob(dataParam)
-          .split("")
-          .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
-          .join(""),
-      );
-      const parsed = JSON.parse(decoded);
-      if (!parsed.n || !parsed.s || !parsed.m) {
-        setError(true);
+    // Deferred a tick: this is the legacy inline-data viewer, and decoding the
+    // payload should not block hydration.
+    const timer = window.setTimeout(() => {
+      if (!dataParam) {
+        // Default to demo wish data if no params provided
+        setWishData(DEMO_WISH_DATA);
         return;
       }
-      setWishData(parseLegacyWishData(parsed));
-    } catch {
-      setError(true);
-    }
+
+      try {
+        const decoded = decodeURIComponent(
+          atob(dataParam)
+            .split("")
+            .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+            .join(""),
+        );
+        const parsed = JSON.parse(decoded);
+        if (!parsed.n || !parsed.s || !parsed.m) {
+          setError(true);
+          return;
+        }
+        setWishData(parseLegacyWishData(parsed));
+      } catch {
+        setError(true);
+      }
+    }, 0);
+
+    return () => window.clearTimeout(timer);
   }, [dataParam, isDemo]);
 
   if (error) return <ErrorView />;
