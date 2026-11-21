@@ -371,7 +371,7 @@ export default function WishViewer({ wishData, preview = false }: WishViewerProp
             <DoodleAnimation name={wishData.name} type={wishData.doodleType} />
             <button
               onClick={() => transition(getNextStage("doodle"))}
-              className="btn-primary px-6 py-3.5 text-sm flex items-center justify-center gap-2 self-center"
+              className="btn-primary px-6 py-2.5 text-xs sm:text-sm flex items-center justify-center gap-2 self-center"
             >
               Continue <ArrowRight className="w-3.5 h-3.5" />
             </button>
@@ -398,7 +398,7 @@ export default function WishViewer({ wishData, preview = false }: WishViewerProp
               </div>
               <button
                 onClick={() => transition(getNextStage("timeline"))}
-                className="btn-primary px-6 py-3.5 text-sm flex items-center justify-center gap-2 self-center"
+                className="btn-primary px-6 py-2.5 text-xs sm:text-sm flex items-center justify-center gap-2 self-center"
               >
                 Continue <ArrowRight className="w-3.5 h-3.5" />
               </button>
@@ -414,7 +414,7 @@ export default function WishViewer({ wishData, preview = false }: WishViewerProp
               </div>
               <button
                 onClick={() => transition(getNextStage("memories"))}
-                className="btn-primary px-6 py-3.5 text-sm flex items-center justify-center gap-2 self-center"
+                className="btn-primary px-6 py-2.5 text-xs sm:text-sm flex items-center justify-center gap-2 self-center"
               >
                 Continue <ArrowRight className="w-3.5 h-3.5" />
               </button>
@@ -459,7 +459,7 @@ export default function WishViewer({ wishData, preview = false }: WishViewerProp
             </div>
             <button
               onClick={() => transition(getNextStage("balloons"))}
-              className="btn-primary px-8 py-4 text-sm font-semibold flex items-center justify-center gap-2 self-center"
+              className="btn-primary px-6 py-2.5 text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 self-center"
             >
               Continue <ArrowRight className="w-3.5 h-3.5" />
             </button>
@@ -482,7 +482,7 @@ export default function WishViewer({ wishData, preview = false }: WishViewerProp
                   colors: ["#8B2635", "#C5A059", "#FAF6F0", "#3B271E"],
                 });
               }}
-              className="btn-primary px-8 py-3.5 text-sm font-semibold flex items-center justify-center gap-2"
+              className="btn-primary px-6 py-2.5 text-xs sm:text-sm font-semibold flex items-center justify-center gap-2"
             >
               Reveal Grand Finale <ArrowRight className="w-4 h-4" />
             </button>

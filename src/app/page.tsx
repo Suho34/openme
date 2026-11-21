@@ -8,10 +8,7 @@ import {
   Shield,
   ChevronRight,
   Camera,
-  Sparkles,
-  Download,
   Flame,
-  Smartphone,
 } from "lucide-react";
 import PWAInstallButton from "@/components/pwa/PWAInstallButton";
 
@@ -121,14 +118,8 @@ export default function Home() {
           </span>
         </Link>
 
-        <div className="flex items-center gap-3">
-          <PWAInstallButton variant="nav" />
-          <Link
-            href="/create"
-            className="btn-primary text-xs sm:text-sm py-2.5 px-5"
-          >
-            Craft Surprise
-          </Link>
+        <div className="flex items-center">
+          <PWAInstallButton variant="nav" alwaysShow={true} />
         </div>
       </header>
 
@@ -296,55 +287,6 @@ export default function Home() {
                 </div>
               </div>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Mobile PWA Feature Banner ── */}
-      <section className="relative z-10 max-w-5xl mx-auto w-full px-6 py-20">
-        <div
-          className="paper-deckle rounded-2xl p-8 sm:p-12 relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8"
-          style={{
-            background:
-              "linear-gradient(135deg, #3B271E 0%, #261610 70%, #150B07 100%)",
-            color: "#FAF6F0",
-            boxShadow: "0 25px 50px -12px rgba(38, 22, 16, 0.45)",
-          }}
-        >
-          <div className="max-w-xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#C5A059]/20 border border-[#C5A059]/30 text-[#EADDC9] text-[10px] font-semibold uppercase tracking-widest mb-4">
-              <Smartphone className="w-3.5 h-3.5 text-[#C5A059]" />
-              Progressive Web App • Install on any device
-            </div>
-            <h3 className="font-serif text-3xl sm:text-4xl text-[#FAF6F0] mb-3">
-              Craft surprises on your phone. Install with one tap.
-            </h3>
-            <p className="text-sm text-[#EADDC9]/80 leading-relaxed font-serif italic mb-6">
-              Install WishMaker directly to your home screen with zero app store friction.
-              Enjoy 100% identical features, instant loading, and seamless candlelit experiences.
-            </p>
-            <div className="flex flex-wrap items-center gap-3">
-              <PWAInstallButton variant="banner" alwaysShow={true} />
-              <Link
-                href="/create"
-                className="btn-ghost px-6 py-3 text-xs sm:text-sm font-semibold inline-flex items-center gap-2 text-[#FAF6F0] border-white/20 hover:bg-white/10"
-              >
-                <span>Start Creating</span>
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-            </div>
-          </div>
-
-          <div className="w-40 sm:w-48 aspect-square rounded-full border border-[#C5A059]/30 flex items-center justify-center p-6 bg-black/20 backdrop-blur-xs text-center">
-            <div>
-              <Heart className="w-8 h-8 text-[#C5A059] mx-auto mb-2 fill-current" />
-              <p className="text-xs uppercase tracking-wider text-[#FAF6F0] font-semibold">
-                WishMaker
-              </p>
-              <p className="text-[10px] text-[#EADDC9]/70 font-mono mt-0.5">
-                PWA Edition
-              </p>
-            </div>
           </div>
         </div>
       </section>

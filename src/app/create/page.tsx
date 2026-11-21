@@ -285,11 +285,11 @@ export default function CreateSurprise() {
             <Heart className="w-4 h-4 text-white fill-current" />
           </div>
           <span className="font-serif text-xl text-[#2A231F] font-medium tracking-tight">
-            WishMaker<span className="text-[#8B2635]">.</span> Studio
+            WishMaker<span className="text-[#8B2635]">.</span>
           </span>
         </Link>
 
-        <PWAInstallButton variant="nav" />
+        <PWAInstallButton variant="nav" alwaysShow={true} />
       </header>
 
       {/* ── Main Workshop ── */}

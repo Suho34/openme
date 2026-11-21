@@ -133,15 +133,15 @@ export default function HandwrittenLetter({
       >
         <button
           onClick={onProceed}
-          className="group relative inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full text-sm font-semibold tracking-wide text-white transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+          className="group relative inline-flex items-center gap-2 px-6 py-2.5 sm:px-7 sm:py-3 rounded-full text-xs sm:text-sm font-semibold tracking-wide text-white transition-all duration-200 hover:scale-[1.02] active:scale-[0.96] cursor-pointer"
           style={{
             background: "linear-gradient(135deg, #8B2635 0%, #721C28 100%)",
             boxShadow:
-              "0 4px 16px rgba(139, 38, 53, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.2)",
+              "0 4px 14px rgba(139, 38, 53, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)",
           }}
         >
           <span>Light the Birthday Candles</span>
-          <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+          <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
         </button>
       </motion.div>
     </motion.div>

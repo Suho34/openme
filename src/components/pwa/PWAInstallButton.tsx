@@ -25,7 +25,16 @@ export default function PWAInstallButton({
     closeIOSPrompt,
   } = usePWAInstall();
 
+  const [mounted, setMounted] = useState(false);
   const [fallbackNotice, setFallbackNotice] = useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return null;
+  }
 
   // If already installed, don't show prompt
   if (isInstalled) {
