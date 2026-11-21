@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 import connectToDatabase from "@/lib/mongodb";
 import Wish from "@/models/Wish";
 import type { WishData } from "@/lib/types";
+import { toViewableWish } from "@/lib/wishAccess";
 import WishClient from "./WishClient";
 
 interface PageProps {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+  searchParams: Promise<{ k?: string }>;
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -71,19 +72,20 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function WishPage({ params, searchParams }: PageProps) {
   const { id } = await params;
-  const sParams = await searchParams;
-  const preview = sParams?.preview === "1";
+  // The sender's private key rides along on preview links so their own visit
+  // is never counted as an open.
+  const { k } = await searchParams;
 
   let initialWish: WishData | null = null;
   try {
     await connectToDatabase();
     const wish = await Wish.findById(id).lean();
     if (wish) {
-      initialWish = JSON.parse(JSON.stringify(wish)) as WishData;
+      initialWish = toViewableWish(wish as unknown as Record<string, unknown>);
     }
   } catch (err) {
     console.warn("[WishPage] Server fetch error:", err);
   }
 
-  return <WishClient id={id} initialWish={initialWish} preview={preview} />;
+  return <WishClient id={id} initialWish={initialWish} previewKey={k} />;
 }

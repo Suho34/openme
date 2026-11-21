@@ -5,20 +5,18 @@ import React, {
   useState,
   useRef,
   useMemo,
+  useSyncExternalStore,
 } from "react";
-import { Sparkles, AlertCircle, ArrowRight } from "lucide-react";
+import { Sparkles, AlertCircle, ArrowRight, Volume2, VolumeX } from "lucide-react";
 import Link from "next/link";
-import { motion, AnimatePresence, MotionConfig } from "framer-motion";
+import dynamic from "next/dynamic";
+import { motion, AnimatePresence, MotionConfig, useReducedMotion } from "framer-motion";
 import toast from "react-hot-toast";
 import confetti from "canvas-confetti";
 import GiftBoxSurprise from "@/components/birthday/GiftBoxSurprise";
-import BirthdayCake from "@/components/birthday/BirthdayCake";
 import BalloonGame from "@/components/birthday/BalloonGame";
 import MemoryLane from "@/components/birthday/MemoryLane";
-import Fireworks from "@/components/birthday/Fireworks";
-import DoodleAnimation from "@/components/birthday/DoodleAnimation";
 import Timeline from "@/components/birthday/Timeline";
-import TriviaGame from "@/components/birthday/TriviaGame";
 import ChapterHeader from "@/components/birthday/ChapterHeader";
 import VoiceMemoPlayer from "@/components/birthday/VoiceMemoPlayer";
 import ScrollJar from "@/components/birthday/ScrollJar";
@@ -26,11 +24,34 @@ import TimeCapsules from "@/components/birthday/TimeCapsules";
 import AmbientCanvas from "@/components/ui/AmbientCanvas";
 import CountdownLock from "@/components/birthday/CountdownLock";
 import RecapCard from "@/components/birthday/RecapCard";
-import type { RecapStats } from "@/components/birthday/RecapCard";
+import ReactionKeepsake from "@/components/birthday/ReactionKeepsake";
 import { Mp3Player } from "@/lib/mp3Player";
 import { defaultTuneFor } from "@/lib/tunes";
 import { cacheWishLocally, downloadKeepsakeVault } from "@/lib/offlineVault";
+import {
+  getSoundMutedServerSnapshot,
+  getSoundMutedSnapshot,
+  playMatch,
+  playPageTurn,
+  setSoundMuted,
+  subscribeSoundMuted,
+} from "@/lib/sfx";
 import type { Stage, WishViewerProps } from "@/lib/types";
+
+// Three.js cake and the fireworks canvas are the heaviest pieces of the keepsake:
+// load them on the chapters that use them so the first mobile paint stays light.
+const BirthdayCake = dynamic(() => import("@/components/birthday/BirthdayCake"), {
+  ssr: false,
+  loading: () => (
+    <div className="h-72 flex items-center justify-center text-sm text-[#6F655E]">
+      Preparing the cake&hellip;
+    </div>
+  ),
+});
+
+const Fireworks = dynamic(() => import("@/components/birthday/Fireworks"), {
+  ssr: false,
+});
 
 const ALL_STAGES: { id: Stage; label: string }[] = [
   { id: "gift", label: "Letter" },
@@ -40,8 +61,6 @@ const ALL_STAGES: { id: Stage; label: string }[] = [
   { id: "memories", label: "Photos" },
   { id: "time-capsules", label: "Capsules" },
   { id: "timeline", label: "Timeline" },
-  { id: "trivia", label: "Trivia" },
-  { id: "doodle", label: "Doodle" },
   { id: "balloons", label: "Balloons" },
   { id: "letter", label: "Voice" },
   { id: "finale", label: "Finale" },
@@ -55,30 +74,34 @@ const CHAPTERS: Record<Stage, { chapter: string; title: string; subtitle?: strin
   memories: { chapter: "Chapter V", title: "Treasured Moments", subtitle: "Photographs we hold close" },
   "time-capsules": { chapter: "Chapter VI", title: "Open When... Capsules", subtitle: "Comfort notes to keep for your year ahead" },
   timeline: { chapter: "Milestones", title: "Our Story So Far", subtitle: "Milestones we hold close" },
-  trivia: { chapter: "Playful Moment", title: "Birthday Trivia", subtitle: "How well do you know us?" },
-  doodle: { chapter: "Interlude", title: "Drawn with Love" },
   balloons: { chapter: "Celebration", title: "Floating Wishes", subtitle: "Pop a balloon to reveal a secret" },
   letter: { chapter: "Chapter VII", title: "A Whispered Note", subtitle: "A private recording from across the miles" },
   finale: { chapter: "Finale", title: "Happy Birthday", subtitle: "Made for you, always" },
 };
 
-export default function WishViewer({ wishData, preview = false }: WishViewerProps) {
-  const [stage, setStage] = useState<Stage>("gift");
+export default function WishViewer({ wishData, wishId, onUnlockRequest }: WishViewerProps) {
+  // A voice-only reply has no words to read, so it opens on the recording itself.
+  const [stage, setStage] = useState<Stage>(() =>
+    wishData.replyTo && !wishData.message && wishData.voiceNoteUrl ? "letter" : "gift",
+  );
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [transitioning, setTransitioning] = useState(false);
   const [showFinalCard, setShowFinalCard] = useState(false);
   const [finalWish, setFinalWish] = useState("");
   const [wishSubmitted, setWishSubmitted] = useState(false);
 
-  const [recapStats, setRecapStats] = useState<RecapStats>({
-    candlesTries: 0,
-    usedMicrophone: false,
-    balloonsPopped: 0,
-    triviaCorrect: 0,
-    triviaTotal: wishData.trivia?.length ?? 0,
-  });
+  const prefersReduced = useReducedMotion();
+
+  // localStorage is not available during SSR, so read it through a store.
+  const muted = useSyncExternalStore(
+    subscribeSoundMuted,
+    getSoundMutedSnapshot,
+    getSoundMutedServerSnapshot,
+  );
 
   const mp3Ref = useRef<Mp3Player | null>(null);
+
+  const toggleSound = () => setSoundMuted(!muted);
 
   const unlockAt = useMemo<number | null>(() => {
     if (!wishData.deliveryLock) return null;
@@ -87,7 +110,7 @@ export default function WishViewer({ wishData, preview = false }: WishViewerProp
   }, [wishData.deliveryLock]);
 
   // Only tick the clock while a scheduled lock is actually shown.
-  const clockActive = unlockAt !== null && !preview;
+  const clockActive = unlockAt !== null;
   const [now, setNow] = useState(() => Math.floor(Date.now() / 1000));
   useEffect(() => {
     if (!clockActive || isUnlocked) return;
@@ -98,7 +121,15 @@ export default function WishViewer({ wishData, preview = false }: WishViewerProp
     return () => window.clearInterval(id);
   }, [clockActive, isUnlocked]);
 
-  const locked = clockActive && !isUnlocked && now * 1000 < unlockAt!;
+  // While the server has withheld the content (wishData.locked), keep showing the
+  // countdown even after the clock passes zero, until the refetch lands.
+  const contentWithheld = Boolean(wishData.locked);
+  const locked =
+    clockActive && !isUnlocked && (now * 1000 < unlockAt! || contentWithheld);
+
+  const reactionOnlyReply = Boolean(
+    wishData.replyTo && wishData.reaction && !wishData.message,
+  );
 
   const activeStages = useMemo(() => {
     return ALL_STAGES.filter((s) => {
@@ -113,11 +144,6 @@ export default function WishViewer({ wishData, preview = false }: WishViewerProp
       )
         return false;
       if (
-        s.id === "doodle" &&
-        (!wishData.doodleType || wishData.doodleType === "heart")
-      )
-        return false;
-      if (
         s.id === "timeline" &&
         (!wishData.timeline || wishData.timeline.length === 0)
       )
@@ -127,18 +153,22 @@ export default function WishViewer({ wishData, preview = false }: WishViewerProp
         (!wishData.memories || wishData.memories.length === 0)
       )
         return false;
-      if (
-        s.id === "trivia" &&
-        (!wishData.trivia || wishData.trivia.length === 0)
-      )
-        return false;
-      if (s.id === "balloons")
-        return false;
-      if (s.id === "letter" && !wishData.voiceNoteUrl)
-        return false;
+      if (s.id === "balloons") return false;
+      if (s.id === "letter" && !wishData.voiceNoteUrl) return false;
       return true;
     });
   }, [wishData]);
+
+  // The server sends only the countdown data while a wish is locked, so the
+  // content has to be fetched again when the countdown ends. Driving it from a
+  // timer avoids a race with CountdownLock unmounting on the final tick, which
+  // used to leave the viewer showing an empty letter.
+  useEffect(() => {
+    if (!contentWithheld || unlockAt === null) return;
+    const wait = Math.max(0, unlockAt - Date.now());
+    const id = window.setTimeout(() => onUnlockRequest?.(), wait + 250);
+    return () => window.clearTimeout(id);
+  }, [contentWithheld, unlockAt, onUnlockRequest]);
 
   const getNextStage = (currentId: Stage): Stage => {
     const currentIndex = activeStages.findIndex((s) => s.id === currentId);
@@ -149,17 +179,27 @@ export default function WishViewer({ wishData, preview = false }: WishViewerProp
   };
 
   const transition = (next: Stage) => {
+    if (prefersReduced) {
+      setStage(next);
+      window.scrollTo({ top: 0 });
+      return;
+    }
+    playPageTurn();
     setTransitioning(true);
     setTimeout(() => {
       setStage(next);
       setTransitioning(false);
       window.scrollTo({ top: 0 });
-    }, 380);
+    }, 420);
   };
 
   useEffect(() => {
+    if (stage === "cake") playMatch();
+  }, [stage]);
+
+  useEffect(() => {
     if (stage === "finale" && wishData) {
-      cacheWishLocally(wishData.name, wishData);
+      void cacheWishLocally(wishId || wishData.name, wishData);
       const tune = wishData.tuneUrl || defaultTuneFor(wishData.theme).src;
       const playTune = async () => {
         mp3Ref.current?.stop();
@@ -173,14 +213,15 @@ export default function WishViewer({ wishData, preview = false }: WishViewerProp
         mp3Ref.current = null;
       };
     }
-  }, [stage, wishData]);
+  }, [stage, wishData, wishId]);
 
   useEffect(() => {
     if (stage === "finale") {
-      const timer = setTimeout(() => setShowFinalCard(true), 8000);
+      const delay = prefersReduced ? 2500 : 8000;
+      const timer = setTimeout(() => setShowFinalCard(true), delay);
       return () => clearTimeout(timer);
     }
-  }, [stage]);
+  }, [stage, prefersReduced]);
 
   const handleOpenComplete = () => {
     transition("cake");
@@ -205,7 +246,7 @@ export default function WishViewer({ wishData, preview = false }: WishViewerProp
     setTimeout(() => transition(getNextStage("final-wish")), 1500);
   };
 
-  if (locked && unlockAt && !preview)
+  if (locked && unlockAt)
     return (
       <CountdownLock
         unlockAt={unlockAt}
@@ -224,27 +265,25 @@ export default function WishViewer({ wishData, preview = false }: WishViewerProp
           stage === "finale" && !showFinalCard ? "#000000" : "#FFF8F2",
       }}
     >
-      <AmbientCanvas />
-      {stage === "finale" && <Fireworks name={wishData.name} />}
+      {!prefersReduced && <AmbientCanvas />}
+      {stage === "finale" && !prefersReduced && <Fireworks name={wishData.name} />}
 
-      {preview && (
-        <div className="sticky top-0 z-40 bg-[#B05463] text-white text-center text-[0.75rem] font-semibold tracking-wide py-2">
-          Preview mode &mdash; you&apos;re seeing this wish before it unlocks.
-        </div>
-      )}
+      {transitioning && <div className="page-turn-overlay" aria-hidden />}
 
-      {transitioning && (
-        <div
-          className="fixed inset-0 z-50 bg-[#FFF8F2]"
-          style={{ animation: "reveal-up 0.3s ease both" }}
-        />
-      )}
+      <button
+        type="button"
+        onClick={toggleSound}
+        aria-label={muted ? "Turn sound on" : "Turn sound off"}
+        className="fixed bottom-4 left-4 z-40 w-9 h-9 rounded-full bg-white/85 backdrop-blur border border-[#ECE3DA] flex items-center justify-center text-[#7A6F62] hover:text-[#8B2635] shadow-xs cursor-pointer"
+      >
+        {muted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+      </button>
 
       <div
         className="relative z-10 flex-1 max-w-4xl mx-auto w-full px-4 sm:px-6 py-10 flex flex-col justify-between"
         style={{
           opacity: transitioning ? 0 : 1,
-          transition: "opacity 0.32s ease",
+          transition: prefersReduced ? "none" : "opacity 0.32s ease",
         }}
       >
         {stage !== "finale" && CHAPTERS[stage] && (
@@ -255,15 +294,30 @@ export default function WishViewer({ wishData, preview = false }: WishViewerProp
           />
         )}
 
-        {stage === "gift" && (
-          <GiftBoxSurprise
-            name={wishData.name}
-            sender={wishData.sender}
-            message={wishData.message}
-            theme={wishData.theme}
-            onOpenComplete={handleOpenComplete}
-          />
+        {wishData.replyTo && stage === "gift" && (
+          <p className="mb-4 text-center text-[0.6875rem] font-semibold uppercase tracking-[0.15em] text-[#8B2635]">
+            {wishData.sender} sent this one back to you
+          </p>
         )}
+
+        {stage === "gift" &&
+          (reactionOnlyReply ? (
+            <ReactionKeepsake
+              name={wishData.name}
+              sender={wishData.sender}
+              reaction={wishData.reaction}
+              onProceed={() => transition("finale")}
+            />
+          ) : (
+            <GiftBoxSurprise
+              name={wishData.name}
+              sender={wishData.sender}
+              message={wishData.message}
+              theme={wishData.theme}
+              letterFont={wishData.letterFont}
+              onOpenComplete={handleOpenComplete}
+            />
+          ))}
 
         {stage === "cake" && (
           <div className="flex flex-col items-center justify-center flex-1 my-auto">
@@ -273,13 +327,6 @@ export default function WishViewer({ wishData, preview = false }: WishViewerProp
                 age={wishData.age}
                 tuneUrl={wishData.tuneUrl}
                 cakeStyle={wishData.cakeStyle}
-                onStat={(s) =>
-                  setRecapStats((prev) => ({
-                    ...prev,
-                    candlesTries: s.candlesTries,
-                    usedMicrophone: s.usedMicrophone,
-                  }))
-                }
                 onCelebrationStart={handleCelebrationStart}
               />
             </div>
@@ -366,18 +413,6 @@ export default function WishViewer({ wishData, preview = false }: WishViewerProp
             />
           )}
 
-        {stage === "doodle" && wishData.doodleType && (
-          <div className="flex flex-col justify-between flex-1 animate-reveal-up space-y-6">
-            <DoodleAnimation name={wishData.name} type={wishData.doodleType} />
-            <button
-              onClick={() => transition(getNextStage("doodle"))}
-              className="btn-primary px-6 py-2.5 text-xs sm:text-sm flex items-center justify-center gap-2 self-center"
-            >
-              Continue <ArrowRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        )}
-
         {stage === "timeline" &&
           wishData.timeline &&
           wishData.timeline.length > 0 && (
@@ -432,30 +467,10 @@ export default function WishViewer({ wishData, preview = false }: WishViewerProp
             />
           )}
 
-        {stage === "trivia" &&
-          wishData.trivia &&
-          wishData.trivia.length > 0 && (
-            <div className="flex flex-col justify-center flex-1 animate-reveal-up space-y-6">
-              <div className="surface rounded-[1.75rem] p-5 max-w-2xl mx-auto w-full">
-                <TriviaGame
-                  trivia={wishData.trivia}
-                  onComplete={() => transition(getNextStage("trivia"))}
-                  onScore={(correct) =>
-                    setRecapStats((prev) => ({ ...prev, triviaCorrect: correct }))
-                  }
-                />
-              </div>
-            </div>
-          )}
-
         {stage === "balloons" && (
           <div className="flex flex-col justify-between flex-1 animate-reveal-up space-y-6">
             <div className="surface rounded-[1.75rem] p-5 max-w-2xl mx-auto w-full">
-              <BalloonGame
-                onPopped={(count) =>
-                  setRecapStats((prev) => ({ ...prev, balloonsPopped: count }))
-                }
-              />
+              <BalloonGame />
             </div>
             <button
               onClick={() => transition(getNextStage("balloons"))}
@@ -502,6 +517,8 @@ export default function WishViewer({ wishData, preview = false }: WishViewerProp
                   <RecapCard
                     name={wishData.name}
                     sender={wishData.sender}
+                    wishId={wishId}
+                    expiresAt={wishData.expiresAt}
                     onDownloadVault={() => downloadKeepsakeVault(wishData)}
                   />
                 </motion.div>

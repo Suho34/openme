@@ -1,21 +1,33 @@
-﻿import React, { useState, useRef, useEffect } from "react";
-import { Mic, Square, Play, Trash2 } from "lucide-react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
+import { Mic, Square, Trash2 } from "lucide-react";
+import toast from "react-hot-toast";
 import type { VoiceRecorderProps } from "@/lib/types";
 
 export default function VoiceRecorder({
   onRecordingComplete,
   onClear,
+  maxDuration = 60,
+  compact = false,
 }: VoiceRecorderProps) {
   const [isRecording, setIsRecording] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [recordingTime, setRecordingTime] = useState(0);
-  const maxDuration = 60;
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
 
+  const stopRecording = useCallback(() => {
+    if (
+      mediaRecorderRef.current &&
+      mediaRecorderRef.current.state === "recording"
+    ) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+    }
+  }, []);
+
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: ReturnType<typeof setInterval>;
     if (isRecording) {
       interval = setInterval(() => {
         setRecordingTime((prev) => {
@@ -26,11 +38,9 @@ export default function VoiceRecorder({
           return prev + 1;
         });
       }, 1000);
-    } else {
-      setRecordingTime(0);
     }
     return () => clearInterval(interval);
-  }, [isRecording]);
+  }, [isRecording, maxDuration, stopRecording]);
 
   const startRecording = async () => {
     try {
@@ -78,19 +88,8 @@ export default function VoiceRecorder({
       mediaRecorder.start();
       setIsRecording(true);
       setRecordingTime(0);
-    } catch (err) {
-      console.error("Error accessing microphone:", err);
-      alert("Could not access microphone.");
-    }
-  };
-
-  const stopRecording = () => {
-    if (
-      mediaRecorderRef.current &&
-      mediaRecorderRef.current.state === "recording"
-    ) {
-      mediaRecorderRef.current.stop();
-      setIsRecording(false);
+    } catch {
+      toast.error("Microphone unavailable. You can add your voice note later.");
     }
   };
 
@@ -105,12 +104,14 @@ export default function VoiceRecorder({
     return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
   };
 
-  return (
-    <div className="surface rounded-2xl p-4 flex flex-col items-start gap-3">
-      <div className="flex items-center gap-2 mb-1">
-        <Mic className="w-4 h-4 text-[#B05463]" />
-        <p className="text-sm font-semibold text-[#2E2A27]">Voice Note</p>
-      </div>
+  const inner = (
+    <>
+      {!compact && (
+        <div className="flex items-center gap-2 mb-1">
+          <Mic className="w-4 h-4 text-[#B05463]" />
+          <p className="text-sm font-semibold text-[#2E2A27]">Voice Note</p>
+        </div>
+      )}
 
       {!audioUrl ? (
         <button
@@ -131,7 +132,8 @@ export default function VoiceRecorder({
             </>
           ) : (
             <>
-              <Mic className="w-3.5 h-3.5" /> Start Recording (Max 60s)
+              <Mic className="w-3.5 h-3.5" />
+              {compact ? "Record a voice message" : `Start Recording (Max ${maxDuration}s)`}
             </>
           )}
         </button>
@@ -147,6 +149,16 @@ export default function VoiceRecorder({
           </button>
         </div>
       )}
+    </>
+  );
+
+  if (compact) {
+    return <div className="flex flex-col items-start gap-2 w-full">{inner}</div>;
+  }
+
+  return (
+    <div className="surface rounded-2xl p-4 flex flex-col items-start gap-3">
+      {inner}
     </div>
   );
 }
