@@ -1,19 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
 import WishViewer, { ErrorView, LoadingView } from "@/components/birthday/WishViewer";
 import type { WishData } from "@/lib/types";
 
 interface WishClientProps {
   id: string;
   initialWish?: WishData | null;
+  preview?: boolean;
 }
 
-export default function WishClient({ id, initialWish }: WishClientProps) {
-  const searchParams = useSearchParams();
-  const preview = searchParams?.get("preview") === "1";
-
+export default function WishClient({ id, initialWish, preview = false }: WishClientProps) {
   const [wishData, setWishData] = useState<WishData | null>(initialWish || null);
   const [error, setError] = useState(false);
 
@@ -23,6 +20,7 @@ export default function WishClient({ id, initialWish }: WishClientProps) {
       setError(true);
       return;
     }
+
     fetch(`/api/wishes/${id}`)
       .then((res) => res.json())
       .then((data) => {
@@ -37,5 +35,10 @@ export default function WishClient({ id, initialWish }: WishClientProps) {
 
   if (error) return <ErrorView />;
   if (!wishData) return <LoadingView />;
-  return <WishViewer wishData={wishData} preview={preview} />;
+
+  return (
+    <Suspense fallback={<LoadingView />}>
+      <WishViewer wishData={wishData} preview={preview} />
+    </Suspense>
+  );
 }

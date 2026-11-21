@@ -1,12 +1,76 @@
 import { ImageResponse } from "next/og";
 import { NextRequest } from "next/server";
+import { WAX_SEAL_ICON_BASE64 } from "@/lib/ogIcon";
 
 export const runtime = "edge";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
-  const name = searchParams.get("n") ?? searchParams.get("name") ?? "Someone Special";
-  const sender = searchParams.get("s") ?? searchParams.get("sender") ?? "A Loved One";
+  const name = searchParams.get("n") ?? "Someone Special";
+  const sender = searchParams.get("s") ?? "A Loved One";
+  const theme = searchParams.get("t") ?? "romance";
+
+  // Theme palettes matching Candlelight & Linen and style options
+  const THEME_STYLES: Record<
+    string,
+    {
+      bg: string;
+      frameBorder: string;
+      accent: string;
+      accentBadge: string;
+      nameColor: string;
+      subColor: string;
+      glow: string;
+    }
+  > = {
+    romance: {
+      bg: "linear-gradient(135deg, #2D0A12 0%, #150307 100%)",
+      frameBorder: "rgba(197, 160, 89, 0.45)",
+      accent: "#C5A059",
+      accentBadge: "rgba(197, 160, 89, 0.15)",
+      nameColor: "#FAF6F0",
+      subColor: "#EADDC9",
+      glow: "rgba(201, 123, 132, 0.28)",
+    },
+    starry: {
+      bg: "linear-gradient(135deg, #0A0F2E 0%, #060919 100%)",
+      frameBorder: "rgba(96, 165, 250, 0.45)",
+      accent: "#F59E0B",
+      accentBadge: "rgba(96, 165, 250, 0.15)",
+      nameColor: "#FFFFFF",
+      subColor: "#93C5FD",
+      glow: "rgba(96, 165, 250, 0.28)",
+    },
+    neon: {
+      bg: "linear-gradient(135deg, #18002E 0%, #0B0014 100%)",
+      frameBorder: "rgba(167, 139, 250, 0.45)",
+      accent: "#22D3EE",
+      accentBadge: "rgba(167, 139, 250, 0.15)",
+      nameColor: "#FFFFFF",
+      subColor: "#F472B6",
+      glow: "rgba(167, 139, 250, 0.32)",
+    },
+    pastel: {
+      bg: "linear-gradient(135deg, #2E1F1A 0%, #1A110E 100%)",
+      frameBorder: "rgba(201, 123, 132, 0.45)",
+      accent: "#C5A059",
+      accentBadge: "rgba(201, 123, 132, 0.15)",
+      nameColor: "#FAF6F0",
+      subColor: "#FDE2E4",
+      glow: "rgba(201, 123, 132, 0.24)",
+    },
+    retro: {
+      bg: "linear-gradient(135deg, #2A170C 0%, #130B05 100%)",
+      frameBorder: "rgba(212, 175, 55, 0.45)",
+      accent: "#D4AF37",
+      accentBadge: "rgba(212, 175, 55, 0.15)",
+      nameColor: "#FAF6F0",
+      subColor: "#FDE68A",
+      glow: "rgba(212, 175, 55, 0.28)",
+    },
+  };
+
+  const style = THEME_STYLES[theme] ?? THEME_STYLES.romance;
 
   return new ImageResponse(
     (
@@ -18,237 +82,171 @@ export async function GET(req: NextRequest) {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: "#FAF6F0",
-          backgroundImage: "radial-gradient(ellipse at 50% 20%, rgba(197, 160, 89, 0.25) 0%, transparent 65%)",
-          padding: "40px",
-          fontFamily: "Georgia, serif",
+          background: style.bg,
+          fontFamily: "serif",
           position: "relative",
-          boxSizing: "border-box",
+          overflow: "hidden",
+          padding: "48px 60px",
         }}
       >
-        {/* Outer Deckle Frame */}
+        {/* Soft atmospheric candlelight glow in center */}
         <div
           style={{
             position: "absolute",
-            inset: "24px",
-            border: "2px solid #E3D4B8",
-            borderRadius: "16px",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: 800,
+            height: 480,
+            borderRadius: "50%",
+            background: `radial-gradient(ellipse, ${style.glow} 0%, transparent 70%)`,
+          }}
+        />
+
+        {/* Vintage Inset Gold Border Frame */}
+        <div
+          style={{
+            position: "absolute",
+            top: 24,
+            left: 24,
+            right: 24,
+            bottom: 24,
+            border: `1.5px solid ${style.frameBorder}`,
+            borderRadius: 18,
             display: "flex",
-            pointerEvents: "none",
           }}
         />
 
-        {/* Inner Gold Inset Frame */}
+        {/* Inner thin decorative border */}
         <div
           style={{
             position: "absolute",
-            inset: "32px",
-            border: "1px solid rgba(197, 160, 89, 0.6)",
-            borderRadius: "12px",
+            top: 32,
+            left: 32,
+            right: 32,
+            bottom: 32,
+            border: "1px dashed rgba(197, 160, 89, 0.2)",
+            borderRadius: 12,
             display: "flex",
-            pointerEvents: "none",
           }}
         />
 
-        {/* Decorative Brass Corners */}
-        <div
-          style={{
-            position: "absolute",
-            top: "40px",
-            left: "40px",
-            width: "28px",
-            height: "28px",
-            borderTop: "3px solid #C5A059",
-            borderLeft: "3px solid #C5A059",
-          }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            top: "40px",
-            right: "40px",
-            width: "28px",
-            height: "28px",
-            borderTop: "3px solid #C5A059",
-            borderRight: "3px solid #C5A059",
-          }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            bottom: "40px",
-            left: "40px",
-            width: "28px",
-            height: "28px",
-            borderBottom: "3px solid #C5A059",
-            borderLeft: "3px solid #C5A059",
-          }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            bottom: "40px",
-            right: "40px",
-            width: "28px",
-            height: "28px",
-            borderBottom: "3px solid #C5A059",
-            borderRight: "3px solid #C5A059",
-          }}
-        />
-
-        {/* Top Postmark Badge */}
+        {/* Decorative Crimson Wax Seal Icon Badge */}
         <div
           style={{
             display: "flex",
             alignItems: "center",
-            gap: "12px",
-            padding: "6px 20px",
-            borderRadius: "999px",
-            border: "1px dashed rgba(139, 38, 53, 0.4)",
-            backgroundColor: "rgba(244, 239, 230, 0.8)",
-            marginBottom: "24px",
+            justifyContent: "center",
+            width: 104,
+            height: 104,
+            borderRadius: 52,
+            border: `3px solid ${style.accent}`,
+            boxShadow: "0 12px 36px rgba(0, 0, 0, 0.6), 0 0 35px rgba(197, 160, 89, 0.35)",
+            background: "linear-gradient(135deg, #8B2635 0%, #5A121E 100%)",
+            overflow: "hidden",
+            marginBottom: 20,
           }}
         >
-          <div
-            style={{
-              width: "8px",
-              height: "8px",
-              borderRadius: "50%",
-              backgroundColor: "#8B2635",
-            }}
-          />
-          <span
-            style={{
-              color: "#8B2635",
-              fontSize: "13px",
-              fontWeight: 700,
-              letterSpacing: "3px",
-              textTransform: "uppercase",
-            }}
-          >
-            Special Delivery • Sealed With Love
-          </span>
-          <div
-            style={{
-              width: "8px",
-              height: "8px",
-              borderRadius: "50%",
-              backgroundColor: "#8B2635",
-            }}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={WAX_SEAL_ICON_BASE64}
+            width="96"
+            height="96"
+            alt="Wax Seal Emblem"
+            style={{ borderRadius: 48 }}
           />
         </div>
 
-        {/* Center Card Content */}
+        {/* Overline Badge */}
         <div
           style={{
             display: "flex",
-            flexDirection: "column",
             alignItems: "center",
-            textAlign: "center",
-            maxWidth: "960px",
-            backgroundColor: "#F4EFE6",
-            border: "1px solid #E3D4B8",
-            borderRadius: "16px",
-            padding: "36px 48px",
-            boxShadow: "0 15px 35px rgba(59, 39, 30, 0.08)",
-            position: "relative",
-          }}
-        >
-          {/* Crimson Wax Seal Graphic */}
-          <div
-            style={{
-              width: "72px",
-              height: "72px",
-              borderRadius: "50%",
-              backgroundColor: "#8B2635",
-              backgroundImage: "radial-gradient(circle at 35% 35%, #A33B49 0%, #8B2635 60%, #5A121E 100%)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              boxShadow: "0 6px 18px rgba(139, 38, 53, 0.4), inset 0 2px 3px rgba(255, 255, 255, 0.3)",
-              marginBottom: "16px",
-            }}
-          >
-            <span style={{ fontSize: "32px", color: "#FAF6F0" }}>♥</span>
-          </div>
-
-          <span
-            style={{
-              fontSize: "13px",
-              letterSpacing: "4px",
-              textTransform: "uppercase",
-              color: "#C5A059",
-              fontWeight: 600,
-              marginBottom: "8px",
-            }}
-          >
-            A Keepsake Sealed in Time
-          </span>
-
-          <h1
-            style={{
-              fontSize: "56px",
-              fontWeight: 400,
-              color: "#2A231F",
-              margin: "0 0 12px 0",
-              lineHeight: 1.15,
-              fontStyle: "italic",
-            }}
-          >
-            Happy Birthday, {name}! ✨
-          </h1>
-
-          <p
-            style={{
-              fontSize: "22px",
-              color: "#554A44",
-              margin: "0 0 20px 0",
-              fontStyle: "italic",
-            }}
-          >
-            A personal candlelit surprise crafted with love by {sender}.
-          </p>
-
-          {/* Sensory Icons Pill */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "24px",
-              padding: "8px 24px",
-              borderRadius: "999px",
-              backgroundColor: "#FAF6F0",
-              border: "1px solid #E3D4B8",
-              color: "#7A6F62",
-              fontSize: "14px",
-            }}
-          >
-            <span>📜 Handwritten Letter</span>
-            <span>•</span>
-            <span>🕯️ 3D Bakery Cake</span>
-            <span>•</span>
-            <span>📸 Photo Scrapbook</span>
-          </div>
-        </div>
-
-        {/* Brand Footer */}
-        <div
-          style={{
-            position: "absolute",
-            bottom: "44px",
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-            color: "#7A6F62",
-            fontSize: "14px",
-            letterSpacing: "2px",
+            gap: 10,
+            padding: "8px 24px",
+            borderRadius: 999,
+            background: style.accentBadge,
+            border: `1px solid ${style.frameBorder}`,
+            color: style.accent,
+            fontSize: 15,
+            fontWeight: 700,
+            letterSpacing: 4,
             textTransform: "uppercase",
-            fontWeight: 600,
+            marginBottom: 24,
           }}
         >
-          <span>WishMaker</span>
-          <span style={{ color: "#8B2635" }}>•</span>
-          <span>Candlelight &amp; Linen Edition</span>
+          ✦ Special Birthday Keepsake ✦
+        </div>
+
+        {/* Main Recipient Headline */}
+        <div
+          style={{
+            fontSize: 68,
+            fontWeight: 800,
+            color: style.nameColor,
+            textAlign: "center",
+            lineHeight: 1.12,
+            letterSpacing: -1,
+            maxWidth: 1020,
+            display: "flex",
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            flexWrap: "wrap",
+            gap: 14,
+          }}
+        >
+          <span>Happy Birthday,</span>
+          <span
+            style={{
+              color: style.accent,
+              textDecoration: "underline",
+              textDecorationColor: "rgba(197, 160, 89, 0.5)",
+            }}
+          >
+            {name}
+          </span>
+          <span>✨</span>
+        </div>
+
+        {/* Sender Dedication Subtitle */}
+        <div
+          style={{
+            marginTop: 20,
+            fontSize: 27,
+            color: style.subColor,
+            opacity: 0.9,
+            textAlign: "center",
+            maxWidth: 900,
+            display: "flex",
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 8,
+          }}
+        >
+          <span>A personal candlelit keepsake crafted with love by</span>
+          <span style={{ fontWeight: 700, color: style.accent }}>{sender}</span>
+        </div>
+
+        {/* Footer Brand Mark */}
+        <div
+          style={{
+            position: "absolute",
+            bottom: 42,
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            color: style.accent,
+            opacity: 0.75,
+            fontSize: 17,
+            fontWeight: 600,
+            letterSpacing: 2,
+            textTransform: "uppercase",
+          }}
+        >
+          <span>♥</span>
+          <span>WishMaker • Sealed with Love</span>
+          <span>♥</span>
         </div>
       </div>
     ),

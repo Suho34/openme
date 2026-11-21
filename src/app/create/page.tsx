@@ -11,8 +11,6 @@ import {
   Calendar,
   Check,
   Share2,
-  MessageCircle,
-  Send,
   Users,
   Star,
   Heart,
@@ -258,25 +256,13 @@ export default function CreateSurprise() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const shareWhatsApp = () => {
-    if (!generatedUrl) return;
-    const text = `💌 *Happy Birthday ${name}!* ✨\n\n${sender} has crafted a private, candlelit birthday keepsake just for you.\n\n🕯️ Blow out your candles, read your letter, and open your memories here:\n${generatedUrl}`;
-    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, "_blank");
-  };
-
-  const shareTelegram = () => {
-    if (!generatedUrl) return;
-    const text = `💌 Happy Birthday ${name}! ${sender} has crafted a private candlelit keepsake for you ✨\n\nTap to break the wax seal:`;
-    window.open(`https://t.me/share/url?url=${encodeURIComponent(generatedUrl)}&text=${encodeURIComponent(text)}`, "_blank");
-  };
-
   const handleShare = async () => {
     if (!generatedUrl) return;
     if (navigator.share) {
       try {
         await navigator.share({
-          title: `💌 Happy Birthday ${name}! ✨`,
-          text: `${sender} crafted an intimate, candlelit birthday keepsake for you! Tap to break the wax seal:`,
+          title: `Happy Birthday ${name}! 🎂`,
+          text: `${sender} made you an intimate birthday keepsake!`,
           url: generatedUrl,
         });
         return;
@@ -729,54 +715,29 @@ export default function CreateSurprise() {
             </p>
 
             {/* Share & Copy Buttons */}
-            <div className="space-y-2.5">
-              {/* WhatsApp 1-Tap Button with Rich Message & Preview */}
+            <div className="space-y-3">
               <button
                 type="button"
-                onClick={shareWhatsApp}
-                className="w-full flex items-center justify-center gap-2 py-3 px-5 rounded-full text-xs sm:text-sm font-semibold text-white cursor-pointer shadow-md transition-all hover:scale-[1.01] active:scale-[0.97]"
-                style={{
-                  background: "linear-gradient(135deg, #25D366 0%, #1EBE5D 100%)",
-                  boxShadow: "0 4px 14px rgba(37, 211, 102, 0.3)",
-                }}
+                onClick={handleShare}
+                className="w-full btn-primary py-3.5 text-sm font-semibold flex items-center justify-center gap-2 shadow-md"
               >
-                <MessageCircle className="w-4 h-4 fill-current text-white" />
-                <span>Share via WhatsApp (with Preview)</span>
+                <Share2 className="w-4 h-4" />
+                Send Surprise (WhatsApp / Native Share)
               </button>
-
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={shareTelegram}
-                  className="btn-ghost py-2.5 px-3 text-xs font-semibold flex items-center justify-center gap-1.5 bg-white shadow-xs"
-                >
-                  <Send className="w-3.5 h-3.5 text-[#2AABEE]" />
-                  <span>Telegram</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleShare}
-                  className="btn-ghost py-2.5 px-3 text-xs font-semibold flex items-center justify-center gap-1.5 bg-white shadow-xs"
-                >
-                  <Share2 className="w-3.5 h-3.5 text-[#8B2635]" />
-                  <span>Other Apps</span>
-                </button>
-              </div>
 
               <button
                 type="button"
                 onClick={handleCopy}
-                className="w-full btn-ghost py-2.5 text-xs font-semibold flex items-center justify-center gap-2 bg-white"
+                className="w-full btn-ghost py-3 text-sm font-semibold flex items-center justify-center gap-2 bg-white"
               >
-                {copied ? <Check className="w-3.5 h-3.5 text-[#7D8B75]" /> : <Copy className="w-3.5 h-3.5" />}
+                {copied ? <Check className="w-4 h-4 text-[#7D8B75]" /> : <Copy className="w-4 h-4" />}
                 {copied ? "Link Copied!" : "Copy Keepsake Link"}
               </button>
 
               <Link
                 href={generatedUrl}
                 target="_blank"
-                className="inline-flex items-center justify-center gap-1.5 text-xs text-[#8B2635] hover:underline pt-1 font-medium"
+                className="inline-flex items-center justify-center gap-1.5 text-xs text-[#8B2635] hover:underline pt-2 font-medium"
               >
                 <ExternalLink className="w-3.5 h-3.5" />
                 Preview how {name} will see it
