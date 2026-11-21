@@ -121,14 +121,6 @@ export default function Home() {
         </Link>
 
         <div className="flex items-center gap-4">
-          <a
-            href="/wishmaker.apk"
-            download="WishMaker.apk"
-            className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold text-[#554A44] hover:text-[#8B2635] transition-colors"
-          >
-            <Smartphone className="w-3.5 h-3.5" />
-            Get Android APK
-          </a>
           <Link
             href="/create"
             className="btn-primary text-xs sm:text-sm py-2.5 px-5"
@@ -320,30 +312,22 @@ export default function Home() {
           <div className="max-w-xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#C5A059]/20 border border-[#C5A059]/30 text-[#EADDC9] text-[10px] font-semibold uppercase tracking-widest mb-4">
               <Smartphone className="w-3.5 h-3.5 text-[#C5A059]" />
-              Now Available as Android APK
+              Designed for Mobile & Desktop
             </div>
             <h3 className="font-serif text-3xl sm:text-4xl text-[#FAF6F0] mb-3">
               Craft surprises on your phone. Send with one tap.
             </h3>
             <p className="text-sm text-[#EADDC9]/80 leading-relaxed font-serif italic mb-6">
-              Install the WishMaker APK on your Android phone. Fill in your
-              wishes, upload your favorite photos, and share directly via
-              WhatsApp without opening a desktop browser.
+              Create a personalized keepsake right from your mobile browser. Fill in your
+              wishes, upload your favorite photos, and share directly with those who matter most.
             </p>
             <div className="flex flex-wrap items-center gap-3">
-              <a
-                href="/wishmaker.apk"
-                download="WishMaker.apk"
-                className="btn-gold px-6 py-3 text-xs sm:text-sm font-semibold inline-flex items-center gap-2"
-              >
-                <Download className="w-4 h-4" />
-                Download Android APK
-              </a>
               <Link
                 href="/create"
-                className="text-xs text-[#EADDC9] hover:underline px-3 py-2"
+                className="btn-gold px-6 py-3 text-xs sm:text-sm font-semibold inline-flex items-center gap-2"
               >
-                or use in browser →
+                <span>Start Creating</span>
+                <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
           </div>
@@ -355,7 +339,7 @@ export default function Home() {
                 WishMaker
               </p>
               <p className="text-[10px] text-[#EADDC9]/70 font-mono mt-0.5">
-                v2.0 APK
+                v2.0
               </p>
             </div>
           </div>
@@ -375,13 +359,12 @@ export default function Home() {
             >
               Create a Surprise
             </Link>
-            <a
-              href="/wishmaker.apk"
-              download="WishMaker.apk"
+            <Link
+              href="/wish?demo=true"
               className="hover:text-[#2A231F]"
             >
-              Download APK
-            </a>
+              Experience Demo
+            </Link>
           </div>
         </div>
       </footer>

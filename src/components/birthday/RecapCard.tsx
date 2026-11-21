@@ -62,36 +62,23 @@ export default function RecapCard({
         </button>
       )}
 
-      {/* Download Android APK CTA */}
+      {/* Make a Keepsake CTA */}
       <div className="mt-5 pt-5 border-t border-[#E3D4B8] text-center space-y-3">
         <p className="text-xs font-serif italic text-[#7A6F62]">
           Want to make someone feel this special on their birthday?
         </p>
 
-        <a
-          href="/wishmaker.apk"
-          download="WishMaker.apk"
+        <Link
+          href="/create"
           className="w-full inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-full text-sm font-semibold text-white cursor-pointer shadow-md transition-all hover:scale-[1.02] active:scale-[0.98]"
           style={{
             background: "linear-gradient(135deg, #8B2635 0%, #721C28 100%)",
             boxShadow: "0 4px 16px rgba(139, 38, 53, 0.35)",
           }}
         >
-          <Download className="w-4 h-4" />
-          <span>Download WishMaker App (Android APK)</span>
-        </a>
-
-        <div className="flex items-center justify-center gap-3 text-[11px] text-[#7A6F62]">
-          <span>Free APK</span>
-          <span>•</span>
-          <Link
-            href="/create"
-            className="text-[#8B2635] hover:underline font-medium inline-flex items-center gap-1"
-          >
-            <Sparkles className="w-3 h-3" />
-            or create online in browser
-          </Link>
-        </div>
+          <Sparkles className="w-4 h-4" />
+          <span>Create a Birthday Surprise</span>
+        </Link>
       </div>
     </div>
   );

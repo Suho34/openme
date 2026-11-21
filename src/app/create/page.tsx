@@ -33,7 +33,6 @@ import CakeStylePicker from "@/components/create/CakeStylePicker";
 import type { CakeStyle } from "@/lib/cakeStyles";
 import { playChime } from "@/lib/audio";
 import { generateMessage, saveWish } from "@/lib/actions";
-import { shareSurpriseLink } from "@/lib/capacitor";
 import Link from "next/link";
 import type {
   Memory,
@@ -258,11 +257,22 @@ export default function CreateSurprise() {
 
   const handleShare = async () => {
     if (!generatedUrl) return;
-    await shareSurpriseLink({
-      title: `Happy Birthday ${name}! 🎂`,
-      text: `${sender} made you an intimate birthday keepsake!`,
-      url: generatedUrl,
-    });
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `Happy Birthday ${name}! 🎂`,
+          text: `${sender} made you an intimate birthday keepsake!`,
+          url: generatedUrl,
+        });
+        return;
+      } catch (err) {
+        if ((err as Error).name === "AbortError") return;
+      }
+    }
+    await navigator.clipboard.writeText(generatedUrl);
+    setCopied(true);
+    toast.success("Keepsake link copied to clipboard!");
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
